@@ -8,6 +8,7 @@ import os
 import json
 import tensorflow_datasets as tfds
 import pickle
+import datetime
 
 
 def scale(image, label):
@@ -59,6 +60,7 @@ def grpc_pull(trainable_var):
         # print(tmp)
         trainable_var[i].assign(tf.convert_to_tensor(tmp, dtype=trainable_var[i].dtype))
 
+
 tfds.disable_progress_bar()
 # tf.compat.v1.disable_eager_execution()
 BUFFER_SIZE = 10000
@@ -81,8 +83,18 @@ train_datasets = train_datasets_unbatched.batch(GLOBAL_BATCH_SIZE)
 
 
 class callbacktest(tf.keras.callbacks.Callback):
-    def on_epoch_end(self, epoch, logs=None):
-        print("\nSend GRPC request")
+    def __init__(self):
+        super().__init__()
+        self.losses = []
+
+    def on_train_begin(self, logs=None):
+        if logs is None:
+            logs = {}
+
+    def on_batch_end(self, batch, logs=None):
+        if logs is None:
+            logs = {}
+        tf.summary.scalar('batch loss', data=logs.get('loss'), step=batch)
 
         grpc_push(multi_worker_model.trainable_variables)
         # grpc_clear(multi_worker_model.trainable_variables)
@@ -90,11 +102,17 @@ class callbacktest(tf.keras.callbacks.Callback):
         # grpc_pull(multi_worker_model.trainable_variables)
 
 
-callbacks = [callbacktest()]
+log_dir = "logs\\fit\\" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
+file_writer = tf.summary.create_file_writer(log_dir + "\\metrics")
+file_writer.set_as_default()
+
+callbacks = [callbacktest(), tensorboard_callback]
 
 with strategy.scope():
     # focus on the accuracy change.
     multi_worker_model = build_and_compile_cnn_model()
+
     multi_worker_model.fit(x=train_datasets,
                            epochs=9,
                            steps_per_epoch=100,

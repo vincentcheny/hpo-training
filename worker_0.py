@@ -1,13 +1,14 @@
 from __future__ import absolute_import, division, print_function
 from time import sleep
-import grpc
-import transfer_pb2
-import transfer_pb2_grpc
+# import grpc
+# import transfer_pb2
+# import transfer_pb2_grpc
 import tensorflow as tf
 import os
 import json
 import tensorflow_datasets as tfds
 import pickle
+import datetime
 
 
 def scale(image, label):
@@ -31,37 +32,8 @@ def build_and_compile_cnn_model():
     return model
 
 
-def grpc_push(trainable_var):
-    channel = grpc.insecure_channel('localhost:20001')
-    stub = transfer_pb2_grpc.TransferStub(channel)
-    para_list = []
-    for var in trainable_var:
-        para_list.append(var.numpy())
-    para_list = pickle.dumps(para_list)
-    response = stub.UploadPara(transfer_pb2.UploadRequest(para=para_list))
-    # print("push response:", response.message)
-
-
-def grpc_clear(trainable_var):
-    for var in trainable_var:
-        var.assign(tf.zeros(shape=var.shape, dtype=var.dtype))
-    # print("After grpc clear, trainable_var becomes:", trainable_var)
-
-
-def grpc_pull(trainable_var):
-    channel = grpc.insecure_channel('localhost:20001')
-    stub = transfer_pb2_grpc.TransferStub(channel)
-    response = stub.DownloadPara(transfer_pb2.DownloadRequest())
-    response = pickle.loads(response.message)
-    # print("pull response:", response)
-    for i in range(len(trainable_var)):
-        tmp = response[i]
-        # print(tmp)
-        trainable_var[i].assign(tf.convert_to_tensor(tmp, dtype=trainable_var[i].dtype))
-
-
 tfds.disable_progress_bar()
-# tf.compat.v1.disable_eager_execution()
+tf.compat.v1.disable_eager_execution()
 BUFFER_SIZE = 10000
 BATCH_SIZE = 32
 
@@ -72,7 +44,7 @@ os.environ['TF_CONFIG'] = json.dumps({
     'cluster': {
         'worker': ["localhost:2001", "localhost:2002"]
     },
-    'task': {'type': 'worker', 'index': 1}
+    'task': {'type': 'worker', 'index': 0}
 })
 strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
 
@@ -82,19 +54,52 @@ train_datasets = train_datasets_unbatched.batch(GLOBAL_BATCH_SIZE)
 
 
 class callbacktest(tf.keras.callbacks.Callback):
+    def __init__(self):
+        super().__init__()
+        self.losses = []
+
+    def on_train_begin(self, logs=None):
+        if logs is None:
+            logs = {}
+
     def on_batch_end(self, batch, logs=None):
+        if logs is None:
+            logs = {}
+        tf.summary.scalar('batch loss', data=logs.get('loss'), step=batch)
+
+        multi_worker_model.save_weights(checkpoint_dir)
+        latest = tf.train.latest_checkpoint(checkpoint_dir)
+        multi_worker_model.load_weights(latest)
+
+    # def on_epoch_end(self, epoch, logs=None):
+        # print("\nSend GRPC request")
 
         # grpc_push(multi_worker_model.trainable_variables)
-        grpc_clear(multi_worker_model.trainable_variables)
-        sleep(0.2)
-        grpc_pull(multi_worker_model.trainable_variables)
+        # grpc_clear(multi_worker_model.trainable_variables)
+        # sleep(1)
+        # grpc_pull(multi_worker_model.trainable_variables)
+        # multi_worker_model.save_weights(checkpoint_dir)
+        # latest = tf.train.latest_checkpoint(checkpoint_dir)
+        # multi_worker_model.load_weights(latest)
 
 
-callbacks = [callbacktest()]
+log_dir = "logs\\fit\\" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
+file_writer = tf.summary.create_file_writer(log_dir + "\\metrics")
+file_writer.set_as_default()
+
+checkpoint_path = "training_1/cp.ckpt"
+checkpoint_dir = os.path.dirname(checkpoint_path)
+cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
+                                                 save_weights_only=True,
+                                                 verbose=1)
+
+callbacks = [callbacktest(), cp_callback, tensorboard_callback]
 
 with strategy.scope():
     # focus on the accuracy change.
     multi_worker_model = build_and_compile_cnn_model()
+    # multi_worker_model.save_weights(checkpoint_path.format(epoch=0))
     multi_worker_model.fit(x=train_datasets,
                            epochs=9,
                            steps_per_epoch=100,
