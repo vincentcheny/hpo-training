@@ -1,8 +1,9 @@
+
 from __future__ import absolute_import, division, print_function
 from time import sleep
-# import grpc
-# import transfer_pb2
-# import transfer_pb2_grpc
+import grpc
+import transfer_pb2
+import transfer_pb2_grpc
 import tensorflow as tf
 import os
 import json
@@ -30,6 +31,35 @@ def build_and_compile_cnn_model():
         optimizer=tf.keras.optimizers.SGD(learning_rate=0.001),
         metrics=['accuracy'])
     return model
+
+
+def grpc_push(trainable_var):
+    channel = grpc.insecure_channel('localhost:20001')
+    stub = transfer_pb2_grpc.TransferStub(channel)
+    para_list = []
+    for var in trainable_var:
+        para_list.append(var.numpy())
+    para_list = pickle.dumps(para_list)
+    response = stub.UploadPara(transfer_pb2.UploadRequest(para=para_list))
+    # print("push response:", response.message)
+
+
+def grpc_clear(trainable_var):
+    for var in trainable_var:
+        var.assign(tf.zeros(shape=var.shape, dtype=var.dtype))
+    # print("After grpc clear, trainable_var becomes:", trainable_var)
+
+
+def grpc_pull(trainable_var):
+    channel = grpc.insecure_channel('localhost:20001')
+    stub = transfer_pb2_grpc.TransferStub(channel)
+    response = stub.DownloadPara(transfer_pb2.DownloadRequest())
+    response = pickle.loads(response.message)
+    # print("pull response:", response)
+    for i in range(len(trainable_var)):
+        tmp = response[i]
+        # print(tmp)
+        trainable_var[i].assign(tf.convert_to_tensor(tmp, dtype=trainable_var[i].dtype))
 
 
 tfds.disable_progress_bar()
@@ -66,21 +96,16 @@ class callbacktest(tf.keras.callbacks.Callback):
         if logs is None:
             logs = {}
         tf.summary.scalar('batch loss', data=logs.get('loss'), step=batch)
+        print(" - logs.loss:", logs.get('loss'))
 
-        multi_worker_model.save_weights(checkpoint_dir)
+        multi_worker_model.save_weights(checkpoint_path)
         latest = tf.train.latest_checkpoint(checkpoint_dir)
         multi_worker_model.load_weights(latest)
-
-    # def on_epoch_end(self, epoch, logs=None):
-        # print("\nSend GRPC request")
 
         # grpc_push(multi_worker_model.trainable_variables)
         # grpc_clear(multi_worker_model.trainable_variables)
         # sleep(1)
         # grpc_pull(multi_worker_model.trainable_variables)
-        # multi_worker_model.save_weights(checkpoint_dir)
-        # latest = tf.train.latest_checkpoint(checkpoint_dir)
-        # multi_worker_model.load_weights(latest)
 
 
 log_dir = "logs\\fit\\" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -94,12 +119,11 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
                                                  save_weights_only=True,
                                                  verbose=1)
 
-callbacks = [callbacktest(), cp_callback, tensorboard_callback]
+callbacks = [callbacktest(), tensorboard_callback]
 
 with strategy.scope():
     # focus on the accuracy change.
     multi_worker_model = build_and_compile_cnn_model()
-    # multi_worker_model.save_weights(checkpoint_path.format(epoch=0))
     multi_worker_model.fit(x=train_datasets,
                            epochs=9,
                            steps_per_epoch=100,

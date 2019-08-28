@@ -95,7 +95,7 @@ class callbacktest(tf.keras.callbacks.Callback):
         if logs is None:
             logs = {}
         tf.summary.scalar('batch loss', data=logs.get('loss'), step=batch)
-
+        print(" - logs.loss:", logs.get('loss'))
         grpc_push(multi_worker_model.trainable_variables)
         # grpc_clear(multi_worker_model.trainable_variables)
         # sleep(1)
