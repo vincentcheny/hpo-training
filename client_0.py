@@ -61,6 +61,13 @@ def grpc_pull(trainable_var):
         trainable_var[i].assign(tf.convert_to_tensor(tmp, dtype=trainable_var[i].dtype))
 
 
+# enable tensorflow-gpu
+config = tf.compat.v1.ConfigProto()
+config.gpu_options.allow_growth = True
+config.log_device_placement = True
+sess = tf.compat.v1.Session(config=config)
+tf.compat.v1.keras.backend.set_session(sess)
+
 tfds.disable_progress_bar()
 # tf.compat.v1.disable_eager_execution()
 BUFFER_SIZE = 10000
