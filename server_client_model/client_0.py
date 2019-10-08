@@ -1,14 +1,13 @@
 from __future__ import absolute_import, division, print_function
-from time import sleep
-import grpc
-import transfer_pb2
-import transfer_pb2_grpc
-import tensorflow as tf
 import os
 import json
+import tensorflow as tf
 import tensorflow_datasets as tfds
-import pickle
 import datetime
+import sys
+
+sys.path.append("..")
+import grpc_op
 
 
 def scale(image, label):
@@ -31,42 +30,6 @@ def build_and_compile_cnn_model():
         metrics=['accuracy'])
     return model
 
-
-def grpc_push(trainable_var):
-    channel = grpc.insecure_channel('localhost:20001')
-    stub = transfer_pb2_grpc.TransferStub(channel)
-    para_list = []
-    for var in trainable_var:
-        para_list.append(var.numpy())
-    para_list = pickle.dumps(para_list)
-    response = stub.UploadPara(transfer_pb2.UploadRequest(para=para_list))
-    # print("push response:", response.message)
-
-
-def grpc_clear(trainable_var):
-    for var in trainable_var:
-        var.assign(tf.zeros(shape=var.shape, dtype=var.dtype))
-    # print("After grpc clear, trainable_var becomes:", trainable_var)
-
-
-def grpc_pull(trainable_var):
-    channel = grpc.insecure_channel('localhost:20001')
-    stub = transfer_pb2_grpc.TransferStub(channel)
-    response = stub.DownloadPara(transfer_pb2.DownloadRequest())
-    response = pickle.loads(response.message)
-    # print("pull response:", response)
-    for i in range(len(trainable_var)):
-        tmp = response[i]
-        # print(tmp)
-        trainable_var[i].assign(tf.convert_to_tensor(tmp, dtype=trainable_var[i].dtype))
-
-
-# enable tensorflow-gpu
-config = tf.compat.v1.ConfigProto()
-config.gpu_options.allow_growth = True
-config.log_device_placement = True
-sess = tf.compat.v1.Session(config=config)
-tf.compat.v1.keras.backend.set_session(sess)
 
 tfds.disable_progress_bar()
 # tf.compat.v1.disable_eager_execution()
@@ -99,14 +62,13 @@ class callbacktest(tf.keras.callbacks.Callback):
             logs = {}
 
     def on_batch_end(self, batch, logs=None):
-        if logs is None:
-            logs = {}
-        tf.summary.scalar('batch loss', data=logs.get('loss'), step=batch)
-        print(" - logs.loss:", logs.get('loss'))
-        grpc_push(multi_worker_model.trainable_variables)
-        # grpc_clear(multi_worker_model.trainable_variables)
-        # sleep(1)
-        # grpc_pull(multi_worker_model.trainable_variables)
+        # Record batch loss on tensorboard
+        # if logs is None:
+        #     logs = {}
+        # tf.summary.scalar('batch loss', data=logs.get('loss'), step=batch)
+        # print(" - logs.loss:", logs.get('loss'))
+
+        grpc_op.push(multi_worker_model.trainable_variables)
 
 
 log_dir = "logs\\fit\\" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -114,12 +76,17 @@ tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
 file_writer = tf.summary.create_file_writer(log_dir + "\\metrics")
 file_writer.set_as_default()
 
+checkpoint_path = "checkpoint/cp.ckpt"
+checkpoint_dir = os.path.dirname(checkpoint_path)
+cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
+                                                 save_weights_only=True,
+                                                 verbose=1)
+
 callbacks = [callbacktest(), tensorboard_callback]
 
 with strategy.scope():
     # focus on the accuracy change.
     multi_worker_model = build_and_compile_cnn_model()
-
     multi_worker_model.fit(x=train_datasets,
                            epochs=9,
                            steps_per_epoch=100,

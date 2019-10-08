@@ -1,13 +1,12 @@
 from __future__ import absolute_import, division, print_function
 from time import sleep
-import grpc
-import transfer_pb2
-import transfer_pb2_grpc
-import tensorflow as tf
 import os
 import json
+import tensorflow as tf
 import tensorflow_datasets as tfds
-import pickle
+import sys
+sys.path.append("..")
+import grpc_op
 
 
 def scale(image, label):
@@ -31,42 +30,6 @@ def build_and_compile_cnn_model():
     return model
 
 
-def grpc_push(trainable_var):
-    channel = grpc.insecure_channel('localhost:20001')
-    stub = transfer_pb2_grpc.TransferStub(channel)
-    para_list = []
-    for var in trainable_var:
-        para_list.append(var.numpy())
-    para_list = pickle.dumps(para_list)
-    response = stub.UploadPara(transfer_pb2.UploadRequest(para=para_list))
-    # print("push response:", response.message)
-
-
-def grpc_clear(trainable_var):
-    for var in trainable_var:
-        var.assign(tf.zeros(shape=var.shape, dtype=var.dtype))
-    # print("After grpc clear, trainable_var becomes:", trainable_var)
-
-
-def grpc_pull(trainable_var):
-    channel = grpc.insecure_channel('localhost:20001')
-    stub = transfer_pb2_grpc.TransferStub(channel)
-    response = stub.DownloadPara(transfer_pb2.DownloadRequest())
-    response = pickle.loads(response.message)
-    # print("pull response:", response)
-    for i in range(len(trainable_var)):
-        tmp = response[i]
-        # print(tmp)
-        trainable_var[i].assign(tf.convert_to_tensor(tmp, dtype=trainable_var[i].dtype))
-
-
-# enable tensorflow-gpu
-config = tf.compat.v1.ConfigProto()
-config.gpu_options.allow_growth = True
-config.log_device_placement = True
-sess = tf.compat.v1.Session(config=config)
-tf.compat.v1.keras.backend.set_session(sess)
-
 tfds.disable_progress_bar()
 # tf.compat.v1.disable_eager_execution()
 BUFFER_SIZE = 10000
@@ -86,15 +49,18 @@ strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
 datasets, info = tfds.load(name='mnist', with_info=True, as_supervised=True)
 train_datasets_unbatched = datasets['train'].map(scale).shuffle(BUFFER_SIZE)
 train_datasets = train_datasets_unbatched.batch(GLOBAL_BATCH_SIZE)
+run_first_time = True
 
 
 class callbacktest(tf.keras.callbacks.Callback):
     def on_batch_end(self, batch, logs=None):
+        global run_first_time
+        if run_first_time:
+            run_first_time = False
+            sleep(1)
+        grpc_op.clear(multi_worker_model.trainable_variables)
 
-        # grpc_push(multi_worker_model.trainable_variables)
-        grpc_clear(multi_worker_model.trainable_variables)
-        sleep(0.2)
-        grpc_pull(multi_worker_model.trainable_variables)
+        grpc_op.pull(multi_worker_model.trainable_variables)
 
 
 callbacks = [callbacktest()]
