@@ -5,16 +5,7 @@ import os
 import json
 # os.environ["SNOOPER_DISABLED"] = "0"
 import pysnooper
-from tensorflow.python.distribute import cross_device_utils
-from tensorflow.python.client import device_lib
-import shutil
-# if os.path.isdir('./estimator'):
-#     shutil.rmtree('./estimator')
-# config = tf.compat.v1.ConfigProto()
-# config.gpu_options.allow_growth = True
-# config.log_device_placement = True
-# sess = tf.compat.v1.Session(config=config)
-# tf.compat.v1.keras.backend.set_session(sess)
+
 tfds.disable_progress_bar()
 BUFFER_SIZE = 10000
 BATCH_SIZE = 64
@@ -75,19 +66,13 @@ def model_fn(features, labels, mode):
             loss, tf.compat.v1.train.get_or_create_global_step()))
 
 
-
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
 strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
 config = tf.estimator.RunConfig(train_distribute=strategy)
 classifier = tf.estimator.Estimator(
     model_fn=model_fn, model_dir='./estimator/multiworker', config=config)
-# print("Group Key:", cross_device_utils.CollectiveKeys().get_group_key(["/job:worker/replica:0/task:0/device:CPU:0"]))
-# print(device_lib.list_local_devices())
-# print("===================")
-# print(device_lib.list_local_devices())
-with pysnooper.snoop('./log/estimator_lv25.log', depth=25):
-    tf.estimator.train_and_evaluate(
-        classifier,
-        train_spec=tf.estimator.TrainSpec(input_fn=input_fn),
-        eval_spec=tf.estimator.EvalSpec(input_fn=input_fn)
-    )
+tf.estimator.train_and_evaluate(
+    classifier,
+    train_spec=tf.estimator.TrainSpec(input_fn=input_fn),
+    eval_spec=tf.estimator.EvalSpec(input_fn=input_fn)
+)
