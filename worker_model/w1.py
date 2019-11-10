@@ -6,7 +6,6 @@ import json
 # os.environ["SNOOPER_DISABLED"] = "0"
 import pysnooper
 
-
 tfds.disable_progress_bar()
 BUFFER_SIZE = 10000
 BATCH_SIZE = 64
@@ -38,8 +37,6 @@ os.environ['TF_CONFIG'] = json.dumps({
 })
 
 LEARNING_RATE = 1e-4
-
-
 def model_fn(features, labels, mode):
     model = tf.keras.Sequential([
         tf.keras.layers.Conv2D(32, 3, activation='relu', input_shape=(28, 28, 1)),
@@ -71,21 +68,11 @@ def model_fn(features, labels, mode):
 
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
 strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
-
 config = tf.estimator.RunConfig(train_distribute=strategy)
-
 classifier = tf.estimator.Estimator(
     model_fn=model_fn, model_dir='./estimator/multiworker', config=config)
-# with pysnooper.snoop('./log/file.log', depth=20):
-while True:
-    try:
-        print("start training and evaluating")
-        tf.estimator.train_and_evaluate(
-            classifier,
-            train_spec=tf.estimator.TrainSpec(input_fn=input_fn),
-            eval_spec=tf.estimator.EvalSpec(input_fn=input_fn)
-        )
-    except Exception as e:
-        print("[Important] We catch an exception")
-        print(e)
-
+tf.estimator.train_and_evaluate(
+    classifier,
+    train_spec=tf.estimator.TrainSpec(input_fn=input_fn),
+    eval_spec=tf.estimator.EvalSpec(input_fn=input_fn)
+)
