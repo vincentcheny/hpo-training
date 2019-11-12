@@ -1,11 +1,11 @@
 C:\Users\b148848\AppData\Local\Microsoft\WindowsApps\ubuntu.exe run "export PYTHONUNBUFFERED=1 && export PYTHONIOENCODING=UTF-8 && export \"PYTHONPATH=/mnt/d/GitRepository/GRPC-Model:/mnt/d/Program Files/JetBrains/PyCharm 2019.2.2/helpers/pycharm_matplotlib_backend:/mnt/d/Program Files/JetBrains/PyCharm 2019.2.2/helpers/pycharm_display\" && export PYCHARM_HOSTED=1 && export PYCHARM_DISPLAY_PORT=63342 && cd /mnt/d/GitRepository/GRPC-Model/worker_model && /home/vincent/miniconda3/envs/build/bin/python /mnt/d/GitRepository/GRPC-Model/worker_model/w0.py"
-2019-11-12 14:29:19.816909: I tensorflow/core/platform/profile_utils/cpu_utils.cc:94] CPU Frequency: 2904000000 Hz
-2019-11-12 14:29:19.817697: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x7fffd78a9ea0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
-2019-11-12 14:29:19.817828: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
-E1112 14:29:19.822015600   16252 socket_utils_common_posix.cc:198] check for SO_REUSEPORT: {"created":"@1573540159.822005800","description":"Protocol not available","errno":92,"file":"external/grpc/src/core/lib/iomgr/socket_utils_common_posix.cc","file_line":175,"os_error":"Protocol not available","syscall":"getsockopt(SO_REUSEPORT)"}
-E1112 14:29:19.822130800   16252 socket_utils_common_posix.cc:299] setsockopt(TCP_USER_TIMEOUT) Protocol not available
-2019-11-12 14:29:19.822363: I tensorflow/core/distributed_runtime/rpc/grpc_channel.cc:300] Initialize GrpcChannelCache for job worker -> {0 -> localhost:12345, 1 -> localhost:23456}
-2019-11-12 14:29:19.825436: I tensorflow/core/distributed_runtime/rpc/grpc_server_lib.cc:371] Started server with target: grpc://localhost:12345
+2019-11-12 16:35:10.072690: I tensorflow/core/platform/profile_utils/cpu_utils.cc:94] CPU Frequency: 2904000000 Hz
+2019-11-12 16:35:10.073586: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x7fffd5ba7de0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2019-11-12 16:35:10.073703: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+E1112 16:35:10.078032800   18135 socket_utils_common_posix.cc:198] check for SO_REUSEPORT: {"created":"@1573547710.078023900","description":"Protocol not available","errno":92,"file":"external/grpc/src/core/lib/iomgr/socket_utils_common_posix.cc","file_line":175,"os_error":"Protocol not available","syscall":"getsockopt(SO_REUSEPORT)"}
+E1112 16:35:10.078154900   18135 socket_utils_common_posix.cc:299] setsockopt(TCP_USER_TIMEOUT) Protocol not available
+2019-11-12 16:35:10.078390: I tensorflow/core/distributed_runtime/rpc/grpc_channel.cc:300] Initialize GrpcChannelCache for job worker -> {0 -> localhost:12345, 1 -> localhost:23456}
+2019-11-12 16:35:10.081608: I tensorflow/core/distributed_runtime/rpc/grpc_server_lib.cc:371] Started server with target: grpc://localhost:12345
 INFO:tensorflow:Enabled multi-worker collective ops with available devices: ['/job:worker/replica:0/task:0/device:CPU:0', '/job:worker/replica:0/task:0/device:XLA_CPU:0']
 INFO:tensorflow:Using MirroredStrategy with devices ('/job:worker/task:0',)
 INFO:tensorflow:MultiWorkerMirroredStrategy with cluster_spec = {'worker': ['localhost:12345', 'localhost:23456']}, task_type = 'worker', task_id = 0, num_workers = 2, local_devices = ('/job:worker/task:0',), communication = CollectiveCommunication.AUTO
@@ -18,12 +18,12 @@ graph_options {
     meta_optimizer_iterations: ONE
   }
 }
-, '_keep_checkpoint_max': 5, '_keep_checkpoint_every_n_hours': 10000, '_log_step_count_steps': 100, '_train_distribute': <tensorflow.python.distribute.collective_all_reduce_strategy.CollectiveAllReduceStrategy object at 0x7f2b724a8950>, '_device_fn': None, '_protocol': None, '_eval_distribute': None, '_experimental_distribute': None, '_experimental_max_worker_delay_secs': None, '_session_creation_timeout_secs': 7200, '_service': None, '_cluster_spec': ClusterSpec({'worker': ['localhost:12345', 'localhost:23456']}), '_task_type': 'worker', '_task_id': 0, '_global_id_in_cluster': 0, '_master': '', '_evaluation_master': '', '_is_chief': True, '_num_ps_replicas': 0, '_num_worker_replicas': 1, '_distribute_coordinator_mode': 'independent_worker'}
-start training and evaluating
+, '_keep_checkpoint_max': 5, '_keep_checkpoint_every_n_hours': 10000, '_log_step_count_steps': 100, '_train_distribute': <tensorflow.python.distribute.collective_all_reduce_strategy.CollectiveAllReduceStrategy object at 0x7f3467e98510>, '_device_fn': None, '_protocol': None, '_eval_distribute': None, '_experimental_distribute': None, '_experimental_max_worker_delay_secs': None, '_session_creation_timeout_secs': 7200, '_service': None, '_cluster_spec': ClusterSpec({'worker': ['localhost:12345', 'localhost:23456']}), '_task_type': 'worker', '_task_id': 0, '_global_id_in_cluster': 0, '_master': '', '_evaluation_master': '', '_is_chief': True, '_num_ps_replicas': 0, '_num_worker_replicas': 1, '_distribute_coordinator_mode': 'independent_worker'}
 INFO:tensorflow:Running `train_and_evaluate` with Distribute Coordinator.
 INFO:tensorflow:Running Distribute Coordinator with mode = 'independent_worker', cluster_spec = {'worker': ['localhost:12345', 'localhost:23456']}, task_type = 'worker', task_id = 0, environment = None, rpc_layer = 'grpc'
 WARNING:tensorflow:`eval_strategy` is not passed in. No distribution strategy will be used for evaluation.
 INFO:tensorflow:Using MirroredStrategy with devices ('/job:worker/task:0',)
+start training and evaluating
 INFO:tensorflow:MultiWorkerMirroredStrategy with cluster_spec = {'worker': ['localhost:12345', 'localhost:23456']}, task_type = 'worker', task_id = 0, num_workers = 2, local_devices = ('/job:worker/task:0',), communication = CollectiveCommunication.AUTO
 INFO:tensorflow:Using MirroredStrategy with devices ('/job:worker/task:0',)
 INFO:tensorflow:MultiWorkerMirroredStrategy with cluster_spec = {'worker': ['localhost:12345', 'localhost:23456']}, task_type = 'worker', task_id = 0, num_workers = 2, local_devices = ('/job:worker/task:0',), communication = CollectiveCommunication.AUTO
@@ -33,7 +33,7 @@ graph_options {
     meta_optimizer_iterations: ONE
   }
 }
-, '_keep_checkpoint_max': 5, '_keep_checkpoint_every_n_hours': 10000, '_log_step_count_steps': 100, '_train_distribute': <tensorflow.python.distribute.collective_all_reduce_strategy.CollectiveAllReduceStrategy object at 0x7f2b724a8390>, '_device_fn': None, '_protocol': None, '_eval_distribute': None, '_experimental_distribute': None, '_experimental_max_worker_delay_secs': None, '_session_creation_timeout_secs': 7200, '_service': None, '_cluster_spec': ClusterSpec({'worker': ['localhost:12345', 'localhost:23456']}), '_task_type': 'worker', '_task_id': 0, '_global_id_in_cluster': 0, '_master': 'grpc://localhost:12345', '_evaluation_master': 'grpc://localhost:12345', '_is_chief': True, '_num_ps_replicas': 0, '_num_worker_replicas': 2, '_distribute_coordinator_mode': 'independent_worker'}
+, '_keep_checkpoint_max': 5, '_keep_checkpoint_every_n_hours': 10000, '_log_step_count_steps': 100, '_train_distribute': <tensorflow.python.distribute.collective_all_reduce_strategy.CollectiveAllReduceStrategy object at 0x7f3467e982d0>, '_device_fn': None, '_protocol': None, '_eval_distribute': None, '_experimental_distribute': None, '_experimental_max_worker_delay_secs': None, '_session_creation_timeout_secs': 7200, '_service': None, '_cluster_spec': ClusterSpec({'worker': ['localhost:12345', 'localhost:23456']}), '_task_type': 'worker', '_task_id': 0, '_global_id_in_cluster': 0, '_master': 'grpc://localhost:12345', '_evaluation_master': 'grpc://localhost:12345', '_is_chief': True, '_num_ps_replicas': 0, '_num_worker_replicas': 2, '_distribute_coordinator_mode': 'independent_worker'}
 INFO:tensorflow:The `input_fn` accepts an `input_context` which will be given by DistributionStrategy
 WARNING:tensorflow:From /home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/ops/resource_variable_ops.py:1634: calling BaseResourceVariable.__init__ (from tensorflow.python.ops.resource_variable_ops) with constraint is deprecated and will be removed in a future version.
 Instructions for updating:
@@ -53,8 +53,8 @@ WARNING:tensorflow:Collective ops may deadlock with `save_checkpoints_secs` plea
 WARNING:tensorflow:Collective ops may deadlock with `save_checkpoints_secs` please use `save_checkpoint_steps` instead. Clearing `save_checkpoint_secs` and setting `save_checkpoint_steps` to 1000 now.
 INFO:tensorflow:Create CheckpointSaverHook.
 INFO:tensorflow:Create CheckpointSaverHook.
-INFO:tensorflow:all_hooks [<tensorflow_estimator.python.estimator.util.DistributedIteratorInitializerHook object at 0x7f2b724be850>, <tensorflow.python.training.basic_session_run_hooks.NanTensorHook object at 0x7f2b703f8e90>, <tensorflow.python.training.basic_session_run_hooks.LoggingTensorHook object at 0x7f2b7021f450>, <tensorflow.python.training.basic_session_run_hooks.StepCounterHook object at 0x7f2b70231d90>, <tensorflow.python.training.basic_session_run_hooks.SummarySaverHook object at 0x7f2b70231950>, <tensorflow.python.training.basic_session_run_hooks.CheckpointSaverHook object at 0x7f2b70231490>]
-INFO:tensorflow:all_hooks [<tensorflow_estimator.python.estimator.util.DistributedIteratorInitializerHook object at 0x7f2b724be850>, <tensorflow.python.training.basic_session_run_hooks.NanTensorHook object at 0x7f2b703f8e90>, <tensorflow.python.training.basic_session_run_hooks.LoggingTensorHook object at 0x7f2b7021f450>, <tensorflow.python.training.basic_session_run_hooks.StepCounterHook object at 0x7f2b70231d90>, <tensorflow.python.training.basic_session_run_hooks.SummarySaverHook object at 0x7f2b70231950>, <tensorflow.python.training.basic_session_run_hooks.CheckpointSaverHook object at 0x7f2b70231490>]
+INFO:tensorflow:all_hooks [<tensorflow_estimator.python.estimator.util.DistributedIteratorInitializerHook object at 0x7f3467eae7d0>, <tensorflow.python.training.basic_session_run_hooks.StopAtStepHook object at 0x7f3467ea5390>, <tensorflow.python.training.basic_session_run_hooks.NanTensorHook object at 0x7f34643e39d0>, <tensorflow.python.training.basic_session_run_hooks.LoggingTensorHook object at 0x7f34643e34d0>, <tensorflow.python.training.basic_session_run_hooks.StepCounterHook object at 0x7f34644fbd50>, <tensorflow.python.training.basic_session_run_hooks.SummarySaverHook object at 0x7f34643feed0>, <tensorflow.python.training.basic_session_run_hooks.CheckpointSaverHook object at 0x7f34643fe210>]
+INFO:tensorflow:all_hooks [<tensorflow_estimator.python.estimator.util.DistributedIteratorInitializerHook object at 0x7f3467eae7d0>, <tensorflow.python.training.basic_session_run_hooks.StopAtStepHook object at 0x7f3467ea5390>, <tensorflow.python.training.basic_session_run_hooks.NanTensorHook object at 0x7f34643e39d0>, <tensorflow.python.training.basic_session_run_hooks.LoggingTensorHook object at 0x7f34643e34d0>, <tensorflow.python.training.basic_session_run_hooks.StepCounterHook object at 0x7f34644fbd50>, <tensorflow.python.training.basic_session_run_hooks.SummarySaverHook object at 0x7f34643feed0>, <tensorflow.python.training.basic_session_run_hooks.CheckpointSaverHook object at 0x7f34643fe210>]
 INFO:tensorflow:Creating chief session creator with config: device_filters: "/job:worker/task:0"
 allow_soft_placement: true
 graph_options {
@@ -87,80 +87,286 @@ experimental {
 
 INFO:tensorflow:Graph was finalized.
 INFO:tensorflow:Graph was finalized.
-2019-11-12 14:29:20.423544: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op global_step/Initializer/CollectiveBcastSend: Broadcast(1) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
-2019-11-12 14:29:20.423898: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op dense/bias/Initializer/CollectiveBcastSend: Broadcast(1) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
-2019-11-12 14:29:20.424181: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op conv2d/bias/Initializer/CollectiveBcastSend: Broadcast(1) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
-2019-11-12 14:29:20.424458: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op dense_1/kernel/Initializer/CollectiveBcastSend: Broadcast(1) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
-2019-11-12 14:29:20.424842: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op conv2d/kernel/Initializer/CollectiveBcastSend: Broadcast(1) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
-2019-11-12 14:29:20.425546: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op dense/kernel/Initializer/CollectiveBcastSend: Broadcast(1) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
-2019-11-12 14:29:21.690301: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op  got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:21.690655: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op  got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:21.690928: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op  got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:21.691146: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op  got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:21.691357: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op  got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:21.691499: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op dense/bias/Initializer/CollectiveBcastRecv: Broadcast(0) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:21.691646: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op  got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:21.691810: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op dense_1/kernel/Initializer/CollectiveBcastRecv: Broadcast(0) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:21.691972: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op dense/kernel/Initializer/CollectiveBcastRecv: Broadcast(0) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:21.692101: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op global_step/Initializer/CollectiveBcastRecv: Broadcast(0) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:21.692219: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op conv2d/kernel/Initializer/CollectiveBcastRecv: Broadcast(0) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:21.692347: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op conv2d/bias/Initializer/CollectiveBcastRecv: Broadcast(0) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:21.692502: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op dense_1/bias/Initializer/CollectiveBcastRecv: Broadcast(0) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:10.709373: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op global_step/Initializer/CollectiveBcastSend: Broadcast(1) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
+2019-11-12 16:35:10.709759: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op conv2d/bias/Initializer/CollectiveBcastSend: Broadcast(1) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
+2019-11-12 16:35:10.710051: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op dense_1/bias/Initializer/CollectiveBcastSend: Broadcast(1) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
+2019-11-12 16:35:10.710233: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op conv2d/kernel/Initializer/CollectiveBcastSend: Broadcast(1) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
+2019-11-12 16:35:10.710363: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op dense_1/kernel/Initializer/CollectiveBcastSend: Broadcast(1) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
+2019-11-12 16:35:10.710631: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op dense/kernel/Initializer/CollectiveBcastSend: Broadcast(1) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
+2019-11-12 16:35:12.045538: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op  got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:12.045749: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op  got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:12.045912: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op  got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:12.046055: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op conv2d/bias/Initializer/CollectiveBcastRecv: Broadcast(0) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:12.046295: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op dense/bias/Initializer/CollectiveBcastRecv: Broadcast(0) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:12.046457: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op dense_1/bias/Initializer/CollectiveBcastRecv: Broadcast(0) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:12.046647: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op conv2d/kernel/Initializer/CollectiveBcastRecv: Broadcast(0) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:12.046764: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op dense_1/kernel/Initializer/CollectiveBcastRecv: Broadcast(0) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:12.046895: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op global_step/Initializer/CollectiveBcastRecv: Broadcast(0) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:12.047033: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op dense/kernel/Initializer/CollectiveBcastRecv: Broadcast(0) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
 INFO:tensorflow:Running local_init_op.
 INFO:tensorflow:Running local_init_op.
 INFO:tensorflow:Done running local_init_op.
 INFO:tensorflow:Done running local_init_op.
 INFO:tensorflow:Saving checkpoints for 0 into ./estimator/multiworker/model.ckpt.
 INFO:tensorflow:Saving checkpoints for 0 into ./estimator/multiworker/model.ckpt.
-2019-11-12 14:29:24.401574: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce_1/CollectiveReduce: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
-2019-11-12 14:29:24.401796: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_5: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
-2019-11-12 14:29:24.402285: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_4: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
-2019-11-12 14:29:24.402892: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_3: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
-2019-11-12 14:29:24.406860: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_2: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
-2019-11-12 14:29:24.415480: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_1: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
-2019-11-12 14:29:24.418748: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_3: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:24.418944: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_5: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:24.419104: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce_1/CollectiveReduce: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:24.419709: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_4: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:24.421315: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
-2019-11-12 14:29:24.425333: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_2: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:24.432631: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_1: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:24.436280: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-INFO:tensorflow:loss = 2.2944076, step = 0
-INFO:tensorflow:loss = 2.2944076, step = 0
-INFO:tensorflow:loss = 2.2963934, step = 100 (2.713 sec)
-INFO:tensorflow:loss = 2.2963934, step = 100 (2.713 sec)
-INFO:tensorflow:global_step/sec: 36.8604
-INFO:tensorflow:global_step/sec: 36.8604
-2019-11-12 14:29:47.344502: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op  got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:47.344700: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op  got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:47.345131: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op  got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:47.345300: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op  got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:47.345645: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_5: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:47.345938: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_4: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:47.346090: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce_1/CollectiveReduce: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:47.346338: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_3: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:47.351273: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_2: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:47.363658: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_1: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-2019-11-12 14:29:47.367314: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
-INFO:tensorflow:loss = 2.2960765, step = 200 (21.864 sec)
-INFO:tensorflow:loss = 2.2960765, step = 200 (21.864 sec)
-INFO:tensorflow:global_step/sec: 4.57367
-INFO:tensorflow:global_step/sec: 4.57367
-INFO:tensorflow:loss = 2.27463, step = 300 (2.548 sec)
-INFO:tensorflow:loss = 2.27463, step = 300 (2.548 sec)
-INFO:tensorflow:global_step/sec: 39.2415
-INFO:tensorflow:global_step/sec: 39.2415
-INFO:tensorflow:loss = 2.292257, step = 400 (2.142 sec)
-INFO:tensorflow:loss = 2.292257, step = 400 (2.142 sec)
-INFO:tensorflow:global_step/sec: 46.7066
-INFO:tensorflow:global_step/sec: 46.7066
-2019-11-12 14:29:55.064763: W tensorflow/core/common_runtime/base_collective_executor.cc:217] BaseCollectiveExecutor::StartAbort Out of range: End of sequence
-	 [[{{node IteratorGetNext}}]]
-INFO:tensorflow:Saving checkpoints for 469 into ./estimator/multiworker/model.ckpt.
-INFO:tensorflow:Saving checkpoints for 469 into ./estimator/multiworker/model.ckpt.
-INFO:tensorflow:Loss for final step: 2.0050273.
-INFO:tensorflow:Loss for final step: 2.0050273.
-2019-11-12 14:29:55.226194: W tensorflow/core/common_runtime/eager/context.cc:319] Unable to destroy server_ object, so releasing instead. Servers don't support clean shutdown.
+2019-11-12 16:35:14.837234: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce_1/CollectiveReduce: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
+2019-11-12 16:35:14.837551: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_5: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
+2019-11-12 16:35:14.837974: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_4: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
+2019-11-12 16:35:14.838568: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_3: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
+2019-11-12 16:35:14.844416: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_2: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
+2019-11-12 16:35:14.851932: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_5: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:14.852315: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce_1/CollectiveReduce: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:14.852594: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_4: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:14.852934: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_1: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
+2019-11-12 16:35:14.853200: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_3: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:14.856271: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
+2019-11-12 16:35:14.857317: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_2: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:14.868865: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_1: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:14.871719: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+INFO:tensorflow:loss = 2.3100376, step = 0
+INFO:tensorflow:loss = 2.3100376, step = 0
+INFO:tensorflow:loss = 2.3027482, step = 100 (2.709 sec)
+INFO:tensorflow:loss = 2.3027482, step = 100 (2.709 sec)
+INFO:tensorflow:global_step/sec: 36.9126
+INFO:tensorflow:global_step/sec: 36.9126
+2019-11-12 16:35:18.408481: E tensorflow/core/common_runtime/ring_alg.cc:279] Aborting RingReduce with Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+2019-11-12 16:35:18.408666: W tensorflow/core/common_runtime/base_collective_executor.cc:217] BaseCollectiveExecutor::StartAbort Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+2019-11-12 16:35:18.408784: E tensorflow/core/common_runtime/ring_alg.cc:279] Aborting RingReduce with Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+2019-11-12 16:35:18.408887: W tensorflow/core/common_runtime/base_collective_executor.cc:217] BaseCollectiveExecutor::StartAbort Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+2019-11-12 16:35:18.408995: E tensorflow/core/common_runtime/ring_alg.cc:279] Aborting RingReduce with Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+2019-11-12 16:35:18.409090: W tensorflow/core/common_runtime/base_collective_executor.cc:217] BaseCollectiveExecutor::StartAbort Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+2019-11-12 16:35:18.409189: E tensorflow/core/common_runtime/ring_alg.cc:279] Aborting RingReduce with Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+2019-11-12 16:35:18.409322: W tensorflow/core/common_runtime/base_collective_executor.cc:217] BaseCollectiveExecutor::StartAbort Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+2019-11-12 16:35:18.409440: E tensorflow/core/common_runtime/ring_alg.cc:279] Aborting RingReduce with Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+2019-11-12 16:35:18.409540: W tensorflow/core/common_runtime/base_collective_executor.cc:217] BaseCollectiveExecutor::StartAbort Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+2019-11-12 16:35:18.409640: E tensorflow/core/common_runtime/ring_alg.cc:279] Aborting RingReduce with Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+2019-11-12 16:35:18.409734: W tensorflow/core/common_runtime/base_collective_executor.cc:217] BaseCollectiveExecutor::StartAbort Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+2019-11-12 16:35:18.409833: E tensorflow/core/common_runtime/ring_alg.cc:279] Aborting RingReduce with Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+2019-11-12 16:35:18.409696: W tensorflow/core/framework/op_kernel.cc:1655] OP_REQUIRES failed at collective_ops.cc:253 : Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+2019-11-12 16:35:18.410057: W tensorflow/core/common_runtime/base_collective_executor.cc:217] BaseCollectiveExecutor::StartAbort Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+	 [[{{node allreduce_1/CollectiveReduce}}]]
+2019-11-12 16:35:18.409925: W tensorflow/core/common_runtime/base_collective_executor.cc:217] BaseCollectiveExecutor::StartAbort Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+2019-11-12 16:35:18.410512: W tensorflow/core/framework/op_kernel.cc:1655] OP_REQUIRES failed at collective_ops.cc:253 : Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+2019-11-12 16:35:18.410746: W tensorflow/core/framework/op_kernel.cc:1655] OP_REQUIRES failed at collective_ops.cc:253 : Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+2019-11-12 16:35:18.410754: W tensorflow/core/framework/op_kernel.cc:1655] OP_REQUIRES failed at collective_ops.cc:253 : Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+2019-11-12 16:35:18.410791: W tensorflow/core/framework/op_kernel.cc:1655] OP_REQUIRES failed at collective_ops.cc:253 : Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+2019-11-12 16:35:18.410818: W tensorflow/core/framework/op_kernel.cc:1655] OP_REQUIRES failed at collective_ops.cc:253 : Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+2019-11-12 16:35:18.410596: W tensorflow/core/framework/op_kernel.cc:1655] OP_REQUIRES failed at collective_ops.cc:253 : Unavailable: Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+INFO:tensorflow:An error was raised. This may be due to a preemption in a connected worker or parameter server. The current session will be closed and a new session will be created. This error may also occur due to a gRPC failure caused by high memory or network bandwidth usage in the parameter servers. If this error occurs repeatedly, try increasing the number of parameter servers assigned to the job. Error: From /job:worker/replica:0/task:0:
+Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+	 [[node allreduce_1/CollectiveReduce (defined at home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_estimator/python/estimator/estimator.py:1305) ]]
+
+Errors may have originated from an input operation.
+Input Source operations connected to node allreduce_1/CollectiveReduce:
+ mul (defined at mnt/d/GitRepository/GRPC-Model/worker_model/w0.py:61)
+
+Original stack trace for 'allreduce_1/CollectiveReduce':
+  File "mnt/d/GitRepository/GRPC-Model/worker_model/w0.py", line 86, in <module>
+    eval_spec=tf.estimator.EvalSpec(input_fn=input_fn)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_estimator/python/estimator/training.py", line 464, in train_and_evaluate
+    estimator, train_spec, eval_spec, _TrainingExecutor)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/estimator_training.py", line 290, in train_and_evaluate
+    session_config=run_config.session_config)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/distribute_coordinator.py", line 853, in run_distribute_coordinator
+    task_id, session_config, rpc_layer)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/distribute_coordinator.py", line 360, in _run_single_worker
+    return worker_fn(strategy)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/estimator_training.py", line 252, in _worker_fn
+    hooks=hooks)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_estimator/python/estimator/estimator.py", line 370, in train
+    loss = self._train_model(input_fn, hooks, saving_listeners)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_estimator/python/estimator/estimator.py", line 1158, in _train_model
+    return self._train_model_distributed(input_fn, hooks, saving_listeners)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_estimator/python/estimator/estimator.py", line 1221, in _train_model_distributed
+    self._config._train_distribute, input_fn, hooks, saving_listeners)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_estimator/python/estimator/estimator.py", line 1305, in _actual_train_model_distributed
+    axis=None)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/distribute_lib.py", line 808, in reduce
+    return self._extended._reduce(reduce_op, value)  # pylint: disable=protected-access
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/distribute_lib.py", line 1449, in _reduce
+    device_util.current() or "/device:CPU:0"))[0]
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/collective_all_reduce_strategy.py", line 528, in _reduce_to
+    reduce_op, value, destinations=destinations)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/cross_device_ops.py", line 282, in reduce
+    destinations)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/cross_device_ops.py", line 1035, in reduce_implementation
+    all_reduced = self._batch_all_reduce(reduce_op, [per_replica_value])[0]
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/cross_device_ops.py", line 1115, in _batch_all_reduce
+    dense_results = self._do_batch_all_reduce_dense(reduce_op, dense_values)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/cross_device_ops.py", line 1157, in _do_batch_all_reduce_dense
+    "Id", communication_hint)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/cross_device_utils.py", line 368, in build_collective_reduce
+    return collective_all_reduce()
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/cross_device_utils.py", line 360, in collective_all_reduce
+    unary_op, subdiv_offsets, communication_hint)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/ops/collective_ops.py", line 60, in all_reduce
+    communication_hint=communication_hint.lower())
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/ops/gen_collective_ops.py", line 353, in collective_reduce
+    communication_hint=communication_hint, name=name)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/framework/op_def_library.py", line 742, in _apply_op_helper
+    attrs=attr_protos, op_def=op_def)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/framework/ops.py", line 3305, in _create_op_internal
+    op_def=op_def)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/framework/ops.py", line 1747, in __init__
+    self._traceback = tf_stack.extract_stack()
+
+INFO:tensorflow:An error was raised. This may be due to a preemption in a connected worker or parameter server. The current session will be closed and a new session will be created. This error may also occur due to a gRPC failure caused by high memory or network bandwidth usage in the parameter servers. If this error occurs repeatedly, try increasing the number of parameter servers assigned to the job. Error: From /job:worker/replica:0/task:0:
+Socket closed
+Additional GRPC error information:
+{"created":"@1573547718.408263600","description":"Error received from peer","file":"external/grpc/src/core/lib/surface/call.cc","file_line":1039,"grpc_message":"Socket closed","grpc_status":14}
+	 [[node allreduce_1/CollectiveReduce (defined at home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_estimator/python/estimator/estimator.py:1305) ]]
+
+Errors may have originated from an input operation.
+Input Source operations connected to node allreduce_1/CollectiveReduce:
+ mul (defined at mnt/d/GitRepository/GRPC-Model/worker_model/w0.py:61)
+
+Original stack trace for 'allreduce_1/CollectiveReduce':
+  File "mnt/d/GitRepository/GRPC-Model/worker_model/w0.py", line 86, in <module>
+    eval_spec=tf.estimator.EvalSpec(input_fn=input_fn)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_estimator/python/estimator/training.py", line 464, in train_and_evaluate
+    estimator, train_spec, eval_spec, _TrainingExecutor)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/estimator_training.py", line 290, in train_and_evaluate
+    session_config=run_config.session_config)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/distribute_coordinator.py", line 853, in run_distribute_coordinator
+    task_id, session_config, rpc_layer)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/distribute_coordinator.py", line 360, in _run_single_worker
+    return worker_fn(strategy)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/estimator_training.py", line 252, in _worker_fn
+    hooks=hooks)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_estimator/python/estimator/estimator.py", line 370, in train
+    loss = self._train_model(input_fn, hooks, saving_listeners)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_estimator/python/estimator/estimator.py", line 1158, in _train_model
+    return self._train_model_distributed(input_fn, hooks, saving_listeners)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_estimator/python/estimator/estimator.py", line 1221, in _train_model_distributed
+    self._config._train_distribute, input_fn, hooks, saving_listeners)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_estimator/python/estimator/estimator.py", line 1305, in _actual_train_model_distributed
+    axis=None)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/distribute_lib.py", line 808, in reduce
+    return self._extended._reduce(reduce_op, value)  # pylint: disable=protected-access
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/distribute_lib.py", line 1449, in _reduce
+    device_util.current() or "/device:CPU:0"))[0]
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/collective_all_reduce_strategy.py", line 528, in _reduce_to
+    reduce_op, value, destinations=destinations)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/cross_device_ops.py", line 282, in reduce
+    destinations)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/cross_device_ops.py", line 1035, in reduce_implementation
+    all_reduced = self._batch_all_reduce(reduce_op, [per_replica_value])[0]
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/cross_device_ops.py", line 1115, in _batch_all_reduce
+    dense_results = self._do_batch_all_reduce_dense(reduce_op, dense_values)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/cross_device_ops.py", line 1157, in _do_batch_all_reduce_dense
+    "Id", communication_hint)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/cross_device_utils.py", line 368, in build_collective_reduce
+    return collective_all_reduce()
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/distribute/cross_device_utils.py", line 360, in collective_all_reduce
+    unary_op, subdiv_offsets, communication_hint)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/ops/collective_ops.py", line 60, in all_reduce
+    communication_hint=communication_hint.lower())
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/ops/gen_collective_ops.py", line 353, in collective_reduce
+    communication_hint=communication_hint, name=name)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/framework/op_def_library.py", line 742, in _apply_op_helper
+    attrs=attr_protos, op_def=op_def)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/framework/ops.py", line 3305, in _create_op_internal
+    op_def=op_def)
+  File "home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/framework/ops.py", line 1747, in __init__
+    self._traceback = tf_stack.extract_stack()
+
+2019-11-12 16:35:18.431180: W tensorflow/core/kernels/data/cache_dataset_ops.cc:822] The calling iterator did not fully read the dataset being cached. In order to avoid unexpected truncation of the dataset, the partially cached contents of the dataset will be discarded. This can happen if you have an input pipeline similar to `dataset.cache().take(k).repeat()`. You should use `dataset.take(k).cache().repeat()` instead.
+INFO:tensorflow:Graph was finalized.
+INFO:tensorflow:Graph was finalized.
+INFO:tensorflow:Restoring parameters from ./estimator/multiworker/model.ckpt-0
+INFO:tensorflow:Restoring parameters from ./estimator/multiworker/model.ckpt-0
+WARNING:tensorflow:From /home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/training/saver.py:1070: get_checkpoint_mtimes (from tensorflow.python.training.checkpoint_management) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use standard file utilities to get mtimes.
+WARNING:tensorflow:From /home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/training/saver.py:1070: get_checkpoint_mtimes (from tensorflow.python.training.checkpoint_management) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use standard file utilities to get mtimes.
+INFO:tensorflow:Running local_init_op.
+INFO:tensorflow:Running local_init_op.
+INFO:tensorflow:Done running local_init_op.
+INFO:tensorflow:Done running local_init_op.
+INFO:tensorflow:Saving checkpoints for 0 into ./estimator/multiworker/model.ckpt.
+INFO:tensorflow:Saving checkpoints for 0 into ./estimator/multiworker/model.ckpt.
+2019-11-12 16:35:20.162085: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce_1/CollectiveReduce: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
+2019-11-12 16:35:20.162351: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_5: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
+2019-11-12 16:35:20.162495: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_4: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
+2019-11-12 16:35:20.162604: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_3: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
+2019-11-12 16:35:20.162917: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_2: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
+2019-11-12 16:35:20.165528: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_1: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
+2019-11-12 16:35:20.167130: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:0/device:CPU:0
+2019-11-12 16:35:28.565692: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op  got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:28.566034: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op  got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:28.566266: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op  got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:28.566419: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op  got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:28.567204: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce_1/CollectiveReduce: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:28.567389: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_3: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:28.567560: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_5: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:28.567685: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_4: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:28.571648: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_2: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:28.583058: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce_1: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+2019-11-12 16:35:28.586176: W tensorflow/core/common_runtime/collective_param_resolver_local.cc:182] Collective op allreduce/CollectiveReduce: Reduce(Add,Id) got duplicate CompleteGroup calls for group 1 and device /job:worker/replica:0/task:1/device:CPU:0
+INFO:tensorflow:loss = 2.3191924, step = 69 (13.015 sec)
+INFO:tensorflow:loss = 2.3191924, step = 69 (13.015 sec)
+INFO:tensorflow:loss = 2.3101358, step = 169 (2.645 sec)
+INFO:tensorflow:loss = 2.3101358, step = 169 (2.645 sec)
+INFO:tensorflow:global_step/sec: 6.06793
+INFO:tensorflow:global_step/sec: 6.06793
+INFO:tensorflow:loss = 2.2932823, step = 269 (2.539 sec)
+INFO:tensorflow:loss = 2.2932823, step = 269 (2.539 sec)
+INFO:tensorflow:global_step/sec: 38.4175
+INFO:tensorflow:global_step/sec: 38.4175
+INFO:tensorflow:loss = 2.2879481, step = 369 (2.078 sec)
+INFO:tensorflow:loss = 2.2879481, step = 369 (2.078 sec)
+INFO:tensorflow:Saving checkpoints for 380 into ./estimator/multiworker/model.ckpt.
+INFO:tensorflow:Saving checkpoints for 380 into ./estimator/multiworker/model.ckpt.
+INFO:tensorflow:Loss for final step: 2.2996933.
+INFO:tensorflow:Loss for final step: 2.2996933.
+2019-11-12 16:35:38.173648: W tensorflow/core/common_runtime/eager/context.cc:319] Unable to destroy server_ object, so releasing instead. Servers don't support clean shutdown.
 
 Process finished with exit code 0

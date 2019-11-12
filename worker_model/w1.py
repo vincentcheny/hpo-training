@@ -76,6 +76,6 @@ if True:
 
     tf.estimator.train_and_evaluate(
         classifier,
-        train_spec=tf.estimator.TrainSpec(input_fn=input_fn),
+        train_spec=tf.estimator.TrainSpec(input_fn=input_fn, max_steps=380),
         eval_spec=tf.estimator.EvalSpec(input_fn=input_fn)
     )
