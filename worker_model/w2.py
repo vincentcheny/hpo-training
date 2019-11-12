@@ -32,9 +32,9 @@ def input_fn(mode, input_context=None):
 
 os.environ['TF_CONFIG'] = json.dumps({
     'cluster': {
-        'worker': ["localhost:12345", "localhost:23456"]
+        'worker': ["localhost:12345", "localhost:23456", "localhost:24444"]
     },
-    'task': {'type': 'worker', 'index': 0}
+    'task': {'type': 'worker', 'index': 2}
 })
 
 LEARNING_RATE = 1e-4

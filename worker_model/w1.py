@@ -65,14 +65,17 @@ def model_fn(features, labels, mode):
         train_op=optimizer.minimize(
             loss, tf.compat.v1.train.get_or_create_global_step()))
 
+if True:
+# with pysnooper.snoop('./log/file.log', depth=20):
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
+    strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
+    config = tf.estimator.RunConfig(train_distribute=strategy)
+    classifier = tf.estimator.Estimator(
+        model_fn=model_fn, model_dir='./estimator/multiworker', config=config)
 
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
-strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
-config = tf.estimator.RunConfig(train_distribute=strategy)
-classifier = tf.estimator.Estimator(
-    model_fn=model_fn, model_dir='./estimator/multiworker', config=config)
-tf.estimator.train_and_evaluate(
-    classifier,
-    train_spec=tf.estimator.TrainSpec(input_fn=input_fn),
-    eval_spec=tf.estimator.EvalSpec(input_fn=input_fn)
-)
+
+    tf.estimator.train_and_evaluate(
+        classifier,
+        train_spec=tf.estimator.TrainSpec(input_fn=input_fn),
+        eval_spec=tf.estimator.EvalSpec(input_fn=input_fn)
+    )

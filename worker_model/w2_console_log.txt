@@ -1,0 +1,95 @@
+C:\Users\b148848\AppData\Local\Microsoft\WindowsApps\ubuntu.exe run "export PYTHONUNBUFFERED=1 && export PYTHONIOENCODING=UTF-8 && export \"PYTHONPATH=/mnt/d/GitRepository/GRPC-Model:/mnt/d/Program Files/JetBrains/PyCharm 2019.2.2/helpers/pycharm_matplotlib_backend:/mnt/d/Program Files/JetBrains/PyCharm 2019.2.2/helpers/pycharm_display\" && export PYCHARM_HOSTED=1 && export PYCHARM_DISPLAY_PORT=63342 && cd /mnt/d/GitRepository/GRPC-Model/worker_model && /home/vincent/miniconda3/envs/build/bin/python /mnt/d/GitRepository/GRPC-Model/worker_model/w2.py"
+2019-11-12 14:16:25.885235: I tensorflow/core/platform/profile_utils/cpu_utils.cc:94] CPU Frequency: 2904000000 Hz
+2019-11-12 14:16:25.886458: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x7fffbbdd0d00 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2019-11-12 14:16:25.886596: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+E1112 14:16:25.891851200    9471 socket_utils_common_posix.cc:198] check for SO_REUSEPORT: {"created":"@1573539385.891835400","description":"Protocol not available","errno":92,"file":"external/grpc/src/core/lib/iomgr/socket_utils_common_posix.cc","file_line":175,"os_error":"Protocol not available","syscall":"getsockopt(SO_REUSEPORT)"}
+E1112 14:16:25.891993600    9471 socket_utils_common_posix.cc:299] setsockopt(TCP_USER_TIMEOUT) Protocol not available
+2019-11-12 14:16:25.892231: I tensorflow/core/distributed_runtime/rpc/grpc_channel.cc:300] Initialize GrpcChannelCache for job worker -> {0 -> localhost:12345, 1 -> localhost:23456, 2 -> localhost:24444}
+2019-11-12 14:16:25.896148: I tensorflow/core/distributed_runtime/rpc/grpc_server_lib.cc:371] Started server with target: grpc://localhost:24444
+INFO:tensorflow:Enabled multi-worker collective ops with available devices: ['/job:worker/replica:0/task:2/device:CPU:0', '/job:worker/replica:0/task:2/device:XLA_CPU:0']
+INFO:tensorflow:Using MirroredStrategy with devices ('/job:worker/task:2',)
+INFO:tensorflow:MultiWorkerMirroredStrategy with cluster_spec = {'worker': ['localhost:12345', 'localhost:23456', 'localhost:24444']}, task_type = 'worker', task_id = 2, num_workers = 3, local_devices = ('/job:worker/task:2',), communication = CollectiveCommunication.AUTO
+INFO:tensorflow:TF_CONFIG environment variable: {'cluster': {'worker': ['localhost:12345', 'localhost:23456', 'localhost:24444']}, 'task': {'type': 'worker', 'index': 2}}
+INFO:tensorflow:Initializing RunConfig with distribution strategies.
+INFO:tensorflow:RunConfig initialized for Distribute Coordinator with INDEPENDENT_WORKER mode
+start training and evaluating
+INFO:tensorflow:Using config: {'_model_dir': './estimator/multiworker', '_tf_random_seed': None, '_save_summary_steps': 100, '_save_checkpoints_steps': None, '_save_checkpoints_secs': 600, '_session_config': allow_soft_placement: true
+graph_options {
+  rewrite_options {
+    meta_optimizer_iterations: ONE
+  }
+}
+, '_keep_checkpoint_max': 5, '_keep_checkpoint_every_n_hours': 10000, '_log_step_count_steps': 100, '_train_distribute': <tensorflow.python.distribute.collective_all_reduce_strategy.CollectiveAllReduceStrategy object at 0x7ffad04f89d0>, '_device_fn': None, '_protocol': None, '_eval_distribute': None, '_experimental_distribute': None, '_experimental_max_worker_delay_secs': None, '_session_creation_timeout_secs': 7200, '_service': None, '_cluster_spec': ClusterSpec({'worker': ['localhost:12345', 'localhost:23456', 'localhost:24444']}), '_task_type': 'worker', '_task_id': 0, '_global_id_in_cluster': 0, '_master': '', '_evaluation_master': '', '_is_chief': True, '_num_ps_replicas': 0, '_num_worker_replicas': 1, '_distribute_coordinator_mode': 'independent_worker'}
+INFO:tensorflow:Running `train_and_evaluate` with Distribute Coordinator.
+INFO:tensorflow:Running Distribute Coordinator with mode = 'independent_worker', cluster_spec = {'worker': ['localhost:12345', 'localhost:23456', 'localhost:24444']}, task_type = 'worker', task_id = 2, environment = None, rpc_layer = 'grpc'
+WARNING:tensorflow:`eval_strategy` is not passed in. No distribution strategy will be used for evaluation.
+INFO:tensorflow:Using MirroredStrategy with devices ('/job:worker/task:2',)
+INFO:tensorflow:MultiWorkerMirroredStrategy with cluster_spec = {'worker': ['localhost:12345', 'localhost:23456', 'localhost:24444']}, task_type = 'worker', task_id = 2, num_workers = 3, local_devices = ('/job:worker/task:2',), communication = CollectiveCommunication.AUTO
+INFO:tensorflow:Using MirroredStrategy with devices ('/job:worker/task:2',)
+INFO:tensorflow:MultiWorkerMirroredStrategy with cluster_spec = {'worker': ['localhost:12345', 'localhost:23456', 'localhost:24444']}, task_type = 'worker', task_id = 2, num_workers = 3, local_devices = ('/job:worker/task:2',), communication = CollectiveCommunication.AUTO
+INFO:tensorflow:Updated config: {'_model_dir': './estimator/multiworker', '_tf_random_seed': None, '_save_summary_steps': 100, '_save_checkpoints_steps': None, '_save_checkpoints_secs': 600, '_session_config': allow_soft_placement: true
+graph_options {
+  rewrite_options {
+    meta_optimizer_iterations: ONE
+  }
+}
+, '_keep_checkpoint_max': 5, '_keep_checkpoint_every_n_hours': 10000, '_log_step_count_steps': 100, '_train_distribute': <tensorflow.python.distribute.collective_all_reduce_strategy.CollectiveAllReduceStrategy object at 0x7ffad04f8610>, '_device_fn': None, '_protocol': None, '_eval_distribute': None, '_experimental_distribute': None, '_experimental_max_worker_delay_secs': None, '_session_creation_timeout_secs': 7200, '_service': None, '_cluster_spec': ClusterSpec({'worker': ['localhost:12345', 'localhost:23456', 'localhost:24444']}), '_task_type': 'worker', '_task_id': 2, '_global_id_in_cluster': 2, '_master': 'grpc://localhost:24444', '_evaluation_master': 'grpc://localhost:24444', '_is_chief': False, '_num_ps_replicas': 0, '_num_worker_replicas': 3, '_distribute_coordinator_mode': 'independent_worker'}
+INFO:tensorflow:The `input_fn` accepts an `input_context` which will be given by DistributionStrategy
+WARNING:tensorflow:From /home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/ops/resource_variable_ops.py:1634: calling BaseResourceVariable.__init__ (from tensorflow.python.ops.resource_variable_ops) with constraint is deprecated and will be removed in a future version.
+Instructions for updating:
+If using Keras pass *_constraint arguments to layers.
+WARNING:tensorflow:From /home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_core/python/ops/resource_variable_ops.py:1634: calling BaseResourceVariable.__init__ (from tensorflow.python.ops.resource_variable_ops) with constraint is deprecated and will be removed in a future version.
+Instructions for updating:
+If using Keras pass *_constraint arguments to layers.
+INFO:tensorflow:Calling model_fn.
+INFO:tensorflow:Calling model_fn.
+INFO:tensorflow:Collective batch_all_reduce: 6 all-reduces, num_workers = 3, communication_hint = AUTO
+INFO:tensorflow:Collective batch_all_reduce: 6 all-reduces, num_workers = 3, communication_hint = AUTO
+INFO:tensorflow:Done calling model_fn.
+INFO:tensorflow:Done calling model_fn.
+INFO:tensorflow:Collective batch_all_reduce: 1 all-reduces, num_workers = 3, communication_hint = AUTO
+INFO:tensorflow:Collective batch_all_reduce: 1 all-reduces, num_workers = 3, communication_hint = AUTO
+WARNING:tensorflow:Collective ops may deadlock with `save_checkpoints_secs` please use `save_checkpoint_steps` instead. Clearing `save_checkpoint_secs` and setting `save_checkpoint_steps` to 1000 now.
+WARNING:tensorflow:Collective ops may deadlock with `save_checkpoints_secs` please use `save_checkpoint_steps` instead. Clearing `save_checkpoint_secs` and setting `save_checkpoint_steps` to 1000 now.
+INFO:tensorflow:Create CheckpointSaverHook.
+INFO:tensorflow:Create CheckpointSaverHook.
+INFO:tensorflow:all_hooks [<tensorflow_estimator.python.estimator.util.DistributedIteratorInitializerHook object at 0x7ffad050d8d0>, <tensorflow.python.training.basic_session_run_hooks.NanTensorHook object at 0x7ffad050da10>, <tensorflow.python.training.basic_session_run_hooks.LoggingTensorHook object at 0x7ffad021fd50>, <tensorflow.python.training.basic_session_run_hooks.StepCounterHook object at 0x7ffad02aa990>, <tensorflow.python.training.basic_session_run_hooks.SummarySaverHook object at 0x7ffad0213b50>, <tensorflow.python.training.basic_session_run_hooks.CheckpointSaverHook object at 0x7ffad0335690>]
+INFO:tensorflow:all_hooks [<tensorflow_estimator.python.estimator.util.DistributedIteratorInitializerHook object at 0x7ffad050d8d0>, <tensorflow.python.training.basic_session_run_hooks.NanTensorHook object at 0x7ffad050da10>, <tensorflow.python.training.basic_session_run_hooks.LoggingTensorHook object at 0x7ffad021fd50>, <tensorflow.python.training.basic_session_run_hooks.StepCounterHook object at 0x7ffad02aa990>, <tensorflow.python.training.basic_session_run_hooks.SummarySaverHook object at 0x7ffad0213b50>, <tensorflow.python.training.basic_session_run_hooks.CheckpointSaverHook object at 0x7ffad0335690>]
+INFO:tensorflow:Creating chief session creator with config: device_filters: "/job:worker/task:2"
+allow_soft_placement: true
+graph_options {
+  rewrite_options {
+    meta_optimizer_iterations: ONE
+    scoped_allocator_optimization: ON
+    scoped_allocator_opts {
+      enable_op: "CollectiveReduce"
+    }
+  }
+}
+experimental {
+  collective_group_leader: "/job:worker/replica:0/task:0"
+}
+
+INFO:tensorflow:Creating chief session creator with config: device_filters: "/job:worker/task:2"
+allow_soft_placement: true
+graph_options {
+  rewrite_options {
+    meta_optimizer_iterations: ONE
+    scoped_allocator_optimization: ON
+    scoped_allocator_opts {
+      enable_op: "CollectiveReduce"
+    }
+  }
+}
+experimental {
+  collective_group_leader: "/job:worker/replica:0/task:0"
+}
+
+INFO:tensorflow:Graph was finalized.
+INFO:tensorflow:Graph was finalized.
+[Important] We catch an exception
+Cannot assign a device for operation tmp_global_step/IsInitialized/VarIsInitializedOp: node tmp_global_step/IsInitialized/VarIsInitializedOp (defined at home/vincent/miniconda3/envs/build/lib/python3.7/site-packages/tensorflow_estimator/python/estimator/estimator.py:1352)  was explicitly assigned to /job:worker/task:1 but available devices are [ /job:worker/replica:0/task:2/device:CPU:0, /job:worker/replica:0/task:2/device:XLA_CPU:0 ]. Make sure the device specification refers to a valid device.
+	 [[tmp_global_step/IsInitialized/VarIsInitializedOp]]
+2019-11-12 14:16:26.700897: W tensorflow/core/common_runtime/eager/context.cc:319] Unable to destroy server_ object, so releasing instead. Servers don't support clean shutdown.
+
+Process finished with exit code 1

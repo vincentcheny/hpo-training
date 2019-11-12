@@ -1,3 +1,5 @@
 /__pycache__
 /.idea
 /server_client_model/logs
+/worker_model/logs
+/worker_model/estimator
