@@ -3,8 +3,10 @@ import tensorflow_datasets as tfds
 import tensorflow as tf
 import os
 import json
+from tensorflow.python.training.savercuhk_context import Context
+import sys
 # os.environ["SNOOPER_DISABLED"] = "0"
-import pysnooper
+# import pysnooper
 
 
 tfds.disable_progress_bar()
@@ -30,11 +32,15 @@ def input_fn(mode, input_context=None):
     return mnist_dataset.map(scale).cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
 
 
+workers = ["localhost:12345", "localhost:23456"]
+task_index = int(sys.argv[1])
+Context.init_context(len(workers), task_index)
+
 os.environ['TF_CONFIG'] = json.dumps({
     'cluster': {
-        'worker': ["localhost:12345", "localhost:23456", "localhost:12346"]
+        'worker': workers
     },
-    'task': {'type': 'worker', 'index': 2}
+    'task': {'type': 'worker', 'index': task_index}
 })
 
 LEARNING_RATE = 1e-4
@@ -78,11 +84,12 @@ classifier = tf.estimator.Estimator(
     model_fn=model_fn, model_dir='./estimator/multiworker', config=config)
 # with pysnooper.snoop('./log/file.log', depth=20):
 # while True:
+
 try:
     print("start training and evaluating")
     tf.estimator.train_and_evaluate(
         classifier,
-        train_spec=tf.estimator.TrainSpec(input_fn=input_fn, max_steps=380),
+        train_spec=tf.estimator.TrainSpec(input_fn=input_fn, max_steps=310),
         eval_spec=tf.estimator.EvalSpec(input_fn=input_fn)
     )
 except Exception as e:
