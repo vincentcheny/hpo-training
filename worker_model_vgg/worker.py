@@ -1,10 +1,12 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
-import tensorflow_datasets as tfds
-import tensorflow as tf
-import os
+
 import json
-# from tensorflow.python.training.savercuhk_context import Context
+import os
 import sys
+
+import tensorflow as tf
+import tensorflow_datasets as tfds
+from tensorflow.python.training.savercuhk_context import TFTunerContext
 
 # os.environ["SNOOPER_DISABLED"] = "0"
 # import pysnooper
@@ -51,8 +53,8 @@ def input_fn(mode, input_context=None):
 
 workers = ["localhost:12345", "localhost:23456"]
 task_index = int(sys.argv[1])
-# Context.init_context(len(workers), task_index)
-# tf.train.TFTunerContext.init_context(len(workers), task_index)
+TFTunerContext.init_context(len(workers), task_index)
+tf.train.TFTunerContext.init_context(len(workers), task_index)
 
 os.environ['TF_CONFIG'] = json.dumps({
     'cluster': {
