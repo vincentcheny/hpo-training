@@ -3,15 +3,15 @@ import tensorflow_datasets as tfds
 import tensorflow as tf
 import os
 import json
-from tensorflow.python.training.savercuhk_context import Context
+# from tensorflow.python.training.savercuhk_context import Context
 import sys
 # os.environ["SNOOPER_DISABLED"] = "0"
 # import pysnooper
 
-
+tf.compat.v1.disable_eager_execution()
 tfds.disable_progress_bar()
 BUFFER_SIZE = 10000
-BATCH_SIZE = 64
+BATCH_SIZE = 32
 
 
 def input_fn(mode, input_context=None):
@@ -32,9 +32,10 @@ def input_fn(mode, input_context=None):
     return mnist_dataset.map(scale).cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
 
 
-workers = ["localhost:12345", "localhost:23456"]
+workers = ["localhost:12345", "localhost:23456", "localhost:23457"]
 task_index = int(sys.argv[1])
-Context.init_context(len(workers), task_index)
+# Context.init_context(len(workers), task_index)
+tf.train.TFTunerContext.init_context(len(workers), task_index)
 
 os.environ['TF_CONFIG'] = json.dumps({
     'cluster': {
@@ -78,7 +79,7 @@ def model_fn(features, labels, mode):
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
 strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
 
-config = tf.estimator.RunConfig(train_distribute=strategy)
+config = tf.estimator.RunConfig(train_distribute=strategy, save_checkpoints_steps=50)
 
 classifier = tf.estimator.Estimator(
     model_fn=model_fn, model_dir='./estimator/multiworker', config=config)
@@ -89,7 +90,7 @@ try:
     print("start training and evaluating")
     tf.estimator.train_and_evaluate(
         classifier,
-        train_spec=tf.estimator.TrainSpec(input_fn=input_fn, max_steps=310),
+        train_spec=tf.estimator.TrainSpec(input_fn=input_fn, max_steps=500),
         eval_spec=tf.estimator.EvalSpec(input_fn=input_fn)
     )
 except Exception as e:
