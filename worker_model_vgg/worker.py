@@ -2,14 +2,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import json
 import os
-import sys
 
 import tensorflow as tf
 import tensorflow_datasets as tfds
-from tensorflow.python.training.savercuhk_context import TFTunerContext
-
-# os.environ["SNOOPER_DISABLED"] = "0"
-# import pysnooper
 
 tf.compat.v1.disable_eager_execution()
 tfds.disable_progress_bar()
@@ -51,14 +46,17 @@ def input_fn(mode, input_context=None):
     return mnist_dataset.map(scale).cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
 
 
-workers = ["localhost:12345", "localhost:23456"]
-task_index = int(sys.argv[1])
-TFTunerContext.init_context(len(workers), task_index)
-tf.train.TFTunerContext.init_context(len(workers), task_index)
+# workers = ["localhost:12345", "localhost:23456"]
+FLAGS = tf.app.flags.FLAGS
+tf.app.flags.DEFINE_string('worker', None, 'specify workers in the cluster')
+tf.app.flags.DEFINE_integer('task_index', 0, 'task_index')
+worker = FLAGS.worker.split(',')
+task_index = FLAGS.task_index
+tf.train.TFTunerContext.init_context(len(worker), task_index)
 
 os.environ['TF_CONFIG'] = json.dumps({
     'cluster': {
-        'worker': workers
+        'worker': worker
     },
     'task': {'type': 'worker', 'index': task_index}
 })
@@ -116,12 +114,10 @@ def model_fn(features, labels, mode):
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
 strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
 
-config = tf.estimator.RunConfig(train_distribute=strategy, save_checkpoints_steps=5)
+config = tf.estimator.RunConfig(save_summary_steps=1, train_distribute=strategy, save_checkpoints_steps=1, log_step_count_steps=1)
 
 classifier = tf.estimator.Estimator(
     model_fn=model_fn, model_dir='./estimator/multiworker', config=config)
-# with pysnooper.snoop('./log/file.log', depth=20):
-# while True:
 
 try:
     print("start training and evaluating")
