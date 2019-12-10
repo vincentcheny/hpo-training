@@ -50,8 +50,12 @@ def input_fn(mode, input_context=None):
 FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string('worker', None, 'specify workers in the cluster')
 tf.app.flags.DEFINE_integer('task_index', 0, 'task_index')
+tf.app.flags.DEFINE_string('model_dir', './estimator/multiworker', 'model_dir')
+
 worker = FLAGS.worker.split(',')
 task_index = FLAGS.task_index
+model_dir = FLAGS.model_dir
+
 tf.train.TFTunerContext.init_context(len(worker), task_index)
 
 os.environ['TF_CONFIG'] = json.dumps({
@@ -117,7 +121,7 @@ strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
 config = tf.estimator.RunConfig(save_summary_steps=1, train_distribute=strategy, save_checkpoints_steps=1, log_step_count_steps=1)
 
 classifier = tf.estimator.Estimator(
-    model_fn=model_fn, model_dir='./estimator/multiworker', config=config)
+    model_fn=model_fn, model_dir=model_dir, config=config)
 
 try:
     print("start training and evaluating")
