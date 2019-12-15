@@ -21,8 +21,8 @@ def preprocess(image, label):
     return image, label
 
 
-def train_input_fn(batch_size):
-    data = tfds.load('cats_vs_dogs', as_supervised=True)
+def train_input_fn(batch_size, dataset):
+    data = tfds.load(dataset, as_supervised=True)
     train_data = data['train']
     train_data = train_data.map(preprocess).shuffle(500).batch(batch_size)
     return train_data
@@ -49,6 +49,7 @@ def input_fn(mode, input_context=None):
 # workers = ["localhost:12345", "localhost:23456"]
 FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string('worker', None, 'specify workers in the cluster')
+tf.app.flags.DEFINE_string('dataset', 'cats_vs_dogs', 'specify dataset')
 tf.app.flags.DEFINE_integer('task_index', 0, 'task_index')
 tf.app.flags.DEFINE_string('model_dir', './estimator/multiworker', 'model_dir')
 
@@ -56,7 +57,7 @@ worker = FLAGS.worker.split(',')
 task_index = FLAGS.task_index
 model_dir = FLAGS.model_dir
 
-tf.train.TFTunerContext.init_context(len(worker), task_index)
+#tf.train.TFTunerContext.init_context(len(worker), task_index)
 
 os.environ['TF_CONFIG'] = json.dumps({
     'cluster': {
@@ -117,8 +118,8 @@ def model_fn(features, labels, mode):
 
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
 strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
-
-config = tf.estimator.RunConfig(save_summary_steps=1, train_distribute=strategy, save_checkpoints_steps=1, log_step_count_steps=1)
+tf.app.flags.DEFINE_integer('save_ckpt_steps', 10, 'save ckpt per n steps')
+config = tf.estimator.RunConfig(save_summary_steps=5, train_distribute=strategy, save_checkpoints_steps=FLAGS.save_ckpt_steps, log_step_count_steps=5)
 
 classifier = tf.estimator.Estimator(
     model_fn=model_fn, model_dir=model_dir, config=config)
@@ -127,7 +128,7 @@ try:
     print("start training and evaluating")
     tf.estimator.train_and_evaluate(
         classifier,
-        train_spec=tf.estimator.TrainSpec(input_fn=lambda: train_input_fn(32), max_steps=500),
+        train_spec=tf.estimator.TrainSpec(input_fn=lambda: train_input_fn(32, FLAGS.dataset), max_steps=500),
         eval_spec=tf.estimator.EvalSpec(input_fn=lambda: train_input_fn(32), steps=10)
     )
 except Exception as e:
