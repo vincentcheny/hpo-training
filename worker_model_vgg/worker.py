@@ -11,7 +11,7 @@ tfds.disable_progress_bar()
 BUFFER_SIZE = 10000
 BATCH_SIZE = 32
 
-IMG_SIZE = 160  # All images will be resized to 160x160
+IMG_SIZE = 299  # All images will be resized to 160x160
 
 
 def preprocess(image, label):
@@ -57,7 +57,7 @@ worker = FLAGS.worker.split(',')
 task_index = FLAGS.task_index
 model_dir = FLAGS.model_dir
 
-#tf.train.TFTunerContext.init_context(len(worker), task_index)
+tf.train.TFTunerContext.init_context(len(worker), task_index)
 
 os.environ['TF_CONFIG'] = json.dumps({
     'cluster': {
@@ -66,7 +66,7 @@ os.environ['TF_CONFIG'] = json.dumps({
     'task': {'type': 'worker', 'index': task_index}
 })
 
-LEARNING_RATE = 1e-4
+LEARNING_RATE = 0.1 # 1e-2
 
 
 def model_fn(features, labels, mode):
@@ -93,9 +93,16 @@ def model_fn(features, labels, mode):
         tf.keras.layers.Flatten(),
         tf.keras.layers.Dense(units=4096, activation="relu"),
         tf.keras.layers.Dense(units=4096, activation="relu"),
-        tf.keras.layers.Dense(units=2, activation="softmax")
+        tf.keras.layers.Dense(units=5, activation="softmax")
     ])
-    logits = model(features, training=False)
+    model = tf.keras.applications.ResNet50(weights=None, include_top=True, classes=2)
+    model = tf.keras.Sequential([
+        model
+    #    tf.keras.layers.Flatten(name='flatten'),
+    #    tf.keras.layers.Dense(2, activation='softmax', name='predictions')
+    ])
+        
+    logits = model(features, training=True)
 
     if mode == tf.estimator.ModeKeys.PREDICT:
         predictions = {'logits': logits}
@@ -119,7 +126,7 @@ def model_fn(features, labels, mode):
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
 strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
 tf.app.flags.DEFINE_integer('save_ckpt_steps', 10, 'save ckpt per n steps')
-config = tf.estimator.RunConfig(save_summary_steps=5, train_distribute=strategy, save_checkpoints_steps=FLAGS.save_ckpt_steps, log_step_count_steps=5)
+config = tf.estimator.RunConfig(save_summary_steps=1, train_distribute=strategy, save_checkpoints_steps=FLAGS.save_ckpt_steps, log_step_count_steps=1)
 
 classifier = tf.estimator.Estimator(
     model_fn=model_fn, model_dir=model_dir, config=config)
