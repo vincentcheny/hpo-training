@@ -13,8 +13,8 @@ tfds.disable_progress_bar()
 BUFFER_SIZE = 10000
 BATCH_SIZE = 32
 
-IMG_SIZE = 299  # All images will be resized to 160x160
-
+IMG_SIZE = 28  # All images will be resized to IMG_SIZE*IMG_SIZE
+IMG_CLASS = 10
 
 def preprocess(image, label):
     image = tf.cast(image, tf.float32)
@@ -284,7 +284,7 @@ def model_fn(features, labels, mode):
         tf.keras.layers.Dense(units=5, activation="softmax")
     ])
     # model = tf.keras.applications.ResNet50(weights=None, include_top=True, classes=2)
-    model = ResNet50(input_shape=(299, 299, 1), classes=2) # classes are determined by dataset (we use cats_vs_dogs here)
+    model = ResNet50(input_shape=(IMG_SIZE, IMG_SIZE, 1), classes=IMG_CLASS) # classes are determined by dataset
     model = tf.keras.Sequential([
         model
     #    tf.keras.layers.Flatten(name='flatten'),
@@ -325,7 +325,7 @@ try:
     tf.estimator.train_and_evaluate(
         classifier,
         train_spec=tf.estimator.TrainSpec(input_fn=lambda: train_input_fn(32, FLAGS.dataset), max_steps=500),
-        eval_spec=tf.estimator.EvalSpec(input_fn=lambda: train_input_fn(32), steps=10)
+        eval_spec=tf.estimator.EvalSpec(input_fn=lambda: train_input_fn(32, FLAGS.dataset), steps=10)
     )
 except Exception as e:
     print("[Important] We catch an exception")
