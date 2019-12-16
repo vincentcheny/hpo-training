@@ -5,6 +5,8 @@ import os
 
 import tensorflow as tf
 import tensorflow_datasets as tfds
+from tensorflow.keras.initializers import glorot_uniform
+from tensorflow.keras.layers import Input, Add, Dense, Activation, ZeroPadding2D, BatchNormalization, Flatten, Conv2D, AveragePooling2D, MaxPooling2D, GlobalMaxPooling2D
 
 tf.compat.v1.disable_eager_execution()
 tfds.disable_progress_bar()
@@ -172,7 +174,7 @@ def convolutional_block(X, f, filters, stage, block, s=2):
     X_shortcut = BatchNormalization(axis=3, name=bn_name_base + '1')(X_shortcut)
 
     # Final step: Add shortcut value to main path, and pass it through a RELU activation (≈2 lines)
-    X = layers.add([X, X_shortcut])
+    X = tf.keras.layers.add([X, X_shortcut])
     X = Activation('relu')(X)
 
     ### END CODE HERE ###
@@ -250,7 +252,7 @@ def ResNet50(input_shape=(64, 64, 3), classes=6):
     X = Dense(classes, activation="softmax", name="fc" + str(classes), kernel_initializer=glorot_uniform(seed=0))(X)
 
     # Create model
-    model = Model(inputs=X_input, outputs=X, name="ResNet50")
+    model = tf.keras.models.Model(inputs=X_input, outputs=X, name="ResNet50")
 
     return model
 
