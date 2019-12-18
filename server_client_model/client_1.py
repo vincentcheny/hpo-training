@@ -11,7 +11,7 @@ strategy = model_op.set_environment(index=1)
 train_datasets = model_op.prepare_datasets()
 run_first_time = True
 
-
+sess = tf.compat.v1.Session
 class callbacktest(tf.keras.callbacks.Callback):
     def on_batch_end(self, batch, logs=None):
         global run_first_time
