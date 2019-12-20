@@ -4,8 +4,10 @@ from __future__ import absolute_import, division, print_function, \
 import sys
 
 import tensorflow as tf
+from tensorflow.python.ops.gen_sendrecv_ops import *
 import os
 import json
+import time
 # os.environ["SNOOPER_DISABLED"] = "0"
 # import pysnooper
 
@@ -37,10 +39,26 @@ os.environ['TF_CONFIG'] = json.dumps({
 
 # with strategy.scope():
 
-with tf.device('/job:worker/task:1'):
-  v1 = tf.Variable(10, name="v1")
 
+with tf.device('/job:worker/task:1'):
+  v1 = tf.Variable(0, name="v1")
+  recv_op = recv(v1.dtype,
+                 v1._shared_name,
+                 "/job:worker/replica:0/task:0/device:CPU:0",
+                 1,
+                 "/job:worker/replica:0/task:1/device:CPU:0")
+  assgin_op = v1.assign(recv_op)
+
+
+# with tf.device('/job:worker/task:0'):
+#   v1 = tf.Variable(10, name="v1")
+#
+# with tf.device('/job:worker/task:1'):
+#   v2 = tf.Variable(10, name="v2")
+#   assgin_op = v2.assign(v1)
 
 with tf.compat.v1.Session(target=server.target) as sess:
-  v1_value = sess.run(v1)
-  print("Value of device 0: {}".format(v1_value))
+  time.sleep(1)
+  sess.run(assgin_op)
+
+  print("Value of v1: {}".format(sess.run(v1)))

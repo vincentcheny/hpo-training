@@ -12,6 +12,8 @@ import json
 # tf.compat.v1.disable_eager_execution()
 
 # from worker_model import common
+from tensorflow.python.ops.gen_sendrecv_ops import send
+
 tf.get_logger().setLevel('DEBUG')
 BUFFER_SIZE = 10000
 BATCH_SIZE = 64
@@ -38,8 +40,14 @@ os.environ['TF_CONFIG'] = json.dumps({
 # with strategy.scope():
 with tf.device('/job:worker/task:0'):
   v1 = tf.Variable(10, name="v1")
+  send_op = send(v1,
+                 v1._shared_name,
+                 "/job:worker/replica:0/task:0/device:CPU:0",
+                 1,
+                 "/job:worker/replica:0/task:1/device:CPU:0")
 
 with tf.compat.v1.Session(target=server.target) as sess:
   sess.run(v1.initializer)
+  sess.run(send_op)
 
 server.join()
