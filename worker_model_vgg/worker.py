@@ -37,12 +37,13 @@ tf.app.flags.DEFINE_string('dataset', 'cats_vs_dogs', 'specify dataset')
 tf.app.flags.DEFINE_integer('task_index', 0, 'task_index')
 tf.app.flags.DEFINE_string('model_dir', './estimator', 'model_dir')
 tf.app.flags.DEFINE_integer('save_ckpt_steps', 100, 'save ckpt per n steps')
+tf.app.flags.DEFINE_boolean('use_original_ckpt', False, 'use original ckpt')
 
 worker = FLAGS.worker.split(',')
 task_index = FLAGS.task_index
 model_dir = FLAGS.model_dir
-
-tf.train.TFTunerContext.init_context(len(worker), task_index)
+if not FLAGS.use_original_ckpt:
+    tf.train.TFTunerContext.init_context(len(worker), task_index)
 
 os.environ['TF_CONFIG'] = json.dumps({
     'cluster': {
@@ -52,7 +53,6 @@ os.environ['TF_CONFIG'] = json.dumps({
 })
 
 LEARNING_RATE = 0.1 # 1e-2
-tf.random.set_random_seed(123)
 
 def model_fn(features, labels, mode):
     model = tf.keras.Sequential([
