@@ -15,11 +15,14 @@ tfds.disable_progress_bar()
 BUFFER_SIZE = 10000
 BATCH_SIZE = 32
 
-IMG_SIZE = 160  # All images will be resized to IMG_SIZE*IMG_SIZE
+IMG_SIZE = 48  # All images will be resized to IMG_SIZE*IMG_SIZE
+# 160 for cats_vs_dogs(input_shape:None, None, 3); 28 for mnist(input_shape:28, 28, 1)
 IMG_CLASS = 10
+
 
 def preprocess(image, label):
     image = tf.cast(image, tf.float32)
+    image = tf.image.grayscale_to_rgb(image)
     image = (image / 127.5) - 1
     image = tf.image.resize(image, (IMG_SIZE, IMG_SIZE))
     return image, label
@@ -31,12 +34,13 @@ def train_input_fn(batch_size, dataset):
     train_data = train_data.map(preprocess).batch(batch_size)
     return train_data
 
+
 FLAGS = tf.app.flags.FLAGS
-tf.app.flags.DEFINE_string('worker', '["localhost:12345", "localhost:23456"]', 'specify workers in the cluster')
-tf.app.flags.DEFINE_string('dataset', 'cats_vs_dogs', 'specify dataset')
+tf.app.flags.DEFINE_string('worker', 'localhost:12345,localhost:23456', 'specify workers in the cluster')
+tf.app.flags.DEFINE_string('dataset', 'mnist', 'specify dataset')
 tf.app.flags.DEFINE_integer('task_index', 0, 'task_index')
-tf.app.flags.DEFINE_string('model_dir', './estimator', 'model_dir')
-tf.app.flags.DEFINE_integer('save_ckpt_steps', 100, 'save ckpt per n steps')
+tf.app.flags.DEFINE_string('model_dir', '/mnt/f/estimator', 'model_dir')
+tf.app.flags.DEFINE_integer('save_ckpt_steps', 10, 'save ckpt per n steps')
 tf.app.flags.DEFINE_boolean('use_original_ckpt', False, 'use original ckpt')
 
 worker = FLAGS.worker.split(',')
@@ -52,35 +56,48 @@ os.environ['TF_CONFIG'] = json.dumps({
     'task': {'type': 'worker', 'index': task_index}
 })
 
-LEARNING_RATE = 0.1 # 1e-2
+LEARNING_RATE = 1e-3
+
 
 def model_fn(features, labels, mode):
     model = tf.keras.Sequential([
-        tf.keras.layers.Conv2D(input_shape=(160, 160, 3), filters=64, kernel_size=(3, 3), padding="same",
-                               activation="relu",kernel_initializer='zeros'),
-        tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), padding="same", activation="relu",kernel_initializer='zeros'),
+        tf.keras.layers.Conv2D(input_shape=(IMG_SIZE, IMG_SIZE, 3), filters=64, kernel_size=(3, 3), padding="same",
+                               activation="relu", kernel_initializer='zeros'),
+        tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), padding="same", activation="relu",
+                               kernel_initializer='zeros'),
         tf.keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
-        tf.keras.layers.Conv2D(filters=128, kernel_size=(3, 3), padding="same", activation="relu",kernel_initializer='zeros'),
-        tf.keras.layers.Conv2D(filters=128, kernel_size=(3, 3), padding="same", activation="relu",kernel_initializer='zeros'),
+        tf.keras.layers.Conv2D(filters=128, kernel_size=(3, 3), padding="same", activation="relu",
+                               kernel_initializer='zeros'),
+        tf.keras.layers.Conv2D(filters=128, kernel_size=(3, 3), padding="same", activation="relu",
+                               kernel_initializer='zeros'),
         tf.keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
-        tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3), padding="same", activation="relu",kernel_initializer='zeros'),
-        tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3), padding="same", activation="relu",kernel_initializer='zeros'),
-        tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3), padding="same", activation="relu",kernel_initializer='zeros'),
+        tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3), padding="same", activation="relu",
+                               kernel_initializer='zeros'),
+        tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3), padding="same", activation="relu",
+                               kernel_initializer='zeros'),
+        tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3), padding="same", activation="relu",
+                               kernel_initializer='zeros'),
         tf.keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
-        tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu",kernel_initializer='zeros'),
-        tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu",kernel_initializer='zeros'),
-        tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu",kernel_initializer='zeros'),
+        tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu",
+                               kernel_initializer='zeros'),
+        tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu",
+                               kernel_initializer='zeros'),
+        tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu",
+                               kernel_initializer='zeros'),
         tf.keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
-        tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu",kernel_initializer='zeros'),
-        tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu",kernel_initializer='zeros'),
-        tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu",kernel_initializer='zeros'),
+        tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu",
+                               kernel_initializer='zeros'),
+        tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu",
+                               kernel_initializer='zeros'),
+        tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu",
+                               kernel_initializer='zeros'),
         tf.keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
         tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(units=256, activation="relu",kernel_initializer='zeros'),
-        tf.keras.layers.Dense(units=256, activation="relu",kernel_initializer='zeros'),
-        tf.keras.layers.Dense(units=5, activation="softmax")
+        tf.keras.layers.Dense(units=4096, activation="relu", kernel_initializer='zeros'),
+        tf.keras.layers.Dense(units=4096, activation="relu", kernel_initializer='zeros'),
+        tf.keras.layers.Dense(units=15, activation="softmax")
     ])
-        
+
     logits = model(features, training=True)
 
     if mode == tf.estimator.ModeKeys.PREDICT:
@@ -105,12 +122,14 @@ def model_fn(features, labels, mode):
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
 strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
 
-config = tf.estimator.RunConfig(save_summary_steps=1, train_distribute=strategy, save_checkpoints_steps=FLAGS.save_ckpt_steps, log_step_count_steps=1)
+config = tf.estimator.RunConfig(save_summary_steps=1, train_distribute=strategy,
+                                save_checkpoints_steps=FLAGS.save_ckpt_steps, log_step_count_steps=1)
+
 classifier = tf.estimator.Estimator(
     model_fn=model_fn, model_dir=model_dir, config=config)
 
 tf.estimator.train_and_evaluate(
     classifier,
     train_spec=tf.estimator.TrainSpec(input_fn=lambda: train_input_fn(32, FLAGS.dataset), max_steps=500),
-    eval_spec=tf.estimator.EvalSpec(input_fn=lambda: train_input_fn(32, FLAGS.dataset), steps=10)
+    eval_spec=tf.estimator.EvalSpec(input_fn=lambda: train_input_fn(32, FLAGS.dataset))
 )
