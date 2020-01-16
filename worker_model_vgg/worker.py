@@ -36,16 +36,16 @@ def train_input_fn(batch_size, dataset):
 
 
 FLAGS = tf.app.flags.FLAGS
-tf.app.flags.DEFINE_string('worker', 'localhost:12345,localhost:23456', 'specify workers in the cluster')
+tf.app.flags.DEFINE_string('worker', 'localhost:3001,localhost:3002', 'specify workers in the cluster')
 tf.app.flags.DEFINE_string('dataset', 'mnist', 'specify dataset')
 tf.app.flags.DEFINE_integer('task_index', 0, 'task_index')
-tf.app.flags.DEFINE_string('model_dir', '/mnt/f/estimator', 'model_dir')
-tf.app.flags.DEFINE_integer('save_ckpt_steps', 10, 'save ckpt per n steps')
-tf.app.flags.DEFINE_boolean('use_original_ckpt', False, 'use original ckpt')
+tf.app.flags.DEFINE_string('model_dir', '/mnt/f/estimator-original', 'model_dir')
+tf.app.flags.DEFINE_integer('save_ckpt_steps', 200, 'save ckpt per n steps')
+tf.app.flags.DEFINE_boolean('use_original_ckpt', True, 'use original ckpt')
+tf.app.flags.DEFINE_integer('train_steps', 150, 'train_steps')
 
 worker = FLAGS.worker.split(',')
 task_index = FLAGS.task_index
-model_dir = FLAGS.model_dir
 if not FLAGS.use_original_ckpt:
     tf.train.TFTunerContext.init_context(len(worker), task_index)
 
@@ -55,6 +55,11 @@ os.environ['TF_CONFIG'] = json.dumps({
     },
     'task': {'type': 'worker', 'index': task_index}
 })
+
+model_dir = FLAGS.model_dir
+# To solve path problem when model_dir of current worker and worker 0 are different
+while not os.path.isfile(os.path.join(model_dir, 'checkpoint')) and os.path.isdir(os.path.join(model_dir, 'tmp_worker_' + str(task_index))):
+    model_dir = os.path.join(model_dir, 'tmp_worker_' + str(task_index))
 
 LEARNING_RATE = 1e-3
 
@@ -93,8 +98,8 @@ def model_fn(features, labels, mode):
                                kernel_initializer='zeros'),
         tf.keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
         tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(units=4096, activation="relu", kernel_initializer='zeros'),
-        tf.keras.layers.Dense(units=4096, activation="relu", kernel_initializer='zeros'),
+        tf.keras.layers.Dense(units=256, activation="relu", kernel_initializer='zeros'),
+        tf.keras.layers.Dense(units=256, activation="relu", kernel_initializer='zeros'),
         tf.keras.layers.Dense(units=15, activation="softmax")
     ])
 
@@ -130,6 +135,6 @@ classifier = tf.estimator.Estimator(
 
 tf.estimator.train_and_evaluate(
     classifier,
-    train_spec=tf.estimator.TrainSpec(input_fn=lambda: train_input_fn(32, FLAGS.dataset), max_steps=500),
+    train_spec=tf.estimator.TrainSpec(input_fn=lambda: train_input_fn(32, FLAGS.dataset), max_steps=FLAGS.train_steps),
     eval_spec=tf.estimator.EvalSpec(input_fn=lambda: train_input_fn(32, FLAGS.dataset))
 )
