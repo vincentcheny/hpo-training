@@ -7,17 +7,8 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 from numpy.random import seed
 from tensorflow.keras.initializers import glorot_uniform
-
-seed(0)
-tf.random.set_random_seed(0)
-tf.compat.v1.disable_eager_execution()
-tfds.disable_progress_bar()
-BUFFER_SIZE = 10000
-BATCH_SIZE = 32
-
-IMG_SIZE = 48  # All images will be resized to IMG_SIZE*IMG_SIZE
-# 160 for cats_vs_dogs(input_shape:None, None, 3); 28 for mnist(input_shape:28, 28, 1)
-IMG_CLASS = 10
+import nni
+import shutil
 
 
 def preprocess(image, label):
@@ -35,33 +26,13 @@ def train_input_fn(batch_size, dataset):
     return train_data
 
 
-FLAGS = tf.app.flags.FLAGS
-tf.app.flags.DEFINE_string('worker', 'localhost:3001,localhost:3002', 'specify workers in the cluster')
-tf.app.flags.DEFINE_string('dataset', 'mnist', 'specify dataset')
-tf.app.flags.DEFINE_integer('task_index', 0, 'task_index')
-tf.app.flags.DEFINE_string('model_dir', '/mnt/f/estimator-original', 'model_dir')
-tf.app.flags.DEFINE_integer('save_ckpt_steps', 200, 'save ckpt per n steps')
-tf.app.flags.DEFINE_boolean('use_original_ckpt', True, 'use original ckpt')
-tf.app.flags.DEFINE_integer('train_steps', 150, 'train_steps')
-
-worker = FLAGS.worker.split(',')
-task_index = FLAGS.task_index
-if not FLAGS.use_original_ckpt:
-    tf.train.TFTunerContext.init_context(len(worker), task_index)
-
-os.environ['TF_CONFIG'] = json.dumps({
-    'cluster': {
-        'worker': worker
-    },
-    'task': {'type': 'worker', 'index': task_index}
-})
-
-model_dir = FLAGS.model_dir
-# To solve path problem when model_dir of current worker and worker 0 are different
-while not os.path.isfile(os.path.join(model_dir, 'checkpoint')) and os.path.isdir(os.path.join(model_dir, 'tmp_worker_' + str(task_index))):
-    model_dir = os.path.join(model_dir, 'tmp_worker_' + str(task_index))
-
-LEARNING_RATE = 1e-3
+def get_default_params():
+    return {
+        "BATCH_SIZE":32,
+        "LEARNING_RATE":1e-3,
+        "inter_op_parallelism_threads":1,
+        "intra_op_parallelism_threads":2
+    }
 
 
 def model_fn(features, labels, mode):
@@ -117,24 +88,72 @@ def model_fn(features, labels, mode):
     if mode == tf.estimator.ModeKeys.EVAL:
         return tf.estimator.EstimatorSpec(mode, loss=loss)
 
+    class NNIReportHook(tf.train.SessionRunHook):
+        def __init__(self, loss):
+            self.loss = loss
+
+        def before_run(self, run_context):
+            return tf.estimator.SessionRunArgs(self.loss)
+
+        def after_run(self, run_context, run_values):
+            self.result = run_values.results
+            nni.report_intermediate_result(self.result)
+
+        def end(self,session):
+            nni.report_final_result(self.result)
+
     return tf.estimator.EstimatorSpec(
         mode=mode,
         loss=loss,
         train_op=optimizer.minimize(
-            loss, tf.compat.v1.train.get_or_create_global_step()))
+            loss, tf.compat.v1.train.get_or_create_global_step()),
+        training_hooks=[NNIReportHook(loss)])
 
+
+seed(0)
+tf.compat.v1.random.set_random_seed(0)
+tf.compat.v1.disable_eager_execution()
+tfds.disable_progress_bar()
+BUFFER_SIZE = 10000
+
+params = get_default_params()
+received_params = nni.get_next_parameter()
+params.update(received_params)
+BATCH_SIZE = params['BATCH_SIZE']
+LEARNING_RATE = params['LEARNING_RATE']
+
+IMG_SIZE = 48  # All images will be resized to IMG_SIZE*IMG_SIZE
+# 160 for cats_vs_dogs(input_shape:None, None, 3); 28 for mnist(input_shape:28, 28, 1)
+IMG_CLASS = 10
 
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
-strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
+FLAGS = tf.app.flags.FLAGS
+tf.app.flags.DEFINE_string('dataset', 'mnist', 'specify dataset')
+tf.app.flags.DEFINE_string('model_dir', './estimator-original', 'model_dir')
+tf.app.flags.DEFINE_integer('save_ckpt_steps', 100, 'save ckpt per n steps')
+tf.app.flags.DEFINE_integer('train_steps', 100, 'train_steps')
 
-config = tf.estimator.RunConfig(save_summary_steps=1, train_distribute=strategy,
-                                save_checkpoints_steps=FLAGS.save_ckpt_steps, log_step_count_steps=1)
+
+inter_op_parallelism_threads = params['inter_op_parallelism_threads']
+intra_op_parallelism_threads = params['intra_op_parallelism_threads']
+my_config = tf.ConfigProto( 
+    inter_op_parallelism_threads=inter_op_parallelism_threads,
+    intra_op_parallelism_threads=intra_op_parallelism_threads)
+
+config = tf.estimator.RunConfig(save_checkpoints_steps=FLAGS.save_ckpt_steps,
+                                save_checkpoints_secs=None,
+                                log_step_count_steps=1,
+                                session_config=my_config)
 
 classifier = tf.estimator.Estimator(
     model_fn=model_fn, model_dir=model_dir, config=config)
 
 tf.estimator.train_and_evaluate(
     classifier,
-    train_spec=tf.estimator.TrainSpec(input_fn=lambda: train_input_fn(32, FLAGS.dataset), max_steps=FLAGS.train_steps),
-    eval_spec=tf.estimator.EvalSpec(input_fn=lambda: train_input_fn(32, FLAGS.dataset))
+    train_spec=tf.estimator.TrainSpec(input_fn=lambda: train_input_fn(BATCH_SIZE, FLAGS.dataset), max_steps=FLAGS.train_steps),
+    eval_spec=tf.estimator.EvalSpec(input_fn=lambda: train_input_fn(BATCH_SIZE, FLAGS.dataset), steps=10)
 )
+
+# Delete the checkpoint and summary for next trial
+if os.path.exists(model_dir):
+    shutil.rmtree(model_dir)
