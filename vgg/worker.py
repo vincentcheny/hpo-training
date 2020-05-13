@@ -71,7 +71,7 @@ def model_fn(features, labels, mode):
         tf.keras.layers.Flatten(),
         tf.keras.layers.Dense(units=256, activation="relu", kernel_initializer='zeros'),
         tf.keras.layers.Dense(units=256, activation="relu", kernel_initializer='zeros'),
-        tf.keras.layers.Dense(units=15, activation="softmax")
+        tf.keras.layers.Dense(units=10, activation="softmax")
     ])
 
     logits = model(features, training=True)
@@ -97,10 +97,10 @@ def model_fn(features, labels, mode):
 
         def after_run(self, run_context, run_values):
             self.result = run_values.results
-            nni.report_intermediate_result(self.result)
+            nni.report_intermediate_result(-self.result)
 
         def end(self,session):
-            nni.report_final_result(self.result)
+            nni.report_final_result(-self.result)
 
     return tf.estimator.EstimatorSpec(
         mode=mode,
@@ -146,7 +146,7 @@ config = tf.estimator.RunConfig(save_checkpoints_steps=FLAGS.save_ckpt_steps,
                                 session_config=my_config)
 
 classifier = tf.estimator.Estimator(
-    model_fn=model_fn, model_dir=model_dir, config=config)
+    model_fn=model_fn, model_dir=FLAGS.model_dir, config=config)
 
 tf.estimator.train_and_evaluate(
     classifier,
@@ -155,5 +155,5 @@ tf.estimator.train_and_evaluate(
 )
 
 # Delete the checkpoint and summary for next trial
-if os.path.exists(model_dir):
-    shutil.rmtree(model_dir)
+if os.path.exists(FLAGS.model_dir):
+    shutil.rmtree(FLAGS.model_dir)
