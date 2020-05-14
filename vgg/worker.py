@@ -29,49 +29,56 @@ def train_input_fn(batch_size, dataset):
 def get_default_params():
     return {
         "BATCH_SIZE":32,
-        "LEARNING_RATE":1e-3,
+        "LEARNING_RATE":1e-1,
+        "DROP_OUT":5e-1,
+        "DENSE_UNIT":128,
+        "OPTIMIZER":"grad",
+        "KERNEL_SIZE":3,
         "inter_op_parallelism_threads":1,
-        "intra_op_parallelism_threads":2
+        "intra_op_parallelism_threads":2,
+        "max_folded_constant":6,
+        "build_cost_model":4
     }
 
 
 def model_fn(features, labels, mode):
     model = tf.keras.Sequential([
-        tf.keras.layers.Conv2D(input_shape=(IMG_SIZE, IMG_SIZE, 3), filters=64, kernel_size=(3, 3), padding="same",
+        tf.keras.layers.Conv2D(input_shape=(IMG_SIZE, IMG_SIZE, 3), filters=64, kernel_size=(KS, KS), padding="same",
                                activation="relu", kernel_initializer='zeros'),
-        tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), padding="same", activation="relu",
+        tf.keras.layers.Conv2D(filters=64, kernel_size=(KS, KS), padding="same", activation="relu",
                                kernel_initializer='zeros'),
         tf.keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
-        tf.keras.layers.Conv2D(filters=128, kernel_size=(3, 3), padding="same", activation="relu",
+        tf.keras.layers.Conv2D(filters=128, kernel_size=(KS, KS), padding="same", activation="relu",
                                kernel_initializer='zeros'),
-        tf.keras.layers.Conv2D(filters=128, kernel_size=(3, 3), padding="same", activation="relu",
-                               kernel_initializer='zeros'),
-        tf.keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
-        tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3), padding="same", activation="relu",
-                               kernel_initializer='zeros'),
-        tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3), padding="same", activation="relu",
-                               kernel_initializer='zeros'),
-        tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3), padding="same", activation="relu",
+        tf.keras.layers.Conv2D(filters=128, kernel_size=(KS, KS), padding="same", activation="relu",
                                kernel_initializer='zeros'),
         tf.keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
-        tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu",
+        tf.keras.layers.Conv2D(filters=256, kernel_size=(KS, KS), padding="same", activation="relu",
                                kernel_initializer='zeros'),
-        tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu",
+        tf.keras.layers.Conv2D(filters=256, kernel_size=(KS, KS), padding="same", activation="relu",
                                kernel_initializer='zeros'),
-        tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu",
+        tf.keras.layers.Conv2D(filters=256, kernel_size=(KS, KS), padding="same", activation="relu",
                                kernel_initializer='zeros'),
         tf.keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
-        tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu",
+        tf.keras.layers.Conv2D(filters=512, kernel_size=(KS, KS), padding="same", activation="relu",
                                kernel_initializer='zeros'),
-        tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu",
+        tf.keras.layers.Conv2D(filters=512, kernel_size=(KS, KS), padding="same", activation="relu",
                                kernel_initializer='zeros'),
-        tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu",
+        tf.keras.layers.Conv2D(filters=512, kernel_size=(KS, KS), padding="same", activation="relu",
+                               kernel_initializer='zeros'),
+        tf.keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
+        tf.keras.layers.Conv2D(filters=512, kernel_size=(KS, KS), padding="same", activation="relu",
+                               kernel_initializer='zeros'),
+        tf.keras.layers.Conv2D(filters=512, kernel_size=(KS, KS), padding="same", activation="relu",
+                               kernel_initializer='zeros'),
+        tf.keras.layers.Conv2D(filters=512, kernel_size=(KS, KS), padding="same", activation="relu",
                                kernel_initializer='zeros'),
         tf.keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2)),
         tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(units=256, activation="relu", kernel_initializer='zeros'),
-        tf.keras.layers.Dense(units=256, activation="relu", kernel_initializer='zeros'),
-        tf.keras.layers.Dense(units=10, activation="softmax")
+        tf.keras.layers.Dense(units=DENSE_UNIT, activation="relu", kernel_initializer='zeros'),
+        tf.keras.layers.Dense(units=DENSE_UNIT, activation="relu", kernel_initializer='zeros'),
+        tf.keras.layers.Dropout(DROP_OUT),
+        tf.keras.layers.Dense(units=12, activation="softmax")
     ])
 
     logits = model(features, training=True)
@@ -80,8 +87,13 @@ def model_fn(features, labels, mode):
         predictions = {'logits': logits}
         return tf.estimator.EstimatorSpec(labels=labels, predictions=predictions)
 
-    optimizer = tf.compat.v1.train.GradientDescentOptimizer(
-        learning_rate=LEARNING_RATE)
+    if OPTIMIZER == 'adam':
+        optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=LEARNING_RATE)
+    elif OPTIMIZER == 'grad':
+        optimizer = tf.compat.v1.train.GradientDescentOptimizer(learning_rate=LEARNING_RATE)
+    elif OPTIMIZER == 'rmsp':
+        optimizer = tf.compat.v1.train.RMSPropOptimizer(learning_rate=LEARNING_RATE)
+
     loss = tf.keras.losses.SparseCategoricalCrossentropy(
         from_logits=True, reduction=tf.losses.Reduction.NONE)(labels, logits)
     loss = tf.reduce_sum(loss) * (1. / BATCH_SIZE)
@@ -119,8 +131,12 @@ BUFFER_SIZE = 10000
 params = get_default_params()
 received_params = nni.get_next_parameter()
 params.update(received_params)
-BATCH_SIZE = params['BATCH_SIZE']
+BATCH_SIZE = int(params['BATCH_SIZE'])
 LEARNING_RATE = params['LEARNING_RATE']
+DROP_OUT = int(params['DROP_OUT'])
+DENSE_UNIT = int(params['DENSE_UNIT'])
+OPTIMIZER = params['OPTIMIZER']
+KS = int(params['KERNEL_SIZE'])
 
 IMG_SIZE = 48  # All images will be resized to IMG_SIZE*IMG_SIZE
 # 160 for cats_vs_dogs(input_shape:None, None, 3); 28 for mnist(input_shape:28, 28, 1)
@@ -130,16 +146,16 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
 FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string('dataset', 'mnist', 'specify dataset')
 tf.app.flags.DEFINE_string('model_dir', './estimator-original', 'model_dir')
-tf.app.flags.DEFINE_integer('save_ckpt_steps', 100, 'save ckpt per n steps')
-tf.app.flags.DEFINE_integer('train_steps', 100, 'train_steps')
+tf.app.flags.DEFINE_integer('save_ckpt_steps', 150, 'save ckpt per n steps')
+tf.app.flags.DEFINE_integer('train_steps', 150, 'train_steps')
 
 
 my_config = tf.ConfigProto( 
-    inter_op_parallelism_threads=params['inter_op_parallelism_threads'],
-    intra_op_parallelism_threads=params['intra_op_parallelism_threads'],
+    inter_op_parallelism_threads=int(params['inter_op_parallelism_threads']),
+    intra_op_parallelism_threads=int(params['intra_op_parallelism_threads']),
     graph_options=tf.GraphOptions(
-        build_cost_model=params['build_cost_model'],
-        optimizer_options=tf.OptimizerOptions(max_folded_constant_in_bytes=params['max_folded_constant'])))
+        build_cost_model=int(params['build_cost_model']),
+        optimizer_options=tf.OptimizerOptions(max_folded_constant_in_bytes=int(params['max_folded_constant']))))
 
 config = tf.estimator.RunConfig(save_checkpoints_steps=FLAGS.save_ckpt_steps,
                                 save_checkpoints_secs=None,

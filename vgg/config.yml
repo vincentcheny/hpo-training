@@ -14,7 +14,7 @@ tuner:
   builtinTunerName: TPE
   classArgs:
     #choice: maximize, minimize
-    optimize_mode: minimize
+    optimize_mode: maximize
 trial:
   command: python worker.py
   codeDir: .
