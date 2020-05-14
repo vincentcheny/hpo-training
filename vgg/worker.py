@@ -134,11 +134,12 @@ tf.app.flags.DEFINE_integer('save_ckpt_steps', 100, 'save ckpt per n steps')
 tf.app.flags.DEFINE_integer('train_steps', 100, 'train_steps')
 
 
-inter_op_parallelism_threads = params['inter_op_parallelism_threads']
-intra_op_parallelism_threads = params['intra_op_parallelism_threads']
 my_config = tf.ConfigProto( 
-    inter_op_parallelism_threads=inter_op_parallelism_threads,
-    intra_op_parallelism_threads=intra_op_parallelism_threads)
+    inter_op_parallelism_threads=params['inter_op_parallelism_threads'],
+    intra_op_parallelism_threads=params['intra_op_parallelism_threads'],
+    graph_options=tf.GraphOptions(
+        build_cost_model=params['build_cost_model'],
+        optimizer_options=tf.OptimizerOptions(max_folded_constant_in_bytes=params['max_folded_constant'])))
 
 config = tf.estimator.RunConfig(save_checkpoints_steps=FLAGS.save_ckpt_steps,
                                 save_checkpoints_secs=None,
