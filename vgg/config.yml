@@ -1,8 +1,8 @@
 authorName: Vincent
 experimentName: VGG
 trialConcurrency: 1
-maxExecDuration: 3h
-maxTrialNum: 50
+maxExecDuration: 6h
+maxTrialNum: 150
 #choice: local, remote, pai
 trainingServicePlatform: local
 searchSpacePath: search_space.json

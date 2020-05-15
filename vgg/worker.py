@@ -9,6 +9,7 @@ from numpy.random import seed
 from tensorflow.keras.initializers import glorot_uniform
 import nni
 import shutil
+import time
 
 
 def preprocess(image, label):
@@ -122,6 +123,14 @@ def model_fn(features, labels, mode):
         training_hooks=[NNIReportHook(loss)])
 
 
+def make_stop_fn():
+    # Stop trial if runtime > 20min
+    current_time = time.time()
+    if current_time - START_TIME > 60 * 20:
+        return True
+    else:
+        return False
+
 seed(0)
 tf.compat.v1.random.set_random_seed(0)
 tf.compat.v1.disable_eager_execution()
@@ -137,6 +146,7 @@ DROP_OUT = int(params['DROP_OUT'])
 DENSE_UNIT = int(params['DENSE_UNIT'])
 OPTIMIZER = params['OPTIMIZER']
 KS = int(params['KERNEL_SIZE'])
+START_TIME = time.time()
 
 IMG_SIZE = 48  # All images will be resized to IMG_SIZE*IMG_SIZE
 # 160 for cats_vs_dogs(input_shape:None, None, 3); 28 for mnist(input_shape:28, 28, 1)
@@ -164,10 +174,11 @@ config = tf.estimator.RunConfig(save_checkpoints_steps=FLAGS.save_ckpt_steps,
 
 classifier = tf.estimator.Estimator(
     model_fn=model_fn, model_dir=FLAGS.model_dir, config=config)
+early_stop_hook = tf.compat.v1.estimator.experimental.make_early_stopping_hook(classifier, should_stop_fn=make_stop_fn)
 
 tf.estimator.train_and_evaluate(
     classifier,
-    train_spec=tf.estimator.TrainSpec(input_fn=lambda: train_input_fn(BATCH_SIZE, FLAGS.dataset), max_steps=FLAGS.train_steps),
+    train_spec=tf.estimator.TrainSpec(input_fn=lambda: train_input_fn(BATCH_SIZE, FLAGS.dataset), max_steps=FLAGS.train_steps, hooks=[early_stop_hook]),
     eval_spec=tf.estimator.EvalSpec(input_fn=lambda: train_input_fn(BATCH_SIZE, FLAGS.dataset), steps=10)
 )
 
