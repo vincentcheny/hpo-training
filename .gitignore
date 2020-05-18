@@ -5,4 +5,4 @@
 /worker_model_mnist/estimator
 /worker_model_vgg/logs
 /worker_model_vgg/estimator
-/history
+/.history

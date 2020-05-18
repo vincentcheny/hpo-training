@@ -1,0 +1,12 @@
+{
+    "BATCH_SIZE":{"_type":"qloguniform","_value":[8,128,1]},
+    "LEARNING_RATE":{"_type":"choice","_value":[7.5e-1,5e-1,2.5e-1,1e-1,7.5e-2,5e-2]},
+    "DROP_OUT":{"_type":"quniform","_value":[1e-1,5e-1,1e-1]},
+    "DENSE_UNIT":{"_type":"qloguniform","_value":[32,512,1]},
+    "OPTIMIZER":{"_type":"choice","_value":["adam","grad","rmsp"]},
+    "KERNEL_SIZE":{"_type":"quniform","_value":[2,5,1]},
+    "inter_op_parallelism_threads":{"_type":"quniform","_value":[1,4,1]},
+    "intra_op_parallelism_threads":{"_type":"quniform","_value":[2,12,2]},
+    "max_folded_constant":{"_type":"quniform","_value":[2,10,2]},
+    "build_cost_model":{"_type":"quniform","_value":[0,8,2]}
+}

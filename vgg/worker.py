@@ -38,7 +38,13 @@ def get_default_params():
         "inter_op_parallelism_threads":1,
         "intra_op_parallelism_threads":2,
         "max_folded_constant":6,
-        "build_cost_model":4
+        "build_cost_model":4,
+        "do_common_subexpression_elimination":1,
+        "do_function_inlining":1,
+        "global_jit_level":1,
+        "infer_shapes":1,
+        "place_pruned_graph":1,
+        "enable_bfloat16_sendrecv":1
     }
 
 
@@ -165,7 +171,14 @@ my_config = tf.ConfigProto(
     intra_op_parallelism_threads=int(params['intra_op_parallelism_threads']),
     graph_options=tf.GraphOptions(
         build_cost_model=int(params['build_cost_model']),
-        optimizer_options=tf.OptimizerOptions(max_folded_constant_in_bytes=int(params['max_folded_constant']))))
+        infer_shapes=params['infer_shapes'],
+        place_pruned_graph=params['place_pruned_graph'],
+        enable_bfloat16_sendrecv=params['enable_bfloat16_sendrecv'],
+        optimizer_options=tf.OptimizerOptions(
+            do_common_subexpression_elimination=params['do_common_subexpression_elimination'],
+            max_folded_constant_in_bytes=int(params['max_folded_constant']),
+            do_function_inlining=params['do_function_inlining'],
+            global_jit_level=params['global_jit_level'])))
 
 config = tf.estimator.RunConfig(save_checkpoints_steps=FLAGS.save_ckpt_steps,
                                 save_checkpoints_secs=None,
