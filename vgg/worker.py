@@ -27,6 +27,13 @@ def train_input_fn(batch_size, dataset):
     return train_data
 
 
+def eval_input_fn(batch_size, dataset):
+    data = tfds.load(dataset, as_supervised=True)
+    eval_data = data['test']
+    eval_data = eval_data.map(preprocess).batch(batch_size)
+    return eval_data
+
+
 def get_default_params():
     return {
         "BATCH_SIZE":32,
@@ -218,7 +225,7 @@ early_stop_hook = tf.compat.v1.estimator.experimental.make_early_stopping_hook(c
 tf.estimator.train_and_evaluate(
     classifier,
     train_spec=tf.estimator.TrainSpec(input_fn=lambda: train_input_fn(BATCH_SIZE, FLAGS.dataset), max_steps=FLAGS.train_steps, hooks=[early_stop_hook]),
-    eval_spec=tf.estimator.EvalSpec(input_fn=lambda: train_input_fn(BATCH_SIZE, FLAGS.dataset), steps=50)
+    eval_spec=tf.estimator.EvalSpec(input_fn=lambda: eval_input_fn(BATCH_SIZE, FLAGS.dataset), steps=50)
 )
 
 # Delete the checkpoint and summary for next trial
