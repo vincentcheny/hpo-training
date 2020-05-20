@@ -42,6 +42,7 @@ def get_default_params():
         "DENSE_UNIT":128,
         "OPTIMIZER":"grad",
         "KERNEL_SIZE":3,
+        "TRAIN_STEPS":300,
         "inter_op_parallelism_threads":1,
         "intra_op_parallelism_threads":2,
         "max_folded_constant":6,
@@ -195,7 +196,7 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
 FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string('dataset', 'mnist', 'specify dataset')
 tf.app.flags.DEFINE_string('model_dir', './estimator-original', 'model_dir')
-tf.app.flags.DEFINE_integer('save_ckpt_steps', 150, 'save ckpt per n steps')
+tf.app.flags.DEFINE_integer('save_ckpt_steps', 400, 'save ckpt per n steps')
 tf.app.flags.DEFINE_integer('train_steps', 150, 'train_steps')
 
 
@@ -215,7 +216,7 @@ my_config = tf.compat.v1.ConfigProto(
 
 config = tf.estimator.RunConfig(save_checkpoints_steps=FLAGS.save_ckpt_steps,
                                 save_checkpoints_secs=None,
-                                log_step_count_steps=1,
+                                log_step_count_steps=10,
                                 session_config=my_config)
 
 classifier = tf.estimator.Estimator(
@@ -224,7 +225,7 @@ early_stop_hook = tf.compat.v1.estimator.experimental.make_early_stopping_hook(c
 
 tf.estimator.train_and_evaluate(
     classifier,
-    train_spec=tf.estimator.TrainSpec(input_fn=lambda: train_input_fn(BATCH_SIZE, FLAGS.dataset), max_steps=FLAGS.train_steps, hooks=[early_stop_hook]),
+    train_spec=tf.estimator.TrainSpec(input_fn=lambda: train_input_fn(BATCH_SIZE, FLAGS.dataset), max_steps=params['TRAIN_STEPS'], hooks=[early_stop_hook]),
     eval_spec=tf.estimator.EvalSpec(input_fn=lambda: eval_input_fn(BATCH_SIZE, FLAGS.dataset), steps=50)
 )
 
