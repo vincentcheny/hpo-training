@@ -30,7 +30,7 @@ def train_input_fn(batch_size, dataset):
 def get_default_params():
     return {
         "BATCH_SIZE":32,
-        "LEARNING_RATE":1e-1,
+        "LEARNING_RATE":1e-4,
         "DROP_OUT":5e-1,
         "DENSE_UNIT":128,
         "OPTIMIZER":"grad",
@@ -85,10 +85,12 @@ def model_fn(features, labels, mode):
         tf.keras.layers.Dense(units=DENSE_UNIT, activation="relu", kernel_initializer='zeros'),
         tf.keras.layers.Dense(units=DENSE_UNIT, activation="relu", kernel_initializer='zeros'),
         tf.keras.layers.Dropout(DROP_OUT),
-        tf.keras.layers.Dense(units=12, activation="softmax")
+        tf.keras.layers.Dense(units=10, activation="softmax")
     ])
 
     logits = model(features, training=True)
+    predicted_classes =tf.argmax(input=logits, axis=1)
+    
 
     if mode == tf.estimator.ModeKeys.PREDICT:
         predictions = {'logits': logits}
@@ -102,12 +104,35 @@ def model_fn(features, labels, mode):
         optimizer = tf.compat.v1.train.RMSPropOptimizer(learning_rate=LEARNING_RATE)
 
     loss = tf.keras.losses.SparseCategoricalCrossentropy(
-        from_logits=True, reduction=tf.losses.Reduction.NONE)(labels, logits)
+        from_logits=True, reduction=tf.compat.v1.losses.Reduction.NONE)(labels, logits)
     loss = tf.reduce_sum(loss) * (1. / BATCH_SIZE)
-    if mode == tf.estimator.ModeKeys.EVAL:
-        return tf.estimator.EstimatorSpec(mode, loss=loss)
 
-    class NNIReportHook(tf.train.SessionRunHook):
+
+    class NNIEvalHook(tf.estimator.SessionRunHook):
+        def __init__(self, accuracy):
+            self.accuracy = accuracy
+
+        def before_run(self, run_context):
+            return tf.estimator.SessionRunArgs(self.accuracy)
+
+        def after_run(self, run_context, run_values):
+            self.result = run_values.results[1]
+            nni.report_intermediate_result(self.result)
+
+        def end(self,session):
+            nni.report_final_result(self.result)
+
+
+    if mode == tf.estimator.ModeKeys.EVAL:
+        accuracy = tf.compat.v1.metrics.accuracy(labels=labels, predictions=predicted_classes, name='acc_op')
+        metrics = {'accuracy': accuracy}
+        tf.compat.v1.summary.scalar('accuracy', accuracy[1])
+        return tf.estimator.EstimatorSpec(mode, 
+            loss=loss, 
+            eval_metric_ops=metrics,
+            evaluation_hooks=[NNIEvalHook(accuracy)])
+
+    class NNITrainHook(tf.estimator.SessionRunHook):
         def __init__(self, loss):
             self.loss = loss
 
@@ -121,12 +146,13 @@ def model_fn(features, labels, mode):
         def end(self,session):
             nni.report_final_result(-self.result)
 
+
     return tf.estimator.EstimatorSpec(
         mode=mode,
         loss=loss,
         train_op=optimizer.minimize(
             loss, tf.compat.v1.train.get_or_create_global_step()),
-        training_hooks=[NNIReportHook(loss)])
+        training_hooks=None)
 
 
 def make_stop_fn():
@@ -166,15 +192,15 @@ tf.app.flags.DEFINE_integer('save_ckpt_steps', 150, 'save ckpt per n steps')
 tf.app.flags.DEFINE_integer('train_steps', 150, 'train_steps')
 
 
-my_config = tf.ConfigProto( 
+my_config = tf.compat.v1.ConfigProto( 
     inter_op_parallelism_threads=int(params['inter_op_parallelism_threads']),
     intra_op_parallelism_threads=int(params['intra_op_parallelism_threads']),
-    graph_options=tf.GraphOptions(
+    graph_options=tf.compat.v1.GraphOptions(
         build_cost_model=int(params['build_cost_model']),
         infer_shapes=params['infer_shapes'],
         place_pruned_graph=params['place_pruned_graph'],
         enable_bfloat16_sendrecv=params['enable_bfloat16_sendrecv'],
-        optimizer_options=tf.OptimizerOptions(
+        optimizer_options=tf.compat.v1.OptimizerOptions(
             do_common_subexpression_elimination=params['do_common_subexpression_elimination'],
             max_folded_constant_in_bytes=int(params['max_folded_constant']),
             do_function_inlining=params['do_function_inlining'],
@@ -192,7 +218,7 @@ early_stop_hook = tf.compat.v1.estimator.experimental.make_early_stopping_hook(c
 tf.estimator.train_and_evaluate(
     classifier,
     train_spec=tf.estimator.TrainSpec(input_fn=lambda: train_input_fn(BATCH_SIZE, FLAGS.dataset), max_steps=FLAGS.train_steps, hooks=[early_stop_hook]),
-    eval_spec=tf.estimator.EvalSpec(input_fn=lambda: train_input_fn(BATCH_SIZE, FLAGS.dataset), steps=10)
+    eval_spec=tf.estimator.EvalSpec(input_fn=lambda: train_input_fn(BATCH_SIZE, FLAGS.dataset), steps=50)
 )
 
 # Delete the checkpoint and summary for next trial
