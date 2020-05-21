@@ -1,7 +1,7 @@
 authorName: Vincent
 experimentName: LSTM
 trialConcurrency: 1
-maxExecDuration: 3h
+maxExecDuration: 9h
 maxTrialNum: 150
 #choice: local, remote, pai
 trainingServicePlatform: local
