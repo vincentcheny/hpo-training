@@ -283,8 +283,8 @@ def define_train_higgs_flags():
   flags.DEFINE_float(
       "learning_rate", default=0.1,
       help=help_wrap("The learning rate."))
-  flags.DEFINE_string('data_dir', "/uac/rshr/cyliu/bigDataStorage/moo/chen.yu/HIGGSDATA")
-  flags.DEFINE_string('model_dir', "/uac/rshr/cyliu/bigDataStorage/moo/chen.yu/HIGGSMODEL")
+  flags_core.set_defaults(data_dir="/uac/rshr/cyliu/bigDataStorage/moo/chen.yu/HIGGSDATA",
+                          model_dir="/uac/rshr/cyliu/bigDataStorage/moo/chen.yu/HIGGSMODEL")
 
 
 if __name__ == "__main__":
