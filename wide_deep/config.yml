@@ -1,8 +1,8 @@
 authorName: Vincent
 experimentName: wide_deep
 trialConcurrency: 1
-maxExecDuration: 6h
-maxTrialNum: 250
+maxExecDuration: 9h
+maxTrialNum: 500
 #choice: local, remote, pai
 trainingServicePlatform: local
 searchSpacePath: search_space.json

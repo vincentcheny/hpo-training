@@ -35,7 +35,7 @@ def define_census_flags():
   set_defaults(data_dir='/uac/rshr/cyliu/bigDataStorage/moo/chen.yu/census_data',
               model_dir='/uac/rshr/cyliu/bigDataStorage/moo/chen.yu/census_model',
               train_epochs=40,
-              epochs_between_evals=2,
+              epochs_between_evals=40,
               batch_size=40)
 
 
