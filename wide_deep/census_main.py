@@ -38,7 +38,7 @@ def define_census_flags():
               batch_size=40)
 
 
-def build_estimator(model_dir, model_type, model_column_fn, inter_op, intra_op):
+def build_estimator(model_dir, model_type, model_column_fn):
   """Build an estimator appropriate for the given model type."""
   wide_columns, deep_columns = model_column_fn()
   hidden_units = [100, 75, 50, 25]

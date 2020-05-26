@@ -111,9 +111,7 @@ def run_loop(name, train_input_fn, eval_input_fn, model_column_fn,
   """Define training loop."""
   model = build_estimator_fn(
       model_dir=flags_obj.model_dir, model_type=flags_obj.model_type,
-      model_column_fn=model_column_fn,
-      inter_op=flags_obj.inter_op_parallelism_threads,
-      intra_op=flags_obj.intra_op_parallelism_threads)
+      model_column_fn=model_column_fn)
 
 
   loss_prefix = LOSS_PREFIX.get(flags_obj.model_type, '')
@@ -136,8 +134,5 @@ def run_loop(name, train_input_fn, eval_input_fn, model_column_fn,
       tf.logging.info('%s: %s' % (key, results[key]))
 
     nni.report_intermediate_result(results['accuracy'])
-
-    if early_stop:
-      break
   
   nni.report_final_result(results['accuracy'])
