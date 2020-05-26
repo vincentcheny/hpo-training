@@ -80,7 +80,7 @@ def build_estimator(model_dir, model_type, model_column_fn):
         dnn_feature_columns=deep_columns,
         dnn_hidden_units=hidden_units,
         config=run_config,
-        dnn_optimizer=tf.keras.optimizers.Adagrad(learning_rate=params['LEARNING_RATE']))
+        dnn_optimizer=tf.train.ProximalAdagradOptimizer(learning_rate=params['LEARNING_RATE']))
 
 
 def run_census(flags_obj):
