@@ -63,20 +63,23 @@ def build_estimator(model_dir, model_type, model_column_fn):
     return tf.estimator.LinearClassifier(
         model_dir=model_dir,
         feature_columns=wide_columns,
-        config=run_config)
+        config=run_config,
+        optimizer=tf.keras.optimizers.Ftrl(learning_rate=params['LEARNING_RATE']))
   elif model_type == 'deep':
     return tf.estimator.DNNClassifier(
         model_dir=model_dir,
         feature_columns=deep_columns,
         hidden_units=hidden_units,
-        config=run_config)
+        config=run_config,
+        optimizer=tf.train.ProximalAdagradOptimizer(learning_rate=params['LEARNING_RATE']))
   else:
     return tf.estimator.DNNLinearCombinedClassifier(
         model_dir=model_dir,
         linear_feature_columns=wide_columns,
         dnn_feature_columns=deep_columns,
         dnn_hidden_units=hidden_units,
-        config=run_config)
+        config=run_config,
+        dnn_optimizer=tf.keras.optimizers.Adagrad(learning_rate=params['LEARNING_RATE']))
 
 
 def run_census(flags_obj):
