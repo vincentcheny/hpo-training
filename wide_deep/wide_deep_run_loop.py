@@ -32,6 +32,12 @@ LOSS_PREFIX = {'wide': 'linear/', 'deep': 'dnn/'}
 
 def define_wide_deep_flags():
   """Add supervised learning flags, as well as wide-deep model type."""
+  flags.DEFINE_string(
+        name="data_dir", short_name="dd", default="/tmp",
+        help="The location of the input data.")
+  flags.DEFINE_string(
+        name="model_dir", short_name="md", default="/tmp",
+        help="The location of the model checkpoint files.")
   flags.DEFINE_boolean(
         name="clean", default=False,
         help="If set, model_dir will be removed if it exists.")
@@ -49,9 +55,9 @@ def define_wide_deep_flags():
               "train_epochs and when the evaluation metric is  "
               "greater than or equal to stop_threshold.")
   flags.DEFINE_list(
-        name="hooks", short_name="hk", default="LoggingTensorHook")
+        name="hooks", short_name="hk", default="LoggingTensorHook", help="")
   flags.DEFINE_string(
-        name="export_dir", short_name="ed", default=None)
+        name="export_dir", short_name="ed", default=None, help="")
 
   flags.DEFINE_enum(
       name="model_type", short_name="mt", default="wide_deep",
@@ -101,7 +107,7 @@ def run_loop(name, train_input_fn, eval_input_fn, model_column_fn,
 
   # Train and evaluate the model every `flags.epochs_between_evals` epochs.
   for n in range(flags_obj.train_epochs // flags_obj.epochs_between_evals):
-    model.train(input_fn=train_input_fn, hooks=train_hooks)
+    model.train(input_fn=train_input_fn)
 
     results = model.evaluate(input_fn=eval_input_fn)
 
