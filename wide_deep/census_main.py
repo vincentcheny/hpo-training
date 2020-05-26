@@ -34,8 +34,10 @@ def define_census_flags():
   flags.adopt_module_key_flags(wide_deep_run_loop)
   set_defaults(data_dir='/uac/rshr/cyliu/bigDataStorage/moo/chen.yu/census_data',
               model_dir='/uac/rshr/cyliu/bigDataStorage/moo/chen.yu/census_model',
-              train_epochs=40,
-              epochs_between_evals=40,
+  # set_defaults(data_dir='./census_data',
+  #             model_dir='./census_model',
+              train_epochs=10,
+              epochs_between_evals=10,
               batch_size=40)
 
 
@@ -80,7 +82,7 @@ def build_estimator(model_dir, model_type, model_column_fn):
         dnn_feature_columns=deep_columns,
         dnn_hidden_units=hidden_units,
         config=run_config,
-        dnn_optimizer=tf.train.ProximalAdagradOptimizer(learning_rate=params['LEARNING_RATE']))
+        dnn_optimizer=tf.train.AdamOptimizer(learning_rate=params['LEARNING_RATE']))
 
 
 def run_census(flags_obj):
