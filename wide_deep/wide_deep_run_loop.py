@@ -34,34 +34,24 @@ def define_wide_deep_flags():
   """Add supervised learning flags, as well as wide-deep model type."""
   flags.DEFINE_boolean(
         name="clean", default=False,
-        help=help_wrap("If set, model_dir will be removed if it exists."))
+        help=("If set, model_dir will be removed if it exists.")
   flags.DEFINE_integer(
         name="train_epochs", short_name="te", default=1,
-        help=help_wrap("The number of epochs used to train."))
+        help=("The number of epochs used to train.")
   flags.DEFINE_integer(
         name="epochs_between_evals", short_name="ebe", default=1,
-        help=help_wrap("The number of training epochs to run between "
-                       "evaluations."))
+        help=("The number of training epochs to run between "
+              "evaluations.")
   flags.DEFINE_float(
         name="stop_threshold", short_name="st",
         default=None,
-        help=help_wrap("If passed, training will stop at the earlier of "
-                       "train_epochs and when the evaluation metric is  "
-                       "greater than or equal to stop_threshold."))
+        help=("If passed, training will stop at the earlier of "
+              "train_epochs and when the evaluation metric is  "
+              "greater than or equal to stop_threshold.")
   flags.DEFINE_list(
-        name="hooks", short_name="hk", default="LoggingTensorHook",
-        help=help_wrap(
-            u"A list of (case insensitive) strings to specify the names of "
-            u"training hooks. Example: `--hooks ProfilerHook,"
-            u"ExamplesPerSecondHook`\n See hooks_helper "
-            u"for details.")
-  )
+        name="hooks", short_name="hk", default="LoggingTensorHook")
   flags.DEFINE_string(
-        name="export_dir", short_name="ed", default=None,
-        help=help_wrap("If set, a SavedModel serialization of the model will "
-                       "be exported to this directory at the end of training. "
-                       "See the README for more details and relevant links.")
-  )
+        name="export_dir", short_name="ed", default=None)
 
   flags.DEFINE_enum(
       name="model_type", short_name="mt", default="wide_deep",
