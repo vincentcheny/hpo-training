@@ -2,7 +2,7 @@
     "N_TREES":{"_type":"choice","_value":[50,100,150,200]},
     "LEARNING_RATE":{"_type":"choice","_value":[5e-1,1e-1,5e-2,1e-2,5e-3]},
     "MAX_DEPTH":{"_type":"choice","_value":[2,4,6,8,10]},
-    "NUM_EXAMPLES":{"_type":"choice","_value":[1e5,5e5,1e6]},
+    "NUM_EXAMPLES":{"_type":"choice","_value":[2e5,5e5,1e6,1.5e6]},
     "inter_op_parallelism_threads":{"_type":"choice","_value":[1,2,3,4]},
     "intra_op_parallelism_threads":{"_type":"choice","_value":[2,4,6,8,10,12]},
     "max_folded_constant":{"_type":"choice","_value":[2,4,6,8,10]},
