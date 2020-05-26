@@ -69,7 +69,7 @@ def define_wide_deep_flags():
       help="Select model topology.")
   flags.DEFINE_boolean(
       name="download_if_missing", default=True, 
-          "Download data to data_dir if it is not already present.")
+      help="Download data to data_dir if it is not already present.")
 
 
 def export_model(model, model_type, export_dir, model_column_fn):

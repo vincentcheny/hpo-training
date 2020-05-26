@@ -19,8 +19,8 @@ import os
 from absl import app as absl_app
 from absl import flags
 import tensorflow.compat.v1 as tf
-from . import census_dataset
-from . import wide_deep_run_loop
+import census_dataset
+import wide_deep_run_loop
 import nni
 
 
