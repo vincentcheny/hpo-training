@@ -291,7 +291,7 @@ if __name__ == "__main__":
   params = get_default_params()
   received_params = nni.get_next_parameter()
   params.update(received_params)
-  flags.FLAGS.train_count = params["NUM_EXAMPLES"]
+  flags.FLAGS.train_count = int(params["NUM_EXAMPLES"])
   flags.FLAGS.n_trees = params["N_TREES"]
   flags.FLAGS.max_depth = params["MAX_DEPTH"]
   flags.FLAGS.learning_rate = params["LEARNING_RATE"]
