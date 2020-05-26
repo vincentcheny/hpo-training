@@ -54,6 +54,21 @@ def define_wide_deep_flags():
         help="If passed, training will stop at the earlier of "
               "train_epochs and when the evaluation metric is  "
               "greater than or equal to stop_threshold.")
+  flags.DEFINE_integer(
+        name="batch_size", short_name="bs", default=32,
+        help="Batch size for training and evaluation")
+  flags.DEFINE_integer(
+        name="num_gpus", short_name="ng",
+        default=1,
+        help="How many GPUs to use at each worker with the "
+            "DistributionStrategies API. The default is 1.")
+  flags.DEFINE_boolean(
+        name="run_eagerly", default=False,
+        help="Run the model op by op without building a model function.")
+  flags.DEFINE_string(
+        name="distribution_strategy", short_name="ds", default="mirrored",
+        help="The Distribution Strategy to use for training. "
+    )
   flags.DEFINE_list(
         name="hooks", short_name="hk", default="LoggingTensorHook", help="")
   flags.DEFINE_string(

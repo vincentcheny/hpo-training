@@ -35,8 +35,6 @@ def define_census_flags():
               model_dir='/uac/rshr/cyliu/bigDataStorage/moo/chen.yu/census_model',
               train_epochs=40,
               epochs_between_evals=2,
-              inter_op_parallelism_threads=1,
-              intra_op_parallelism_threads=2,
               batch_size=40)
 
 
