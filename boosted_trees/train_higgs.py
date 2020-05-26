@@ -50,9 +50,6 @@ from absl import flags
 import numpy as np
 import tensorflow.compat.v1 as tf
 
-from official.r1.utils.logs import logger
-from official.utils.flags import core as flags_core
-from official.utils.flags._conventions import help_wrap
 
 NPZ_FILE = "HIGGS.csv.gz.npz"  # numpy compressed file containing "data" array
 
@@ -209,21 +206,6 @@ def train_boosted_trees(flags_obj):
       features_np=eval_data[:, 1:], label_np=eval_data[:, 0:1])
   tf.logging.info("## Features prepared. Training starts...")
 
-  # Create benchmark logger to log info about the training and metric values
-  run_params = {
-      "train_start": flags_obj.train_start,
-      "train_count": flags_obj.train_count,
-      "eval_start": flags_obj.eval_start,
-      "eval_count": flags_obj.eval_count,
-      "n_trees": flags_obj.n_trees,
-      "max_depth": flags_obj.max_depth,
-  }
-  benchmark_logger = logger.config_benchmark_logger(flags_obj)
-  benchmark_logger.log_run_info(
-      model_name="boosted_trees",
-      dataset_name="higgs",
-      run_params=run_params,
-      test_id=flags_obj.benchmark_test_id)
 
   # Though BoostedTreesClassifier is under tf.estimator, faster in-memory
   # training is yet provided as a contrib library.
@@ -238,18 +220,6 @@ def train_boosted_trees(flags_obj):
 
   # Evaluation.
   eval_results = classifier.evaluate(eval_input_fn)
-  # Benchmark the evaluation results
-  benchmark_logger.log_evaluation_result(eval_results)
-
-  # Exporting the savedmodel with csv parsing.
-  if flags_obj.export_dir is not None:
-    classifier.export_savedmodel(
-        flags_obj.export_dir,
-        _make_csv_serving_input_receiver_fn(
-            column_names=feature_names,
-            # columns are all floats.
-            column_defaults=[[0.0]] * len(feature_names)),
-        strip_default_attrs=True)
 
 
 def main(_):
@@ -258,33 +228,68 @@ def main(_):
 
 def define_train_higgs_flags():
   """Add tree related flags as well as training/eval configuration."""
-  flags_core.define_base(clean=False, stop_threshold=False, batch_size=False,
-                         num_gpu=False, export_dir=True)
-  flags_core.define_benchmark()
-  flags.adopt_module_key_flags(flags_core)
+
+  flags.DEFINE_string(
+        name="data_dir", short_name="dd", default="/uac/rshr/cyliu/bigDataStorage/moo/chen.yu/HIGGSDATA",
+        help="The location of the input data.")
+  flags.DEFINE_string(
+        name="model_dir", short_name="md", default="/uac/rshr/cyliu/bigDataStorage/moo/chen.yu/HIGGSMODEL",
+        help="The location of the model checkpoint files.")
+  flags.DEFINE_boolean(
+        name="clean", default=False,
+        help="If set, model_dir will be removed if it exists.")
+  flags.DEFINE_integer(
+        name="train_epochs", short_name="te", default=1,
+        help="The number of epochs used to train.")
+  flags.DEFINE_integer(
+        name="epochs_between_evals", short_name="ebe", default=1,
+        help="The number of training epochs to run between "
+                       "evaluations.")
+  flags.DEFINE_float(
+        name="stop_threshold", short_name="st",
+        default=None,
+        help="If passed, training will stop at the earlier of "
+                       "train_epochs and when the evaluation metric is  "
+                       "greater than or equal to stop_threshold.")
+  flags.DEFINE_integer(
+        name="num_gpus", short_name="ng",
+        default=1,
+        help=
+            "How many GPUs to use at each worker with the "
+            "DistributionStrategies API. The default is 1.")
+  flags.DEFINE_list(
+        name="hooks", short_name="hk", default="LoggingTensorHook",
+        help=
+            u"A list of (case insensitive) strings to specify the names of "
+            u"training hooks. Example: `--hooks ProfilerHook,"
+            u"ExamplesPerSecondHook`\n See hooks_helper "
+            u"for details.")
+  flags.DEFINE_string(
+        name="export_dir", short_name="ed", default=None,
+        help="If set, a SavedModel serialization of the model will "
+                       "be exported to this directory at the end of training. "
+                       "See the README for more details and relevant links.")
 
   flags.DEFINE_integer(
       name="train_start", default=0,
-      help=help_wrap("Start index of train examples within the data."))
+      help="Start index of train examples within the data.")
   flags.DEFINE_integer(
       name="train_count", default=1000000,
-      help=help_wrap("Number of train examples within the data."))
+      help="Number of train examples within the data.")
   flags.DEFINE_integer(
       name="eval_start", default=10000000,
-      help=help_wrap("Start index of eval examples within the data."))
+      help="Start index of eval examples within the data.")
   flags.DEFINE_integer(
       name="eval_count", default=1000000,
-      help=help_wrap("Number of eval examples within the data."))
+      help="Number of eval examples within the data.")
 
   flags.DEFINE_integer(
-      "n_trees", default=100, help=help_wrap("Number of trees to build."))
+      "n_trees", default=100, help="Number of trees to build.")
   flags.DEFINE_integer(
-      "max_depth", default=6, help=help_wrap("Maximum depths of each tree."))
+      "max_depth", default=6, help="Maximum depths of each tree.")
   flags.DEFINE_float(
       "learning_rate", default=0.1,
-      help=help_wrap("The learning rate."))
-  flags_core.set_defaults(data_dir="/uac/rshr/cyliu/bigDataStorage/moo/chen.yu/HIGGSDATA",
-                          model_dir="/uac/rshr/cyliu/bigDataStorage/moo/chen.yu/HIGGSMODEL")
+      help="The learning rate.")
 
 
 if __name__ == "__main__":

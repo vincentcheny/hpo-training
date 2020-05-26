@@ -38,8 +38,6 @@ from absl import app as absl_app
 from absl import flags
 import tensorflow as tf
 
-from official.utils.flags import core as flags_core
-
 URL_ROOT = "https://archive.ics.uci.edu/ml/machine-learning-databases/00280"
 INPUT_FILE = "HIGGS.csv.gz"
 NPZ_FILE = "HIGGS.csv.gz.npz"  # numpy compressed file to contain "data" array.
@@ -86,8 +84,7 @@ def define_data_download_flags():
   """Add flags specifying data download arguments."""
   flags.DEFINE_string(
       name="data_dir", default="/tmp/higgs_data",
-      help=flags_core.help_wrap(
-          "Directory to download higgs dataset and store training/eval data."))
+      "Directory to download higgs dataset and store training/eval data.")
 
 
 if __name__ == "__main__":
