@@ -29,8 +29,6 @@ from six.moves import zip
 import tensorflow.compat.v1 as tf
 # pylint: enable=wrong-import-order
 
-from official.utils.flags import core as flags_core
-
 
 DATA_URL = 'https://archive.ics.uci.edu/ml/machine-learning-databases/adult'
 TRAINING_FILE = 'adult.data'
@@ -191,8 +189,7 @@ def define_data_download_flags():
   """Add flags specifying data download arguments."""
   flags.DEFINE_string(
       name="data_dir", default="/tmp/census_data/",
-      help=flags_core.help_wrap(
-          "Directory to download and extract data."))
+      help="Directory to download and extract data.")
 
 
 def main(_):

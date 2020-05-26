@@ -39,7 +39,7 @@ def define_wide_deep_flags():
         name="model_dir", short_name="md", default="/tmp",
         help="The location of the model checkpoint files.")
   flags.DEFINE_boolean(
-        name="clean", default=False,
+        name="clean", default=True,
         help="If set, model_dir will be removed if it exists.")
   flags.DEFINE_integer(
         name="train_epochs", short_name="te", default=1,

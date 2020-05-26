@@ -22,6 +22,7 @@ import tensorflow.compat.v1 as tf
 import census_dataset
 import wide_deep_run_loop
 import nni
+import shutil
 
 
 def set_defaults(**kwargs):
@@ -115,6 +116,8 @@ def run_census(flags_obj):
       flags_obj=flags_obj,
       tensors_to_log=tensors_to_log,
       early_stop=True)
+  if os.path.exists(flags_obj.model_dir):
+    shutil.rmtree(flags_obj.model_dir)
 
 
 def main(_):
