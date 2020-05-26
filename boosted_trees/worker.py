@@ -1,54 +1,15 @@
-# Copyright 2018 The TensorFlow Authors. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ==============================================================================
-r"""A script that builds boosted trees over higgs data.
-
-If you haven't, please run data_download.py beforehand to prepare the data.
-
-For some more details on this example, please refer to README.md as well.
-
-Note that the model_dir is cleaned up before starting the training.
-
-Usage:
-$ python train_higgs.py --n_trees=100 --max_depth=6 --learning_rate=0.1 \
-    --model_dir=/tmp/higgs_model
-
-Note that BoostedTreesClassifier is available since Tensorflow 1.8.0.
-So you need to install recent enough version of Tensorflow to use this example.
-
-The training data is by default the first million examples out of 11M examples,
-and eval data is by default the last million examples.
-They are controlled by --train_start, --train_count, --eval_start, --eval_count.
-e.g. to train over the first 10 million examples instead of 1 million:
-$ python train_higgs.py --n_trees=100 --max_depth=6 --learning_rate=0.1 \
-    --model_dir=/tmp/higgs_model --train_count=10000000
-
-Training history and metrics can be inspected using tensorboard.
-Set --logdir as the --model_dir set by flag when training
-(or the default /tmp/higgs_model).
-$ tensorboard --logdir=/tmp/higgs_model
-"""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
 import os
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 from absl import app as absl_app
 from absl import flags
 import numpy as np
 import tensorflow.compat.v1 as tf
+import nni
 
 
 NPZ_FILE = "HIGGS.csv.gz.npz"  # numpy compressed file containing "data" array
@@ -206,7 +167,19 @@ def train_boosted_trees(flags_obj):
       features_np=eval_data[:, 1:], label_np=eval_data[:, 0:1])
   tf.logging.info("## Features prepared. Training starts...")
 
-
+  my_config = tf.ConfigProto( 
+    inter_op_parallelism_threads=int(params['inter_op_parallelism_threads']),
+    intra_op_parallelism_threads=int(params['intra_op_parallelism_threads']),
+    graph_options=tf.GraphOptions(
+        build_cost_model=int(params['build_cost_model']),
+        infer_shapes=params['infer_shapes'],
+        place_pruned_graph=params['place_pruned_graph'],
+        enable_bfloat16_sendrecv=params['enable_bfloat16_sendrecv'],
+        optimizer_options=tf.OptimizerOptions(
+            do_common_subexpression_elimination=params['do_common_subexpression_elimination'],
+            max_folded_constant_in_bytes=int(params['max_folded_constant']),
+            do_function_inlining=params['do_function_inlining'],
+            global_jit_level=params['global_jit_level'])))
   # Though BoostedTreesClassifier is under tf.estimator, faster in-memory
   # training is yet provided as a contrib library.
   from tensorflow.contrib import estimator as contrib_estimator  # pylint: disable=g-import-not-at-top
@@ -216,10 +189,12 @@ def train_boosted_trees(flags_obj):
       model_dir=flags_obj.model_dir or None,
       n_trees=flags_obj.n_trees,
       max_depth=flags_obj.max_depth,
-      learning_rate=flags_obj.learning_rate)
+      learning_rate=flags_obj.learning_rate,
+      config=tf.estimator.RunConfig(session_config=my_config))
 
   # Evaluation.
   eval_results = classifier.evaluate(eval_input_fn)
+  nni.report_final_result(eval_results['accuracy'])
 
 
 def main(_):
@@ -291,9 +266,34 @@ def define_train_higgs_flags():
       "learning_rate", default=0.1,
       help="The learning rate.")
 
+def get_default_params():
+    return {
+        "N_TREES":100,
+        "LEARNING_RATE":1e-1,
+        "MAX_DEPTH":6,
+        "NUM_EXAMPLES":1e6,
+        "inter_op_parallelism_threads":1,
+        "intra_op_parallelism_threads":2,
+        "max_folded_constant":6,
+        "build_cost_model":4,
+        "do_common_subexpression_elimination":1,
+        "do_function_inlining":1,
+        "global_jit_level":1,
+        "infer_shapes":1,
+        "place_pruned_graph":1,
+        "enable_bfloat16_sendrecv":1
+    }
 
 if __name__ == "__main__":
   # Training progress and eval results are shown as logging.INFO; so enables it.
   tf.logging.set_verbosity(tf.logging.INFO)
   define_train_higgs_flags()
+  params = get_default_params()
+  received_params = nni.get_next_parameter()
+  params.update(received_params)
+  flags.FLAGS.train_count = params["NUM_EXAMPLES"]
+  flags.FLAGS.n_trees = params["N_TREES"]
+  flags.FLAGS.max_depth = params["MAX_DEPTH"]
+  flags.FLAGS.learning_rate = params["LEARNING_RATE"]
+
   absl_app.run(main)
