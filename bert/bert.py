@@ -236,4 +236,7 @@ nni.report_final_result(accuracy_score(np.array(results), test_labels))
 print(f1_score(np.array(results), test_labels))
 # Delete the checkpoint and summary for next trial
 if os.path.exists(OUTPUT_DIR):
-    shutil.rmtree(OUTPUT_DIR)
+    try:
+        shutil.rmtree(OUTPUT_DIR)
+    except OSError:
+        pass
