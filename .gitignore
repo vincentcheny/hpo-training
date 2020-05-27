@@ -6,3 +6,6 @@
 /worker_model_vgg/logs
 /worker_model_vgg/estimator
 /.history
+/bert/__pycache__
+/bert/uncased_L-12_H-768_A-12
+/bert/train.csv

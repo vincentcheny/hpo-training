@@ -1,0 +1,16 @@
+{
+    "LEARNING_RATE":{"_type":"choice","_value":[5e-1,1e-1,5e-2,1e-2,5e-3]},
+    "NUM_EPOCH":{"_type":"choice","_value":[2,3,4]},
+    "BATCH_SIZE":{"_type":"choice","_value":[8,16,32,64,128]},
+    "WARMUP_PROPORTION":{"_type":"choice","_value":[0.05,0.1,0.15]},
+    "inter_op_parallelism_threads":{"_type":"choice","_value":[1,2,3,4]},
+    "intra_op_parallelism_threads":{"_type":"choice","_value":[2,4,6,8,10,12]},
+    "max_folded_constant":{"_type":"choice","_value":[2,4,6,8,10]},
+    "build_cost_model":{"_type":"choice","_value":[0,2,4,6,8]},
+    "do_common_subexpression_elimination":{"_type":"choice","_value":[false,true]},
+    "do_function_inlining":{"_type":"choice","_value":[false,true]},
+    "global_jit_level":{"_type":"choice","_value":[0,1,2]},
+    "infer_shapes":{"_type":"choice","_value":[false,true]},
+    "place_pruned_graph":{"_type":"choice","_value":[false,true]},
+    "enable_bfloat16_sendrecv":{"_type":"choice","_value":[false,true]}
+}
