@@ -1,8 +1,7 @@
 {
     "BATCH_SIZE":{"_type":"choice","_value":[8,16,32,64,128]},
     "LEARNING_RATE":{"_type":"choice","_value":[5e-3,1e-3,5e-4,1e-4,5e-5]},
-    "NKERN1":{"_type":"choice","_value":[5,15,25,35,45,60]},
-    "NKERN2":{"_type":"choice","_value":[10,20,30,40,50,60]},
+    "NUM_KERNAL":{"_type":"choice","_value":["(5,10)","(10,15)"]},
     "inter_op_parallelism_threads":{"_type":"choice","_value":[1,2,3,4]},
     "intra_op_parallelism_threads":{"_type":"choice","_value":[2,4,6,8,10,12]},
     "max_folded_constant":{"_type":"choice","_value":[2,4,6,8,10]},

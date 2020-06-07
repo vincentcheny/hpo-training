@@ -16,10 +16,11 @@ from tensorflow.keras import Model
 from tensorflow.keras.callbacks import Callback
 from tensorflow.keras.layers import (Conv2D, Dense, Dropout, Flatten, MaxPool2D)
 from tensorflow.keras.optimizers import Adam
-
+import os 
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 import nni
 
-_logger = logging.getLogger('mnist_example')
+_logger = logging.getLogger('cifar10_example')
 _logger.setLevel(logging.INFO)
 
 
@@ -57,7 +58,7 @@ class MnistModel(Model):
         x = self.pool2(x)
         x = self.flatten(x)
         x = self.fc1(x)
-        x = self.dropout(x)
+        # x = self.dropout(x)
         return self.fc2(x)
 
 
@@ -85,8 +86,8 @@ def load_dataset():
     cifar10 = tf.keras.datasets.cifar10
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
     x_train, x_test = x_train / 255.0, x_test / 255.0
-    x_train = x_train[..., tf.newaxis]
-    x_test = x_test[..., tf.newaxis]
+    # x_train = x_train[..., tf.newaxis]
+    # x_test = x_test[..., tf.newaxis]
     return (x_train, y_train), (x_test, y_test)
 
 
@@ -110,11 +111,8 @@ def get_default_params():
     return {
         "BATCH_SIZE":32,
         "LEARNING_RATE":1e-4,
-        "DROP_OUT":5e-1,
-        "DENSE_UNIT":128,
-        "OPTIMIZER":"grad",
-        "KERNEL_SIZE":3,
-        "NUM_EPOCH":81,
+        "NKERN1":5, 
+        "NKERN2":10,
         "inter_op_parallelism_threads":1,
         "intra_op_parallelism_threads":2,
         "max_folded_constant":6,
@@ -137,14 +135,8 @@ def main(params):
     """
     model = MnistModel(
         filter1=params['NKERN1'],
-        filter2=params['NKERN1']
+        filter2=params['NKERN2']
     )
-    # if params['OPTIMIZER'] == 'adam':
-    #     optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=params['LEARNING_RATE'])
-    # elif params['OPTIMIZER'] == 'grad':
-    #     optimizer = tf.compat.v1.train.GradientDescentOptimizer(learning_rate=params['LEARNING_RATE'])
-    # elif params['OPTIMIZER'] == 'rmsp':
-    #     optimizer = tf.compat.v1.train.RMSPropOptimizer(learning_rate=params['LEARNING_RATE'])
     optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=params['LEARNING_RATE'])
     model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
     _logger.info('Model built')
@@ -159,7 +151,7 @@ def main(params):
         x_train,
         y_train,
         batch_size=params['BATCH_SIZE'],
-        epochs=params['NUM_EPOCH'],
+        epochs=81,
         verbose=0,
         callbacks=[ReportIntermediates()],
         validation_data=(x_test, y_test)
@@ -171,15 +163,21 @@ def main(params):
     _logger.info('Final accuracy reported: %s', accuracy)
 
 
+def get_kernel(s):
+    s = s.split(',')
+    NKERN1 = int(s[0].split('(')[1])
+    NKERN2 = int(s[1].split(')')[0])
+    return {"NKERN1":NKERN1, "NKERN2":NKERN2}
+
 if __name__ == '__main__':
     params = get_default_params()
 
     # fetch hyper-parameters from HPO tuner
     # comment out following two lines to run the code without NNI framework
     tuned_params = nni.get_next_parameter()
-    while tuned_params['NKERN1'] > tuned_params['NKERN2']:
-        tuned_params = nni.get_next_parameter
     params.update(tuned_params)
+    if tuned_params:
+        params.update(get_kernel(tuned_params['NUM_KERNAL']))
 
     _logger.info('Hyper-parameters: %s', params)
     main(params)
