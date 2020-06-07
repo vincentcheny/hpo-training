@@ -27,7 +27,7 @@ class MnistModel(Model):
     """
     LeNet-5 Model with customizable hyper-parameters
     """
-    def __init__(self, conv_size, hidden_size, dropout_rate):
+    def __init__(self, filter1, filter2):
         """
         Initialize hyper-parameters.
         Parameters
@@ -40,13 +40,13 @@ class MnistModel(Model):
             Dropout rate between two fully connected (dense) layers, to prevent co-adaptation.
         """
         super().__init__()
-        self.conv1 = Conv2D(filters=32, kernel_size=(conv_size,conv_size), activation='relu')
+        self.conv1 = Conv2D(filters=filter1, kernel_size=(9,9), activation='relu')
         self.pool1 = MaxPool2D(pool_size=2)
-        self.conv2 = Conv2D(filters=64, kernel_size=(conv_size,conv_size), activation='relu')
+        self.conv2 = Conv2D(filters=filter2, kernel_size=(5,5), activation='relu')
         self.pool2 = MaxPool2D(pool_size=2)
         self.flatten = Flatten()
-        self.fc1 = Dense(units=hidden_size, activation='relu')
-        self.dropout = Dropout(rate=dropout_rate)
+        self.fc1 = Dense(units=50, activation='relu')
+        # self.dropout = Dropout(rate=dropout_rate)
         self.fc2 = Dense(units=10, activation='softmax')
 
     def call(self, x):
@@ -80,8 +80,10 @@ class ReportIntermediates(Callback):
 
 def load_dataset():
     """Download and reformat MNIST dataset"""
-    mnist = tf.keras.datasets.mnist
-    (x_train, y_train), (x_test, y_test) = mnist.load_data()
+    # mnist = tf.keras.datasets.mnist
+    # (x_train, y_train), (x_test, y_test) = mnist.load_data()
+    cifar10 = tf.keras.datasets.cifar10
+    (x_train, y_train), (x_test, y_test) = cifar10.load_data()
     x_train, x_test = x_train / 255.0, x_test / 255.0
     x_train = x_train[..., tf.newaxis]
     x_test = x_test[..., tf.newaxis]
@@ -112,7 +114,7 @@ def get_default_params():
         "DENSE_UNIT":128,
         "OPTIMIZER":"grad",
         "KERNEL_SIZE":3,
-        "NUM_EPOCH":6,
+        "NUM_EPOCH":81,
         "inter_op_parallelism_threads":1,
         "intra_op_parallelism_threads":2,
         "max_folded_constant":6,
@@ -134,16 +136,16 @@ def main(params):
       - Report accuracy to tuner
     """
     model = MnistModel(
-        conv_size=params['KERNEL_SIZE'],
-        hidden_size=params['DENSE_UNIT'],
-        dropout_rate=params['DROP_OUT']
+        filter1=params['NKERN1'],
+        filter2=params['NKERN1']
     )
-    if params['OPTIMIZER'] == 'adam':
-        optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=params['LEARNING_RATE'])
-    elif params['OPTIMIZER'] == 'grad':
-        optimizer = tf.compat.v1.train.GradientDescentOptimizer(learning_rate=params['LEARNING_RATE'])
-    elif params['OPTIMIZER'] == 'rmsp':
-        optimizer = tf.compat.v1.train.RMSPropOptimizer(learning_rate=params['LEARNING_RATE'])
+    # if params['OPTIMIZER'] == 'adam':
+    #     optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=params['LEARNING_RATE'])
+    # elif params['OPTIMIZER'] == 'grad':
+    #     optimizer = tf.compat.v1.train.GradientDescentOptimizer(learning_rate=params['LEARNING_RATE'])
+    # elif params['OPTIMIZER'] == 'rmsp':
+    #     optimizer = tf.compat.v1.train.RMSPropOptimizer(learning_rate=params['LEARNING_RATE'])
+    optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=params['LEARNING_RATE'])
     model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
     _logger.info('Model built')
 
@@ -175,6 +177,8 @@ if __name__ == '__main__':
     # fetch hyper-parameters from HPO tuner
     # comment out following two lines to run the code without NNI framework
     tuned_params = nni.get_next_parameter()
+    while tuned_params['NKERN1'] > tuned_params['NKERN2']:
+        tuned_params = nni.get_next_parameter
     params.update(tuned_params)
 
     _logger.info('Hyper-parameters: %s', params)
