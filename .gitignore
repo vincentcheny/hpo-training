@@ -12,3 +12,4 @@
 /bert/outputs
 /lenet/__pycache__
 /lenet/data
+/inception/inceptionv3_dog

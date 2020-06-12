@@ -176,8 +176,8 @@ if __name__ == '__main__':
     # comment out following two lines to run the code without NNI framework
     tuned_params = nni.get_next_parameter()
     params.update(tuned_params)
-    if tuned_params:
-        params.update(get_kernel(tuned_params['NUM_KERNAL']))
+    # if tuned_params:
+    #     params.update(get_kernel(tuned_params['NUM_KERNAL']))
 
     _logger.info('Hyper-parameters: %s', params)
     main(params)

@@ -200,7 +200,8 @@ tf.app.flags.DEFINE_integer('save_ckpt_steps', 400, 'save ckpt per n steps')
 tf.app.flags.DEFINE_integer('train_steps', 150, 'train_steps')
 
 
-my_config = tf.compat.v1.ConfigProto( 
+my_config = tf.compat.v1.ConfigProto(
+    # gpu_options=tf.GPUOptions(per_process_gpu_memory_fraction=0.9), 
     inter_op_parallelism_threads=int(params['inter_op_parallelism_threads']),
     intra_op_parallelism_threads=int(params['intra_op_parallelism_threads']),
     graph_options=tf.compat.v1.GraphOptions(
