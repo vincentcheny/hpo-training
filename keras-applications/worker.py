@@ -82,6 +82,9 @@ model = tf.keras.Sequential([
     prediction_layer
 ])
 
+sess = tf.compat.v1.Session(config=get_config())
+tf.compat.v1.keras.backend.set_session(sess)
+
 model.compile(optimizer=tf.keras.optimizers.RMSprop(lr=params['LEARNING_RATE']),
               loss=tf.keras.losses.SparseCategoricalCrossentropy(
                   from_logits=True, reduction=tf.losses.Reduction.NONE),
