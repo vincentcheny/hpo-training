@@ -25,6 +25,7 @@ References:
 from __future__ import print_function
 
 import os
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 import sys
 import timeit
 
@@ -357,7 +358,8 @@ if __name__ == '__main__':
     params = get_default_params()
     tuned_params = nni.get_next_parameter()
     params.update(tuned_params)
-    evaluate_lenet5(learning_rate=params['LEARNING_RATE'], batch_size=params['BATCH_SIZE'], nkerns=[params['NKERN1'], params['NKERN2']])
+    n_epochs = (params['TRIAL_BUDGET'] * 4) if 'TRIAL_BUDGET' in params.keys() else 80
+    evaluate_lenet5(learning_rate=params['LEARNING_RATE'], batch_size=params['BATCH_SIZE'], nkerns=[params['NKERN1'], params['NKERN2']], n_epochs=n_epochs)
 
 
 def experiment(state, channel):

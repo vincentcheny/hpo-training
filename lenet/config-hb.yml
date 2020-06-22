@@ -2,18 +2,17 @@ authorName: Vincent
 experimentName: LeNet
 trialConcurrency: 1
 maxExecDuration: 10h
-maxTrialNum: 200
+maxTrialNum: 70
 #choice: local, remote, pai
 trainingServicePlatform: local
 searchSpacePath: search_space.json
 #choice: true, false
 useAnnotation: false
-tuner:
-  #choice: TPE, Random, Anneal, Evolution, BatchTuner, MetisTuner, GPTuner
-  #SMAC (SMAC should be installed through nnictl)
-  builtinTunerName: TPE
+advisor:
+  builtinAdvisorName: Hyperband
   classArgs:
-    #choice: maximize, minimize
+    R: 20
+    eta: 3
     optimize_mode: maximize
 trial:
   command: python worker.py
