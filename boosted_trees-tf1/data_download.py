@@ -83,7 +83,7 @@ def main(unused_argv):
 def define_data_download_flags():
   """Add flags specifying data download arguments."""
   flags.DEFINE_string(
-      name="data_dir", default="/tmp/higgs_data",
+      "data_dir", "./higgs_data", 
       "Directory to download higgs dataset and store training/eval data.")
 
 

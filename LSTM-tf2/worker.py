@@ -38,12 +38,6 @@ def get_config():
     return tf.compat.v1.ConfigProto( 
         inter_op_parallelism_threads=int(params['inter_op_parallelism_threads']),
         intra_op_parallelism_threads=int(params['intra_op_parallelism_threads']),
-        gpu_options=tf.compat.v1.GPUOptions(
-            allow_growth=True,
-            allocator_type=params['allocator_type'],
-            deferred_deletion_bytes=params['deferred_deletion_bytes'],
-            polling_active_delay_usecs=params['polling_active_delay_usecs'],
-            use_unified_memory=params['use_unified_memory']),
         graph_options=tf.compat.v1.GraphOptions(
             build_cost_model=int(params['build_cost_model']),
             infer_shapes=params['infer_shapes'],

@@ -151,6 +151,11 @@ def train_boosted_trees(flags_obj):
   Args:
     flags_obj: An object containing parsed flag values.
   """
+  # Download data if not present
+  data_dir = flags_obj.data_dir
+  if not os.path.isdir(data_dir):
+    print(f"No data found. Start downloading {os.path.realpath(data_dir)}/{NPZ_FILE}...")
+    os.system("python data_download.py")
   # Clean up the model directory if present.
   if tf.gfile.Exists(flags_obj.model_dir):
     tf.gfile.DeleteRecursively(flags_obj.model_dir)
@@ -205,13 +210,13 @@ def define_train_higgs_flags():
   """Add tree related flags as well as training/eval configuration."""
 
   flags.DEFINE_string(
-        name="data_dir", short_name="dd", default="/uac/rshr/cyliu/bigDataStorage/moo/chen.yu/HIGGSDATA",
+        name="data_dir", short_name="dd", default="./higgs_data",
         help="The location of the input data.")
   flags.DEFINE_string(
-        name="model_dir", short_name="md", default="/uac/rshr/cyliu/bigDataStorage/moo/chen.yu/HIGGSMODEL",
+        name="model_dir", short_name="md", default="./higgs_ckpt",
         help="The location of the model checkpoint files.")
   flags.DEFINE_boolean(
-        name="clean", default=False,
+        name="clean", default=True,
         help="If set, model_dir will be removed if it exists.")
   flags.DEFINE_integer(
         name="train_epochs", short_name="te", default=1,
@@ -288,6 +293,7 @@ if __name__ == "__main__":
   # Training progress and eval results are shown as logging.INFO; so enables it.
   tf.logging.set_verbosity(tf.logging.INFO)
   define_train_higgs_flags()
+  
   params = get_default_params()
   received_params = nni.get_next_parameter()
   params.update(received_params)
