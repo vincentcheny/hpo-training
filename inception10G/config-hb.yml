@@ -1,0 +1,20 @@
+authorName: Vincent
+experimentName: Inception10G
+trialConcurrency: 1
+maxExecDuration: 10h
+maxTrialNum: 200
+#choice: local, remote, pai
+trainingServicePlatform: local
+searchSpacePath: search_space.json
+#choice: true, false
+useAnnotation: false
+advisor:
+  builtinAdvisorName: Hyperband
+  classArgs:
+    R: 20
+    eta: 3
+    optimize_mode: maximize
+trial:
+  command: python train.py
+  codeDir: .
+  gpuNum: 1

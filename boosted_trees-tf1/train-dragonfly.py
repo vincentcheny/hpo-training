@@ -16,7 +16,7 @@ import shutil
 
 
 NPZ_FILE = "HIGGS.csv.gz.npz"  # numpy compressed file containing "data" array
-fianl_acc = 0.0
+final_acc = 0.0
 spent_time = 0.0
 
 def read_higgs_data(data_dir, train_start, train_count, eval_start, eval_count):
@@ -218,8 +218,8 @@ def acc_eval(x):
       shutil.rmtree("./higgs_ckpt",ignore_errors=True)
   except OSError:
     print("OS error")
-  global fianl_acc
-  return fianl_acc
+  global final_acc
+  return final_acc
 
 def main(_):
   # train_boosted_trees(flags.FLAGS)
