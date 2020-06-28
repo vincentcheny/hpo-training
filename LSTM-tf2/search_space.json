@@ -1,10 +1,10 @@
 {
-    "BATCH_SIZE":{"_type":"choice","_value":[32,64,128,256]},
-    "LEARNING_RATE":{"_type":"choice","_value":[5e-3,1e-3,5e-4,1e-4,5e-5]},
+    "BATCH_SIZE":{"_type":"choice","_value":[16,32,64,128,256]},
+    "LEARNING_RATE":{"_type":"choice","_value":[1e-1,5e-2,1e-2,5e-3,1e-3,5e-4,1e-4,5e-5]},
     "DROP_OUT":{"_type":"choice","_value":[1e-1,2e-1,3e-1,4e-1,5e-1]},
     "DENSE_UNIT":{"_type":"choice","_value":[32,64,128,256,512]},
     "OPTIMIZER":{"_type":"choice","_value":["adam","grad","rmsp"]},
-    "NUM_EPOCH":{"_type":"choice","_value":[1,2,3]},
+    "NUM_EPOCH":{"_type":"choice","_value":[1,2,3,4,5]},
 
     "allocator_type":{"_type":"choice","_value":["","BFC"]},
     "deferred_deletion_bytes":{"_type":"choice","_value":[0,1,2,3,4]},
