@@ -1,0 +1,20 @@
+authorName: Vincent
+experimentName: vgg
+trialConcurrency: 1
+maxExecDuration: 10h
+maxTrialNum: 20
+#choice: local, remote, pai
+trainingServicePlatform: local
+searchSpacePath: search_space.json
+#choice: true, false
+useAnnotation: false
+advisor:
+  builtinAdvisorName: Hyperband
+  classArgs:
+    R: 4
+    eta: 3
+    optimize_mode: maximize
+trial:
+  command: python worker.py
+  codeDir: .
+  gpuNum: 1

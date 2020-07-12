@@ -5,6 +5,7 @@
 /bert-tf1/outputs
 /bert-tf1/train.csv
 /bert-tf1/uncased_L-12_H-768_A-12
+/vgg-tf1/estimator-original
 /boosted_trees-tf1/__pycache__
 /boosted_trees-tf1/dispatcher.log
 /boosted_trees-tf1/higgs_data
