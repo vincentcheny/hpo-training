@@ -1,12 +1,11 @@
 authorName: Vincent
 experimentName: bert
 trialConcurrency: 1
-maxExecDuration: 7h
-maxTrialNum: 50
+maxExecDuration: 10h
+maxTrialNum: 200
 #choice: local, remote, pai
 trainingServicePlatform: local
 searchSpacePath: search_space.json
-logDir: /uac/rshr/cyliu/bigDataStorage/moo/chen.yu/log
 #choice: true, false
 useAnnotation: false
 tuner:
@@ -17,6 +16,6 @@ tuner:
     #choice: maximize, minimize
     optimize_mode: maximize
 trial:
-  command: python worker.py
+  command: python bert.py
   codeDir: .
-  gpuNum: 0
+  gpuNum: 1

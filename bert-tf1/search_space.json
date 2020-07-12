@@ -1,8 +1,8 @@
 {
-    "LEARNING_RATE":{"_type":"choice","_value":[5e-1,1e-1,5e-2,1e-2,5e-3,1e-3,5e-4,1e-4]},
-    "NUM_EPOCH":{"_type":"choice","_value":[1,2,3,4,5,6]},
-    "BATCH_SIZE":{"_type":"choice","_value":[8,16,32,64,128]},
-    "WARMUP_PROPORTION":{"_type":"choice","_value":[0.01,0.05,0.1,0.15]},
+    "LEARNING_RATE":{"_type":"choice","_value":[1e-6,2e-6,3e-6,4e-6,5e-6,6e-6,7e-6,8e-6,9e-6,1e-5,2e-5,3e-5,4e-5,5e-5,6e-5,7e-5,8e-5,9e-5,1e-4,2e-4,3e-4,4e-4,5e-4,6e-4,7e-4,8e-4,9e-4,1e-3,2e-3,3e-3,4e-3,5e-3,6e-3,7e-3,8e-3,9e-3,1e-2]},
+    "NUM_EPOCH":{"_type":"choice","_value":[1,2,3]},
+    "BATCH_SIZE":{"_type":"choice","_value":[4,8,12,16,20,24,28,32,36,40,44,48,52,56,60,64]},
+    "WARMUP_PROPORTION":{"_type":"choice","_value":[0.05,0.1,0.15]},
     "inter_op_parallelism_threads":{"_type":"choice","_value":[1,2,3,4]},
     "intra_op_parallelism_threads":{"_type":"choice","_value":[2,4,6,8,10,12]},
     "max_folded_constant":{"_type":"choice","_value":[2,4,6,8,10]},
