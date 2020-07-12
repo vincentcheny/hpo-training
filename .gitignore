@@ -2,6 +2,7 @@
 /.history
 /.idea
 /bert-tf1/__pycache__
+/bert-tf1/tmp*
 /bert-tf1/outputs
 /bert-tf1/train.csv
 /bert-tf1/uncased_L-12_H-768_A-12
