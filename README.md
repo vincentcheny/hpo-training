@@ -4,27 +4,27 @@
 
 |   Model   |                           Dataset                            |                      Tuning Parameter*                       | Runtime |
 | :-------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :-----: |
-|   VGG16   | [Cifar10](https://www.tensorflow.org/api_docs/python/tf/keras/datasets/cifar10) (178M) | BATCH_SIZE=[8,16,32,64,128], <br />LEARNING_RATE=[5e-3,1e-3,5e-4,1e-4,5e-5], <br />DROP_OUT=[1e-1,2e-1,3e-1,4e-1,5e-1], <br />DENSE_UNIT=[32,64,128,256,512], <br />OPTIMIZER=["adam","grad","rmsp"], <br />KERNEL_SIZE=[2,3,4,5], <br />TRAIN_STEPS=[100,200,300,400] | 700min  |
-|  LeNet-5  | [Cifar10 ](https://www.cs.toronto.edu/~kriz/cifar.html)(350M) | BATCH_SIZE=[10, 51, 92, 133, 175, 216, 257, 298, 340, 381, 422, 463, 505, 546, 587, 628, 670, 711], <br />LEARNING_RATE=1e-6~1e-2, <br />NKERN1=5~30, <br />NKERN2=31~60 |  80min  |
-| Inception | [Dog Breeds](https://www.kaggle.com/careyai/inceptionv3-full-pretrained-model-instructions/data?select=train) (366M) | BATCH_SIZE=[2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32], LEARNING_RATE=1e-6~1e-2, <br />NUM_EPOCH=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,12,18,19,20], <br />DENSE_UNIT=[16,32,64,128,256,512] |  10hrs  |
-| Inception | [Human Protein](https://www.kaggle.com/mathormad/inceptionv3-baseline-lb-0-379/data) (14G) | BATCH_SIZE=[2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32], <br />LEARNING_RATE=1e-6~1e-2, <br />NUM_EPOCH=[1,2,3,4,5,6,7,8], <br />DROP_OUT=[0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6], <br />DENSE_UNIT=[64,128,256,512,1024] |  10hrs  |
-| ResNet50  | [Plant Leaves](https://www.tensorflow.org/datasets/catalog/plant_leaves) (6.8G) | BATCH_SIZE=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16], <br />LEARNING_RATE=2e-6~1e-2, <br />NUM_EPOCH=[1,2,3,4,5,6,7,8] |  12hrs  |
-| GoogLeNet |            [ImageNet](http://www.image-net.org/)             | EPSILON=[0.1,0.3,0.5,0.7,1.0],<br />BATCH_SIZE=[8,16,32,48,64]<br />NUM_EPOCH=[1,2,3]<br />INIT_LR=[1,5e-1,3e-1,1e-1,7e-2,5e-2,3e-2,1e-2]<br />FINAL_LR=[5e-4,1e-4,5e-5,1e-5,5e-6,1e-6]<br />WEIGHT_DECAY=[2e-3,7e-4,2e-4,7e-5,2e-5] |  40hrs  |
+|   VGG16   | [Cifar10](https://www.tensorflow.org/api_docs/python/tf/keras/datasets/cifar10) (178M) | BATCH_SIZE=[8,128], <br />LEARNING_RATE=[5e-5,5e-3], <br />DROP_OUT=[1e-1,5e-1], <br />DENSE_UNIT=[32,512], <br />OPTIMIZER=["adam","grad","rmsp"], <br />KERNEL_SIZE=[2,5], <br />TRAIN_STEPS=[100,400] | 700min  |
+|  LeNet-5  | [Cifar10 ](https://www.cs.toronto.edu/~kriz/cifar.html)(350M) | BATCH_SIZE=[10,711], <br />LEARNING_RATE=[1e-6,1e-2], <br />NKERN1=[5,30], <br />NKERN2=[31,60] |  80min  |
+| Inception | [Dog Breeds](https://www.kaggle.com/careyai/inceptionv3-full-pretrained-model-instructions/data?select=train) (366M) | BATCH_SIZE=[2,32], <br />LEARNING_RATE=[1e-6,1e-2], <br />NUM_EPOCH=[2,20], <br />DENSE_UNIT=[16,512] |  10hrs  |
+| Inception | [Human Protein](https://www.kaggle.com/mathormad/inceptionv3-baseline-lb-0-379/data) (14G) | BATCH_SIZE=[2,32], <br />LEARNING_RATE=[1e-6,1e-2], <br />NUM_EPOCH=[1,8], <br />DROP_OUT=[5e-2,6e-1], <br />DENSE_UNIT=[64,1024] |  10hrs  |
+| ResNet50  | [Plant Leaves](https://www.tensorflow.org/datasets/catalog/plant_leaves) (6.8G) | BATCH_SIZE=[2,16], <br />LEARNING_RATE=[2e-6,1e-2], <br />NUM_EPOCH=[1,8] |  12hrs  |
+| GoogLeNet |            [ImageNet](http://www.image-net.org/)             | EPSILON=[0.1,1.0],<br />BATCH_SIZE=[8,64]<br />NUM_EPOCH=[1,3]<br />INIT_LR=[1e-2,1]<br />FINAL_LR=[1e-6,5e-4]<br />WEIGHT_DECAY=[2e-5,2e-3] |  40hrs  |
 
 ***Tuning Parameter**: include the following hardware parameters by default: 
 
-|              Parameter              |    Range     |
-| :---------------------------------: | :----------: |
-|    inter_op_parallelism_threads     |   [2,3,4]    |
-|    intra_op_parallelism_threads     |   [2,4,6]    |
-|         max_folded_constant         | [2,4,6,8,10] |
-|          build_cost_model           | [0,2,4,6,8]  |
-| do_common_subexpression_elimination |    [0,1]     |
-|        do_function_inlining         |    [0,1]     |
-|          global_jit_level           |   [0,1,2]    |
-|            infer_shapes             |    [0,1]     |
-|         place_pruned_graph          |    [0,1]     |
-|      enable_bfloat16_sendrecv       |    [0,1]     |
+|              Parameter              | Range  |
+| :---------------------------------: | :----: |
+|    inter_op_parallelism_threads     | [2,4]  |
+|    intra_op_parallelism_threads     | [2,6]  |
+|         max_folded_constant         | [2,10] |
+|          build_cost_model           | [0,8]  |
+| do_common_subexpression_elimination | [0,1]  |
+|        do_function_inlining         | [0,1]  |
+|          global_jit_level           | [0,2]  |
+|            infer_shapes             | [0,1]  |
+|         place_pruned_graph          | [0,1]  |
+|      enable_bfloat16_sendrecv       | [0,1]  |
 
 ## Performance
 
