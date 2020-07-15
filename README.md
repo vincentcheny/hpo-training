@@ -1,19 +1,40 @@
 # HPO-Training using Dragonfly(multi-obj) & NNI
 
-## Configuration
+## Basic Info
 
-|   Model   |                           Dataset                            |                      Tuning Parameter*                       | Runtime |
-| :-------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :-----: |
-|   VGG16   | [Cifar10](https://www.tensorflow.org/api_docs/python/tf/keras/datasets/cifar10) (178M) | BATCH_SIZE=[8,128], <br />LEARNING_RATE=[5e-5,5e-3], <br />DROP_OUT=[1e-1,5e-1], <br />DENSE_UNIT=[32,512], <br />OPTIMIZER=["adam","grad","rmsp"], <br />KERNEL_SIZE=[2,5], <br />TRAIN_STEPS=[100,400] | 700min  |
-|  LeNet-5  | [Cifar10 ](https://www.cs.toronto.edu/~kriz/cifar.html)(350M) | BATCH_SIZE=[10,711], <br />LEARNING_RATE=[1e-6,1e-2], <br />NKERN1=[5,30], <br />NKERN2=[31,60] |  80min  |
-| Inception | [Dog Breeds](https://www.kaggle.com/careyai/inceptionv3-full-pretrained-model-instructions/data?select=train) (366M) | BATCH_SIZE=[2,32], <br />LEARNING_RATE=[1e-6,1e-2], <br />NUM_EPOCH=[2,20], <br />DENSE_UNIT=[16,512] |  10hrs  |
-| Inception | [Human Protein](https://www.kaggle.com/mathormad/inceptionv3-baseline-lb-0-379/data) (14G) | BATCH_SIZE=[2,32], <br />LEARNING_RATE=[1e-6,1e-2], <br />NUM_EPOCH=[1,8], <br />DROP_OUT=[5e-2,6e-1], <br />DENSE_UNIT=[64,1024] |  10hrs  |
-| ResNet50  | [Plant Leaves](https://www.tensorflow.org/datasets/catalog/plant_leaves) (6.8G) | BATCH_SIZE=[2,16], <br />LEARNING_RATE=[2e-6,1e-2], <br />NUM_EPOCH=[1,8] |  12hrs  |
-| GoogLeNet |            [ImageNet](http://www.image-net.org/)             | EPSILON=[0.1,1.0],<br />BATCH_SIZE=[8,64]<br />NUM_EPOCH=[1,3]<br />INIT_LR=[1e-2,1]<br />FINAL_LR=[1e-6,5e-4]<br />WEIGHT_DECAY=[2e-5,2e-3] |  40hrs  |
+|   Model    |                           Dataset                            | Runtime |
+| :--------: | :----------------------------------------------------------: | :-----: |
+|  ResNet50  | [Plant Leaves](https://www.tensorflow.org/datasets/catalog/plant_leaves) (6.8G) |  12hrs  |
+| Inception1 | [Dog Breeds](https://www.kaggle.com/careyai/inceptionv3-full-pretrained-model-instructions/data?select=train) (366M) |  10hrs  |
+| Inception2 | [Human Protein](https://www.kaggle.com/mathormad/inceptionv3-baseline-lb-0-379/data) (14G) |  10hrs  |
+|   VGG16    | [Cifar10](https://www.tensorflow.org/api_docs/python/tf/keras/datasets/cifar10) (178M) | 700min  |
+|  LeNet-5   | [Cifar10 ](https://www.cs.toronto.edu/~kriz/cifar.html)(350M) |  80min  |
+| GoogLeNet  |         [ImageNet](http://www.image-net.org/) (134G)         |  40hrs  |
 
-***Tuning Parameter**: include the following hardware parameters by default: 
+## Search Space
 
-|              Parameter              | Range  |
+### Model Parameter
+
+|               |  ResNet50   | Inception1  | Inception2  |         VGG16          | LeNet-5     |  GoogLeNet  |
+| :------------ | :---------: | :---------: | :---------: | :--------------------: | ----------- | :---------: |
+| BATCH_SIZE    |   [2,16]    |   [2,32]    |   [2,32]    |        [8,128]         | [10,711]    |   [8,64]    |
+| LEARNING_RATE | [2e-6,1e-2] | [1e-6,1e-2] | [1e-6,1e-2] |      [5e-5,5e-3]       | [1e-6,1e-2] |             |
+| NUM_EPOCH     |    [1,8]    |   [2,20]    |    [1,8]    |                        |             |   80[1,3]   |
+| TRAIN_STEPS   |             |             |             |       [100,400]        |             |             |
+| DROP_OUT      |             |             | [5e-2,6e-1] |      [1e-1,5e-1]       |             |             |
+| DENSE_UNIT    |             |  [16,512]   |  [64,1024]  |        [32,512]        |             |             |
+| OPTIMIZER     |             |             |             | ["adam","grad","rmsp"] |             |             |
+| KERNEL_SIZE   |             |             |             |         [2,5]          |             |             |
+| NKERN1        |             |             |             |                        | [5,30]      |             |
+| NKERN2        |             |             |             |                        | [31,60]     |             |
+| EPSILON       |             |             |             |                        |             |  [0.1,1.0]  |
+| INIT_LR       |             |             |             |                        |             |  [1e-2,1]   |
+| FINAL_LR      |             |             |             |                        |             | [1e-6,5e-4] |
+| WEIGHT_DECAY  |             |             |             |                        |             | [2e-5,2e-3] |
+
+### Hardware Parameter*
+
+|                Name                 | Range  |
 | :---------------------------------: | :----: |
 |    inter_op_parallelism_threads     | [2,4]  |
 |    intra_op_parallelism_threads     | [2,6]  |
@@ -25,6 +46,8 @@
 |            infer_shapes             | [0,1]  |
 |         place_pruned_graph          | [0,1]  |
 |      enable_bfloat16_sendrecv       | [0,1]  |
+
+*Hardware Parameter*: Every model includes hardware parameters listed by default
 
 ## Performance
 
