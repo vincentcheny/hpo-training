@@ -1,0 +1,751 @@
+{
+    "experimentParameters": {
+        "id": "f6ZAShks",
+        "revision": 14417,
+        "execDuration": 144003,
+        "logDir": "/users/b142215/nni/experiments/f6ZAShks",
+        "nextSequenceId": 15,
+        "params": {
+            "authorName": "Vincent",
+            "experimentName": "ImageNetTPE",
+            "trialConcurrency": 1,
+            "maxExecDuration": 144000,
+            "maxTrialNum": 150,
+            "searchSpace": {
+                "EPSILON": {
+                    "_type": "choice",
+                    "_value": [
+                        0.1,
+                        0.3,
+                        0.5,
+                        0.7,
+                        1
+                    ]
+                },
+                "BATCH_SIZE": {
+                    "_type": "choice",
+                    "_value": [
+                        8,
+                        16,
+                        32,
+                        48,
+                        64
+                    ]
+                },
+                "INIT_LR": {
+                    "_type": "choice",
+                    "_value": [
+                        1,
+                        0.5,
+                        0.3,
+                        0.1,
+                        0.07,
+                        0.05,
+                        0.03,
+                        0.01
+                    ]
+                },
+                "FINAL_LR": {
+                    "_type": "choice",
+                    "_value": [
+                        0.0005,
+                        0.0001,
+                        0.00005,
+                        0.00001,
+                        0.000005,
+                        0.000001
+                    ]
+                },
+                "WEIGHT_DECAY": {
+                    "_type": "choice",
+                    "_value": [
+                        0.002,
+                        0.0007,
+                        0.0002,
+                        0.00007,
+                        0.00002
+                    ]
+                },
+                "NUM_EPOCH": {
+                    "_type": "choice",
+                    "_value": [
+                        1,
+                        2,
+                        3
+                    ]
+                }
+            },
+            "trainingServicePlatform": "local",
+            "tuner": {
+                "builtinTunerName": "TPE",
+                "classArgs": {
+                    "optimize_mode": "maximize"
+                },
+                "checkpointDir": "/users/b142215/nni/experiments/f6ZAShks/checkpoint"
+            },
+            "versionCheck": true,
+            "clusterMetaData": [
+                {
+                    "key": "codeDir",
+                    "value": "/lustre/project/EricLo/chen.yu/keras_imagenet/."
+                },
+                {
+                    "key": "command",
+                    "value": "python train.py  --iter_size 1 --lr_sched exp  googlenet_bn-2gpu-model-final.h5"
+                }
+            ]
+        },
+        "startTime": 1594787877557,
+        "endTime": 1594933721955
+    },
+    "trialMessage": [
+        {
+            "id": "jel4U-0",
+            "jobId": "jel4U",
+            "parameterId": 0,
+            "sequenceId": 0,
+            "status": "SUCCEEDED",
+            "startTime": 1594787887648,
+            "endTime": 1594805415524,
+            "hyperParameters": [
+                "{\"parameter_id\":0,\"parameter_source\":\"algorithm\",\"parameters\":{\"EPSILON\":0.5,\"BATCH_SIZE\":16,\"INIT_LR\":1,\"FINAL_LR\":0.0005,\"WEIGHT_DECAY\":0.00002,\"NUM_EPOCH\":3},\"parameter_index\":0}"
+            ],
+            "logPath": "file://localhost:/users/b142215/nni/experiments/f6ZAShks/trials/jel4U",
+            "finalMetricData": [
+                {
+                    "timestamp": 1594805410698,
+                    "trialJobId": "jel4U",
+                    "parameterId": "0",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.017525000497698784\""
+                }
+            ],
+            "intermediate": [
+                {
+                    "timestamp": 1594793913437,
+                    "trialJobId": "jel4U",
+                    "parameterId": "0",
+                    "type": "PERIODICAL",
+                    "sequence": 0,
+                    "data": "\"0.4560484290122986\""
+                },
+                {
+                    "timestamp": 1594799757787,
+                    "trialJobId": "jel4U",
+                    "parameterId": "0",
+                    "type": "PERIODICAL",
+                    "sequence": 1,
+                    "data": "\"0.011054687201976776\""
+                },
+                {
+                    "timestamp": 1594805410496,
+                    "trialJobId": "jel4U",
+                    "parameterId": "0",
+                    "type": "PERIODICAL",
+                    "sequence": 2,
+                    "data": "\"0.017525000497698784\""
+                },
+                {
+                    "timestamp": 1594805410698,
+                    "trialJobId": "jel4U",
+                    "parameterId": "0",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.017525000497698784\""
+                }
+            ]
+        },
+        {
+            "id": "G1uwC-1",
+            "jobId": "G1uwC",
+            "parameterId": 1,
+            "sequenceId": 1,
+            "status": "USER_CANCELED",
+            "startTime": 1594805424934,
+            "endTime": 1594807470198,
+            "hyperParameters": [
+                "{\"parameter_id\":1,\"parameter_source\":\"algorithm\",\"parameters\":{\"EPSILON\":0.1,\"BATCH_SIZE\":8,\"INIT_LR\":0.1,\"FINAL_LR\":0.000005,\"WEIGHT_DECAY\":0.00007,\"NUM_EPOCH\":2},\"parameter_index\":0}"
+            ],
+            "logPath": "file://localhost:/users/b142215/nni/experiments/f6ZAShks/trials/G1uwC",
+            "intermediate": []
+        },
+        {
+            "id": "GFsLC-2",
+            "jobId": "GFsLC",
+            "parameterId": 2,
+            "sequenceId": 2,
+            "status": "USER_CANCELED",
+            "startTime": 1594807500207,
+            "endTime": 1594807760711,
+            "hyperParameters": [
+                "{\"parameter_id\":2,\"parameter_source\":\"algorithm\",\"parameters\":{\"EPSILON\":0.5,\"BATCH_SIZE\":16,\"INIT_LR\":0.05,\"FINAL_LR\":0.000005,\"WEIGHT_DECAY\":0.00007,\"NUM_EPOCH\":3},\"parameter_index\":0}"
+            ],
+            "logPath": "file://localhost:/users/b142215/nni/experiments/f6ZAShks/trials/GFsLC",
+            "intermediate": []
+        },
+        {
+            "id": "WhEew-3",
+            "jobId": "WhEew",
+            "parameterId": 3,
+            "sequenceId": 3,
+            "status": "SUCCEEDED",
+            "startTime": 1594807785255,
+            "endTime": 1594816244444,
+            "hyperParameters": [
+                "{\"parameter_id\":3,\"parameter_source\":\"algorithm\",\"parameters\":{\"EPSILON\":0.1,\"BATCH_SIZE\":48,\"INIT_LR\":0.1,\"FINAL_LR\":0.0005,\"WEIGHT_DECAY\":0.00002,\"NUM_EPOCH\":2},\"parameter_index\":0}"
+            ],
+            "logPath": "file://localhost:/users/b142215/nni/experiments/f6ZAShks/trials/WhEew",
+            "finalMetricData": [
+                {
+                    "timestamp": 1594816239976,
+                    "trialJobId": "WhEew",
+                    "parameterId": "3",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.016958236694335938\""
+                }
+            ],
+            "intermediate": [
+                {
+                    "timestamp": 1594811962987,
+                    "trialJobId": "WhEew",
+                    "parameterId": "3",
+                    "type": "PERIODICAL",
+                    "sequence": 0,
+                    "data": "\"0.5010203123092651\""
+                },
+                {
+                    "timestamp": 1594816239725,
+                    "trialJobId": "WhEew",
+                    "parameterId": "3",
+                    "type": "PERIODICAL",
+                    "sequence": 1,
+                    "data": "\"0.016958236694335938\""
+                },
+                {
+                    "timestamp": 1594816239976,
+                    "trialJobId": "WhEew",
+                    "parameterId": "3",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.016958236694335938\""
+                }
+            ]
+        },
+        {
+            "id": "h1wuF-4",
+            "jobId": "h1wuF",
+            "parameterId": 4,
+            "sequenceId": 4,
+            "status": "SUCCEEDED",
+            "startTime": 1594816266686,
+            "endTime": 1594833333454,
+            "hyperParameters": [
+                "{\"parameter_id\":4,\"parameter_source\":\"algorithm\",\"parameters\":{\"EPSILON\":0.1,\"BATCH_SIZE\":16,\"INIT_LR\":0.01,\"FINAL_LR\":0.0005,\"WEIGHT_DECAY\":0.0007,\"NUM_EPOCH\":3},\"parameter_index\":0}"
+            ],
+            "logPath": "file://localhost:/users/b142215/nni/experiments/f6ZAShks/trials/h1wuF",
+            "finalMetricData": [
+                {
+                    "timestamp": 1594833330008,
+                    "trialJobId": "h1wuF",
+                    "parameterId": "4",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.478390634059906\""
+                }
+            ],
+            "intermediate": [
+                {
+                    "timestamp": 1594821994649,
+                    "trialJobId": "h1wuF",
+                    "parameterId": "4",
+                    "type": "PERIODICAL",
+                    "sequence": 0,
+                    "data": "\"0.4127468764781952\""
+                },
+                {
+                    "timestamp": 1594827468107,
+                    "trialJobId": "h1wuF",
+                    "parameterId": "4",
+                    "type": "PERIODICAL",
+                    "sequence": 1,
+                    "data": "\"0.4860234260559082\""
+                },
+                {
+                    "timestamp": 1594833329752,
+                    "trialJobId": "h1wuF",
+                    "parameterId": "4",
+                    "type": "PERIODICAL",
+                    "sequence": 2,
+                    "data": "\"0.478390634059906\""
+                },
+                {
+                    "timestamp": 1594833330008,
+                    "trialJobId": "h1wuF",
+                    "parameterId": "4",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.478390634059906\""
+                }
+            ]
+        },
+        {
+            "id": "hlJ4c-5",
+            "jobId": "hlJ4c",
+            "parameterId": 5,
+            "sequenceId": 5,
+            "status": "SUCCEEDED",
+            "startTime": 1594833344026,
+            "endTime": 1594847858895,
+            "hyperParameters": [
+                "{\"parameter_id\":5,\"parameter_source\":\"algorithm\",\"parameters\":{\"EPSILON\":0.3,\"BATCH_SIZE\":32,\"INIT_LR\":0.01,\"FINAL_LR\":0.000001,\"WEIGHT_DECAY\":0.0007,\"NUM_EPOCH\":3},\"parameter_index\":0}"
+            ],
+            "logPath": "file://localhost:/users/b142215/nni/experiments/f6ZAShks/trials/hlJ4c",
+            "finalMetricData": [
+                {
+                    "timestamp": 1594847855483,
+                    "trialJobId": "hlJ4c",
+                    "parameterId": "5",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.01842656172811985\""
+                }
+            ],
+            "intermediate": [
+                {
+                    "timestamp": 1594838239939,
+                    "trialJobId": "hlJ4c",
+                    "parameterId": "5",
+                    "type": "PERIODICAL",
+                    "sequence": 0,
+                    "data": "\"0.38840311765670776\""
+                },
+                {
+                    "timestamp": 1594843041113,
+                    "trialJobId": "hlJ4c",
+                    "parameterId": "5",
+                    "type": "PERIODICAL",
+                    "sequence": 1,
+                    "data": "\"0.01067031268030405\""
+                },
+                {
+                    "timestamp": 1594847855235,
+                    "trialJobId": "hlJ4c",
+                    "parameterId": "5",
+                    "type": "PERIODICAL",
+                    "sequence": 2,
+                    "data": "\"0.01842656172811985\""
+                },
+                {
+                    "timestamp": 1594847855483,
+                    "trialJobId": "hlJ4c",
+                    "parameterId": "5",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.01842656172811985\""
+                }
+            ]
+        },
+        {
+            "id": "KEC5e-6",
+            "jobId": "KEC5e",
+            "parameterId": 6,
+            "sequenceId": 6,
+            "status": "SUCCEEDED",
+            "startTime": 1594847875898,
+            "endTime": 1594854144775,
+            "hyperParameters": [
+                "{\"parameter_id\":6,\"parameter_source\":\"algorithm\",\"parameters\":{\"EPSILON\":0.7,\"BATCH_SIZE\":16,\"INIT_LR\":0.5,\"FINAL_LR\":0.000005,\"WEIGHT_DECAY\":0.002,\"NUM_EPOCH\":1},\"parameter_index\":0}"
+            ],
+            "logPath": "file://localhost:/users/b142215/nni/experiments/f6ZAShks/trials/KEC5e",
+            "finalMetricData": [
+                {
+                    "timestamp": 1594854141299,
+                    "trialJobId": "KEC5e",
+                    "parameterId": "6",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.1412796825170517\""
+                }
+            ],
+            "intermediate": [
+                {
+                    "timestamp": 1594854141041,
+                    "trialJobId": "KEC5e",
+                    "parameterId": "6",
+                    "type": "PERIODICAL",
+                    "sequence": 0,
+                    "data": "\"0.1412796825170517\""
+                },
+                {
+                    "timestamp": 1594854141299,
+                    "trialJobId": "KEC5e",
+                    "parameterId": "6",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.1412796825170517\""
+                }
+            ]
+        },
+        {
+            "id": "ZhsO4-7",
+            "jobId": "ZhsO4",
+            "parameterId": 7,
+            "sequenceId": 7,
+            "status": "SUCCEEDED",
+            "startTime": 1594854156647,
+            "endTime": 1594865593644,
+            "hyperParameters": [
+                "{\"parameter_id\":7,\"parameter_source\":\"algorithm\",\"parameters\":{\"EPSILON\":1,\"BATCH_SIZE\":64,\"INIT_LR\":0.01,\"FINAL_LR\":0.00001,\"WEIGHT_DECAY\":0.0002,\"NUM_EPOCH\":3},\"parameter_index\":0}"
+            ],
+            "logPath": "file://localhost:/users/b142215/nni/experiments/f6ZAShks/trials/ZhsO4",
+            "finalMetricData": [
+                {
+                    "timestamp": 1594865589995,
+                    "trialJobId": "ZhsO4",
+                    "parameterId": "7",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.005451562348753214\""
+                }
+            ],
+            "intermediate": [
+                {
+                    "timestamp": 1594858235919,
+                    "trialJobId": "ZhsO4",
+                    "parameterId": "7",
+                    "type": "PERIODICAL",
+                    "sequence": 0,
+                    "data": "\"0.06773749738931656\""
+                },
+                {
+                    "timestamp": 1594861905421,
+                    "trialJobId": "ZhsO4",
+                    "parameterId": "7",
+                    "type": "PERIODICAL",
+                    "sequence": 1,
+                    "data": "\"0.001992187462747097\""
+                },
+                {
+                    "timestamp": 1594865589698,
+                    "trialJobId": "ZhsO4",
+                    "parameterId": "7",
+                    "type": "PERIODICAL",
+                    "sequence": 2,
+                    "data": "\"0.005451562348753214\""
+                },
+                {
+                    "timestamp": 1594865589995,
+                    "trialJobId": "ZhsO4",
+                    "parameterId": "7",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.005451562348753214\""
+                }
+            ]
+        },
+        {
+            "id": "fN2pB-8",
+            "jobId": "fN2pB",
+            "parameterId": 8,
+            "sequenceId": 8,
+            "status": "SUCCEEDED",
+            "startTime": 1594865617864,
+            "endTime": 1594876260217,
+            "hyperParameters": [
+                "{\"parameter_id\":8,\"parameter_source\":\"algorithm\",\"parameters\":{\"EPSILON\":0.1,\"BATCH_SIZE\":8,\"INIT_LR\":0.3,\"FINAL_LR\":0.00005,\"WEIGHT_DECAY\":0.0007,\"NUM_EPOCH\":1},\"parameter_index\":0}"
+            ],
+            "logPath": "file://localhost:/users/b142215/nni/experiments/f6ZAShks/trials/fN2pB",
+            "finalMetricData": [
+                {
+                    "timestamp": 1594876256733,
+                    "trialJobId": "fN2pB",
+                    "parameterId": "8",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.0814874991774559\""
+                }
+            ],
+            "intermediate": [
+                {
+                    "timestamp": 1594876256497,
+                    "trialJobId": "fN2pB",
+                    "parameterId": "8",
+                    "type": "PERIODICAL",
+                    "sequence": 0,
+                    "data": "\"0.0814874991774559\""
+                },
+                {
+                    "timestamp": 1594876256733,
+                    "trialJobId": "fN2pB",
+                    "parameterId": "8",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.0814874991774559\""
+                }
+            ]
+        },
+        {
+            "id": "lbe4I-9",
+            "jobId": "lbe4I",
+            "parameterId": 9,
+            "sequenceId": 9,
+            "status": "SUCCEEDED",
+            "startTime": 1594876274022,
+            "endTime": 1594888300693,
+            "hyperParameters": [
+                "{\"parameter_id\":9,\"parameter_source\":\"algorithm\",\"parameters\":{\"EPSILON\":0.1,\"BATCH_SIZE\":16,\"INIT_LR\":0.07,\"FINAL_LR\":0.0001,\"WEIGHT_DECAY\":0.00007,\"NUM_EPOCH\":2},\"parameter_index\":0}"
+            ],
+            "logPath": "file://localhost:/users/b142215/nni/experiments/f6ZAShks/trials/lbe4I",
+            "finalMetricData": [
+                {
+                    "timestamp": 1594888296975,
+                    "trialJobId": "lbe4I",
+                    "parameterId": "9",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.012262499891221523\""
+                }
+            ],
+            "intermediate": [
+                {
+                    "timestamp": 1594882320663,
+                    "trialJobId": "lbe4I",
+                    "parameterId": "9",
+                    "type": "PERIODICAL",
+                    "sequence": 0,
+                    "data": "\"0.4513796865940094\""
+                },
+                {
+                    "timestamp": 1594888296722,
+                    "trialJobId": "lbe4I",
+                    "parameterId": "9",
+                    "type": "PERIODICAL",
+                    "sequence": 1,
+                    "data": "\"0.012262499891221523\""
+                },
+                {
+                    "timestamp": 1594888296975,
+                    "trialJobId": "lbe4I",
+                    "parameterId": "9",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.012262499891221523\""
+                }
+            ]
+        },
+        {
+            "id": "DHtGM-10",
+            "jobId": "DHtGM",
+            "parameterId": 10,
+            "sequenceId": 10,
+            "status": "SUCCEEDED",
+            "startTime": 1594888312774,
+            "endTime": 1594899466934,
+            "hyperParameters": [
+                "{\"parameter_id\":10,\"parameter_source\":\"algorithm\",\"parameters\":{\"EPSILON\":0.1,\"BATCH_SIZE\":64,\"INIT_LR\":0.03,\"FINAL_LR\":0.0005,\"WEIGHT_DECAY\":0.0007,\"NUM_EPOCH\":3},\"parameter_index\":0}"
+            ],
+            "logPath": "file://localhost:/users/b142215/nni/experiments/f6ZAShks/trials/DHtGM",
+            "finalMetricData": [
+                {
+                    "timestamp": 1594899463036,
+                    "trialJobId": "DHtGM",
+                    "parameterId": "10",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.15423749387264252\""
+                }
+            ],
+            "intermediate": [
+                {
+                    "timestamp": 1594892013250,
+                    "trialJobId": "DHtGM",
+                    "parameterId": "10",
+                    "type": "PERIODICAL",
+                    "sequence": 0,
+                    "data": "\"0.4034546911716461\""
+                },
+                {
+                    "timestamp": 1594895674313,
+                    "trialJobId": "DHtGM",
+                    "parameterId": "10",
+                    "type": "PERIODICAL",
+                    "sequence": 1,
+                    "data": "\"0.3180687427520752\""
+                },
+                {
+                    "timestamp": 1594899462766,
+                    "trialJobId": "DHtGM",
+                    "parameterId": "10",
+                    "type": "PERIODICAL",
+                    "sequence": 2,
+                    "data": "\"0.15423749387264252\""
+                },
+                {
+                    "timestamp": 1594899463036,
+                    "trialJobId": "DHtGM",
+                    "parameterId": "10",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.15423749387264252\""
+                }
+            ]
+        },
+        {
+            "id": "Q6I3V-11",
+            "jobId": "Q6I3V",
+            "parameterId": 11,
+            "sequenceId": 11,
+            "status": "SUCCEEDED",
+            "startTime": 1594899479270,
+            "endTime": 1594917292019,
+            "hyperParameters": [
+                "{\"parameter_id\":11,\"parameter_source\":\"algorithm\",\"parameters\":{\"EPSILON\":0.5,\"BATCH_SIZE\":16,\"INIT_LR\":0.05,\"FINAL_LR\":0.0005,\"WEIGHT_DECAY\":0.002,\"NUM_EPOCH\":3},\"parameter_index\":0}"
+            ],
+            "logPath": "file://localhost:/users/b142215/nni/experiments/f6ZAShks/trials/Q6I3V",
+            "finalMetricData": [
+                {
+                    "timestamp": 1594917288443,
+                    "trialJobId": "Q6I3V",
+                    "parameterId": "11",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.0937812477350235\""
+                }
+            ],
+            "intermediate": [
+                {
+                    "timestamp": 1594905411756,
+                    "trialJobId": "Q6I3V",
+                    "parameterId": "11",
+                    "type": "PERIODICAL",
+                    "sequence": 0,
+                    "data": "\"0.30610623955726624\""
+                },
+                {
+                    "timestamp": 1594911341482,
+                    "trialJobId": "Q6I3V",
+                    "parameterId": "11",
+                    "type": "PERIODICAL",
+                    "sequence": 1,
+                    "data": "\"0.2920484244823456\""
+                },
+                {
+                    "timestamp": 1594917288188,
+                    "trialJobId": "Q6I3V",
+                    "parameterId": "11",
+                    "type": "PERIODICAL",
+                    "sequence": 2,
+                    "data": "\"0.0937812477350235\""
+                },
+                {
+                    "timestamp": 1594917288443,
+                    "trialJobId": "Q6I3V",
+                    "parameterId": "11",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.0937812477350235\""
+                }
+            ]
+        },
+        {
+            "id": "VQzZI-12",
+            "jobId": "VQzZI",
+            "parameterId": 12,
+            "sequenceId": 12,
+            "status": "SUCCEEDED",
+            "startTime": 1594917301273,
+            "endTime": 1594929328697,
+            "hyperParameters": [
+                "{\"parameter_id\":12,\"parameter_source\":\"algorithm\",\"parameters\":{\"EPSILON\":1,\"BATCH_SIZE\":48,\"INIT_LR\":0.01,\"FINAL_LR\":0.000005,\"WEIGHT_DECAY\":0.0002,\"NUM_EPOCH\":3},\"parameter_index\":0}"
+            ],
+            "logPath": "file://localhost:/users/b142215/nni/experiments/f6ZAShks/trials/VQzZI",
+            "finalMetricData": [
+                {
+                    "timestamp": 1594929324194,
+                    "trialJobId": "VQzZI",
+                    "parameterId": "12",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.006304845213890076\""
+                }
+            ],
+            "intermediate": [
+                {
+                    "timestamp": 1594921424737,
+                    "trialJobId": "VQzZI",
+                    "parameterId": "12",
+                    "type": "PERIODICAL",
+                    "sequence": 0,
+                    "data": "\"0.10861677676439285\""
+                },
+                {
+                    "timestamp": 1594925434729,
+                    "trialJobId": "VQzZI",
+                    "parameterId": "12",
+                    "type": "PERIODICAL",
+                    "sequence": 1,
+                    "data": "\"0.0036688416730612516\""
+                },
+                {
+                    "timestamp": 1594929323946,
+                    "trialJobId": "VQzZI",
+                    "parameterId": "12",
+                    "type": "PERIODICAL",
+                    "sequence": 2,
+                    "data": "\"0.006304845213890076\""
+                },
+                {
+                    "timestamp": 1594929324194,
+                    "trialJobId": "VQzZI",
+                    "parameterId": "12",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.006304845213890076\""
+                }
+            ]
+        },
+        {
+            "id": "hMZsv-13",
+            "jobId": "hMZsv",
+            "parameterId": 13,
+            "sequenceId": 13,
+            "status": "SUCCEEDED",
+            "startTime": 1594929352639,
+            "endTime": 1594933721902,
+            "hyperParameters": [
+                "{\"parameter_id\":13,\"parameter_source\":\"algorithm\",\"parameters\":{\"EPSILON\":0.7,\"BATCH_SIZE\":32,\"INIT_LR\":0.1,\"FINAL_LR\":0.00001,\"WEIGHT_DECAY\":0.00007,\"NUM_EPOCH\":1},\"parameter_index\":0}"
+            ],
+            "logPath": "file://localhost:/users/b142215/nni/experiments/f6ZAShks/trials/hMZsv",
+            "finalMetricData": [
+                {
+                    "timestamp": 1594933718441,
+                    "trialJobId": "hMZsv",
+                    "parameterId": "13",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.4969187378883362\""
+                }
+            ],
+            "intermediate": [
+                {
+                    "timestamp": 1594933718225,
+                    "trialJobId": "hMZsv",
+                    "parameterId": "13",
+                    "type": "PERIODICAL",
+                    "sequence": 0,
+                    "data": "\"0.4969187378883362\""
+                },
+                {
+                    "timestamp": 1594933718441,
+                    "trialJobId": "hMZsv",
+                    "parameterId": "13",
+                    "type": "FINAL",
+                    "sequence": 0,
+                    "data": "\"0.4969187378883362\""
+                }
+            ]
+        }
+    ]
+}
