@@ -19,18 +19,18 @@
 | :------------ | :---------: | :---------: | :---------: | :--------------------: | ----------- | :---------: |
 | BATCH_SIZE    |   [2,16]    |   [2,32]    |   [2,32]    |        [8,128]         | [10,711]    |   [8,64]    |
 | LEARNING_RATE | [2e-6,1e-2] | [1e-6,1e-2] | [1e-6,1e-2] |      [5e-5,5e-3]       | [1e-6,1e-2] |             |
-| NUM_EPOCH     |    [1,8]    |   [2,20]    |    [1,8]    |                        |             |   80[1,3]   |
-| TRAIN_STEPS   |             |             |             |       [100,400]        |             |             |
-| DROP_OUT      |             |             | [5e-2,6e-1] |      [1e-1,5e-1]       |             |             |
-| DENSE_UNIT    |             |  [16,512]   |  [64,1024]  |        [32,512]        |             |             |
+| NUM_EPOCH     |    [1,8]    |   [2,20]    |    [1,8]    |         [2,30]         |             |   80[1,3]   |
+| DROP_OUT      |             |             | [5e-2,6e-1] |                        |             |             |
+| DENSE_UNIT    |             |  [16,512]   |  [64,1024]  |       [64,1024]        |             |             |
 | OPTIMIZER     |             |             |             | ["adam","grad","rmsp"] |             |             |
-| KERNEL_SIZE   |             |             |             |         [2,5]          |             |             |
+| KERNEL_SIZE   |             |             |             |         [1,5]          |             |             |
 | NKERN1        |             |             |             |                        | [5,30]      |             |
 | NKERN2        |             |             |             |                        | [31,60]     |             |
 | EPSILON       |             |             |             |                        |             |  [0.1,1.0]  |
 | INIT_LR       |             |             |             |                        |             |  [1e-2,1]   |
 | FINAL_LR      |             |             |             |                        |             | [1e-6,5e-4] |
-| WEIGHT_DECAY  |             |             |             |                        |             | [2e-5,2e-3] |
+| WEIGHT_DECAY  |             |             |             |      [1e-5,8e-2]       |             | [2e-5,2e-3] |
+| NUM_FILTER    |             |             |             |         [8,64]         |             |             |
 
 ### Hardware Parameter*
 
@@ -53,7 +53,7 @@
 
 |                           |    Dragonfly     |       TPE        |    Hyperband     | Status* |                            Result                            |                   Cumulative Best accuracy                   |
 | :-----------------------: | :--------------: | :--------------: | :--------------: | ------- | :----------------------------------------------------------: | :----------------------------------------------------------: |
-|           VGG16           | 0.853 (17min20s) | 0.87 (65min21s)  | 0.826 (6min53s)  | 1       | ![](https://lh3.googleusercontent.com/-rBBWlBI47ZE/XvMsgNYl7FI/AAAAAAAAAPQ/qQglaGHuxK8H3yBPfsjYLQ8byfXVGvA9QCK8BGAsYHg/s512/2020-06-24.png) | ![](https://lh3.googleusercontent.com/-dnw077p5pCM/Xu8QbwcV73I/AAAAAAAAANk/8W2gsUGNMBYmYmCcBnyPoU6itFGdVjLFgCK8BGAsYHg/s512/2020-06-21.png) |
+|           VGG16           | 0.853 (17min20s) | 0.87 (65min21s)  | 0.826 (6min53s)  | 2       | ![](https://lh3.googleusercontent.com/-rBBWlBI47ZE/XvMsgNYl7FI/AAAAAAAAAPQ/qQglaGHuxK8H3yBPfsjYLQ8byfXVGvA9QCK8BGAsYHg/s512/2020-06-24.png) | ![](https://lh3.googleusercontent.com/-dnw077p5pCM/Xu8QbwcV73I/AAAAAAAAANk/8W2gsUGNMBYmYmCcBnyPoU6itFGdVjLFgCK8BGAsYHg/s512/2020-06-21.png) |
 |          LeNet-5          |  0.645 (1min5s)  | 0.652 (1min21s)  |  0.613 (2min2s)  | 0       | ![](https://lh3.googleusercontent.com/-Zwp1028BOks/XvMsZkG6FVI/AAAAAAAAAPM/AgUmmyJH8zUcgdFLUlT8-br0J823nOxKwCK8BGAsYHg/s512/2020-06-24.png) | ![](https://lh3.googleusercontent.com/-Bo22LOKSOO0/XvEEBGtQpVI/AAAAAAAAAOE/FHksoSUg7WcERRFlJPShSQST0ovau7wZACK8BGAsYHg/s512/2020-06-22.png) |
 |  Inception (Dog Breeds)   | 0.878 (32min42s) | 0.866 (15min15s) | 0.889 (32min8s)  | /       | ![](https://lh3.googleusercontent.com/-dmCMjiPqu8M/XvMsQgqY5pI/AAAAAAAAAPI/4UxL-CaywQsRJb17bP1S96UcMFaRWAFxQCK8BGAsYHg/s512/2020-06-24.png) | ![](https://lh3.googleusercontent.com/-g7AWvZQ5YF8/Xuu7IxlwPdI/AAAAAAAAAhw/L34Sw9Z0jv0xrg8BRSC9RKfogI3ziXWowCK8BGAsYHg/s512/2020-06-18.png) |
 | Inception (Human Protein) | 0.55 (33min23s)  | 0.514 (49min41s) | 0.504 (25min37s) | 2       | ![](https://lh3.googleusercontent.com/-RrIW_LWbZtg/XvhHkLlpKSI/AAAAAAAAAPo/9pHOJIdV8KUSwP0d5ow4C9A2_ApgRs9VgCK8BGAsYHg/s512/2020-06-28.png) | ![](https://lh3.googleusercontent.com/-RBEETTccvK0/XvhHiwwqlDI/AAAAAAAAAPk/OJTEzU_XlWk4_EDbSfnH8-HCFAgOhEbCACK8BGAsYHg/s512/2020-06-28.png) |
