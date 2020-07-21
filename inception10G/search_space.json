@@ -1,17 +1,9 @@
 {
-    "BATCH_SIZE":{"_type":"choice","_value":[2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32]},
-    "LEARNING_RATE":{"_type":"choice","_value":[1e-6,2e-6,3e-6,4e-6,5e-6,6e-6,7e-6,8e-6,9e-6,1e-5,2e-5,3e-5,4e-5,5e-5,6e-5,7e-5,8e-5,9e-5,1e-4,2e-4,3e-4,4e-4,5e-4,6e-4,7e-4,8e-4,9e-4,1e-3,2e-3,3e-3,4e-3,5e-3,6e-3,7e-3,8e-3,9e-3,1e-2]},
-    "DROP_OUT":{"_type":"choice","_value":[0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6]},
-    "DENSE_UNIT":{"_type":"choice","_value":[64,128,256,512,1024]},
-    "NUM_EPOCH":{"_type":"choice","_value":[1,2,3,4,5,6,7,8]},
-    "inter_op_parallelism_threads":{"_type":"choice","_value":[1,2,3,4]},
-    "intra_op_parallelism_threads":{"_type":"choice","_value":[2,4,6,8,10,12]},
-    "max_folded_constant":{"_type":"choice","_value":[2,4,6,8,10]},
-    "build_cost_model":{"_type":"choice","_value":[0,2,4,6,8]},
-    "do_common_subexpression_elimination":{"_type":"choice","_value":[false,true]},
-    "do_function_inlining":{"_type":"choice","_value":[false,true]},
-    "global_jit_level":{"_type":"choice","_value":[0,1,2]},
-    "infer_shapes":{"_type":"choice","_value":[false,true]},
-    "place_pruned_graph":{"_type":"choice","_value":[false,true]},
-    "enable_bfloat16_sendrecv":{"_type":"choice","_value":[false,true]}
+   "BATCH_SIZE":{"_type":"choice","_value":[2,4,8,12,16,24,32]},
+   "LEARNING_RATE":{"_type":"choice","_value":[1e-6,5e-6,1e-5,5e-5,1e-4,5e-4,1e-3,5e-3,1e-2]},
+   "DENSE_UNIT":{"_type":"choice","_value":[64,128,256,512]},
+   "NUM_EPOCH":{"_type":"choice","_value":[2,3,4,5]},
+   "FILTERS":{"_type":"choice","_value":[16,32,48,64,128]},
+   "KERNEL_SIZE":{"_type":"choice","_value":[1,2,3,4,5]},
+   "OPTIMIZER":{"_type":"choice","_value":["sgd","rmsp"]}
 }

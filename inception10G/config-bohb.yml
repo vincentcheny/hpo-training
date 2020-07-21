@@ -1,19 +1,26 @@
 authorName: Vincent
-experimentName: Inception10G
+experimentName: ImageNetBOHB
 trialConcurrency: 1
 maxExecDuration: 10h
 maxTrialNum: 200
 #choice: local, remote, pai
 trainingServicePlatform: local
 searchSpacePath: search_space.json
-#choice: true, false
+##choice: true, false
 useAnnotation: false
 advisor:
-  builtinAdvisorName: Hyperband
+  builtinAdvisorName: BOHB
   classArgs:
-    R: 20
-    eta: 3
     optimize_mode: maximize
+    min_budget: 1
+    max_budget: 9
+    eta: 3
+    min_points_in_model: 8
+    top_n_percent: 15
+    num_samples: 64
+    random_fraction: 0.0 #0.33
+    bandwidth_factor: 3.0
+    min_bandwidth: 0.001
 trial:
   command: python train.py
   codeDir: .

@@ -1,15 +1,23 @@
+seed_value=0
 import os, sys
+os.environ['PYTHONHASHSEED']=str(seed_value)
+#os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 import numpy as np
+np.random.seed(seed_value)
+import tensorflow as tf
+tf.compat.v1.set_random_seed(seed_value)
+import random
+random.seed(seed_value)
+
 import pandas as pd
 from imgaug import augmenters as iaa
 import cv2
 from PIL import Image
 from sklearn.utils import shuffle
 
-import tensorflow as tf
 from tensorflow.keras.layers import Dropout, Flatten, Dense, GlobalMaxPooling2D, BatchNormalization, Input, Conv2D
 from tensorflow.keras.applications.inception_v3 import InceptionV3
-from tensorflow.keras.optimizers import Adam 
+from tensorflow.keras.optimizers import Adam,SGD,RMSprop 
 from tensorflow.keras import backend as K
 from tensorflow.keras.models import Model
 
@@ -18,10 +26,10 @@ import nni
 
 
 class data_generator:
-	def create_train(dataset_info, batch_size, shape, augument=True):
+	def create_train(dataset_info, batch_size, shape, augument=False):
 		assert shape[2] == 3
 		while True:
-			dataset_info = shuffle(dataset_info)
+			dataset_info = shuffle(dataset_info,random_state=0)
 			for start in range(0, len(dataset_info), batch_size):
 				end = min(start + batch_size, len(dataset_info))
 				batch_images = []
@@ -65,106 +73,95 @@ class data_generator:
 def create_model(input_shape, n_out):
 	input_tensor = Input(shape=input_shape)
 	base_model = InceptionV3(include_top=False,
-	               # weights='imagenet',
+	               #weights='imagenet',
 	               weights=None,
 	               input_shape=input_shape)
+	#base_model.save('save_model.h5')
+	load_model = tf.keras.models.load_model('save_model.h5',compile=False)
 	bn = BatchNormalization()(input_tensor)
-	x = base_model(bn)
-	x = Conv2D(32, kernel_size=(1,1), activation='relu')(x)
+	#x = base_model(bn)
+	x = load_model(bn)
+	x = Conv2D(params['FILTERS'], kernel_size=(params['KERNEL_SIZE'],params['KERNEL_SIZE']), activation='relu',kernel_initializer='zeros')(x)
 	x = Flatten()(x)
-	x = Dropout(params['DROP_OUT'])(x)
-	x = Dense(params['DENSE_UNIT'], activation='relu')(x)
-	x = Dropout(params['DROP_OUT'])(x)
+	#x = Dropout(params['DROP_OUT'])(x)
+	x = Dense(params['DENSE_UNIT'], activation='relu',kernel_initializer='zeros')(x)
+	#x = Dropout(params['DROP_OUT'])(x)
 	output = Dense(n_out, activation='sigmoid')(x)
 	model = Model(input_tensor, output)
 	return model
 
 
-def get_config():
-    return tf.compat.v1.ConfigProto( 
-        inter_op_parallelism_threads=int(params['inter_op_parallelism_threads']),
-        intra_op_parallelism_threads=int(params['intra_op_parallelism_threads']),
-        graph_options=tf.compat.v1.GraphOptions(
-            build_cost_model=int(params['build_cost_model']),
-            infer_shapes=params['infer_shapes'],
-            place_pruned_graph=params['place_pruned_graph'],
-            enable_bfloat16_sendrecv=params['enable_bfloat16_sendrecv'],
-            optimizer_options=tf.compat.v1.OptimizerOptions(
-                do_common_subexpression_elimination=params['do_common_subexpression_elimination'],
-                max_folded_constant_in_bytes=int(params['max_folded_constant']),
-                do_function_inlining=params['do_function_inlining'],
-                global_jit_level=params['global_jit_level'])))
 
-
-def main(epoch):
+def main():
+	print(params)
 	train_dataset_info = []
 	for name, labels in zip(data['Id'], data['Target'].str.split(' ')):
 		train_dataset_info.append({
 			'path':os.path.join(path_to_train, name),
 			'labels':np.array([int(label) for label in labels])})
 	train_dataset_info = np.array(train_dataset_info)
+	#print(len(train_dataset_info))
 	
 	# split data into train, valid
 	indexes = np.arange(train_dataset_info.shape[0])
-	np.random.shuffle(indexes)
-	train_indexes, valid_indexes = train_test_split(indexes, test_size=0.15, random_state=8)
+	#np.random.shuffle(indexes)
+	train_indexes, valid_indexes = train_test_split(indexes, test_size=0.15, random_state=0)
 
 	# create train and valid datagens
 	train_generator = data_generator.create_train(
-	    train_dataset_info[train_indexes], params['BATCH_SIZE'], (SIZE,SIZE,3), augument=True)
+	    train_dataset_info[train_indexes], params['BATCH_SIZE'], (SIZE,SIZE,3), augument=False)
 	validation_generator = data_generator.create_train(
-	    train_dataset_info[valid_indexes], 32, (SIZE,SIZE,3), augument=False)
+	    train_dataset_info[valid_indexes], 10, (SIZE,SIZE,3), augument=False)
 
-	model = create_model(
-	    input_shape=(SIZE,SIZE,3), 
-	    n_out=28)
-
+	model = create_model(input_shape=(SIZE,SIZE,3), n_out=28)
+	#model = tf.keras.models.load_model('model_weight.h5',compile=False)
 	for layer in model.layers:
 		layer.trainable = True
-
-	sess = tf.compat.v1.Session(config=get_config())
-	tf.compat.v1.keras.backend.set_session(sess)
-
-	model.compile(loss='binary_crossentropy',
+	
+	if params['OPTIMIZER'] == 'adam':
+		model.compile(loss='binary_crossentropy',
 	            optimizer=Adam(lr=params['LEARNING_RATE']),
 	            metrics=['accuracy'])
+	elif params['OPTIMIZER'] == 'sgd':
+                model.compile(loss='binary_crossentropy',
+                    optimizer=SGD(learning_rate=params['LEARNING_RATE']),
+                    metrics=['accuracy'])
+	else:
+                model.compile(loss='binary_crossentropy',
+                    optimizer=RMSprop(learning_rate=params['LEARNING_RATE']),
+                    metrics=['accuracy'])
 	his = model.fit(
 	    train_generator,
 	    steps_per_epoch=np.ceil(float(len(train_indexes)) / float(params['BATCH_SIZE'])),
+	    #steps_per_epoch=10,
 	    validation_data=validation_generator,
 	    validation_steps=np.ceil(float(len(valid_indexes)) / float(params['BATCH_SIZE'])),
+	    #validation_steps=10,
 	    epochs=epoch, 
-	    verbose=2)
+	    verbose=1)
 	
 	final_acc = his.history['val_accuracy'][epoch-1]
 	nni.report_final_result(final_acc)
+	#model.save('model_weight.h5')
 
 def get_default_params():
 	return {
-        "BATCH_SIZE": 10,
-        "LEARNING_RATE": 1e-4,
-        'NUM_EPOCH': 2,
-		"DROP_OUT":0.3,
-		"DENSE_UNIT":128,
-        "inter_op_parallelism_threads": 1,
-        "intra_op_parallelism_threads": 2,
-        "max_folded_constant": 6,
-        "build_cost_model": 4,
-        "do_common_subexpression_elimination": 1,
-        "do_function_inlining": 1,
-        "global_jit_level": 1,
-        "infer_shapes": 1,
-        "place_pruned_graph": 1,
-        "enable_bfloat16_sendrecv": 1
+	'BATCH_SIZE':2,
+	'LEARNING_RATE':5e-5,
+        'NUM_EPOCH':1,
+	"DENSE_UNIT":512,
+        'FILTERS':16,
+        'KERNEL_SIZE':1,
+	'OPTIMIZER':'rmsp'
     }
 
 if __name__ == '__main__':
 	params = get_default_params()
 	tuned_params = nni.get_next_parameter()
 	params.update(tuned_params)
-	path_to_train = '/lustre/project/EricLo/chen.yu/human-protein-data/train/'
-	data = pd.read_csv('/lustre/project/EricLo/chen.yu/human-protein-data/train.csv')
+	path_to_train = '../human_protein/train/'
+	data = pd.read_csv('../human_protein/train.csv')
 	SIZE = 299
-	epoch = (params['TRIAL_BUDGET'] // 10 + 1) if 'TRIAL_BUDGET' in params.keys() else params['NUM_EPOCH'] # Assume max TRIAL_BUDGET is 70
-	main(epoch)
+	epoch = params['TRIAL_BUDGET'] if 'TRIAL_BUDGET' in params.keys() else params['NUM_EPOCH'] # Assume max TRIAL_BUDGET is 70
+	main()
 
