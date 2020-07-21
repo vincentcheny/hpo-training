@@ -51,7 +51,7 @@ def prepareImages(data, m, dataset):
     
     for fig in data['Image']:
         #load images into images of size 100x100x3
-        img = image.load_img("../humpback-whale-identification/"+dataset+"/"+fig, target_size=(100, 100, 3))
+        img = image.load_img("../../data/humpback-whale-identification/"+dataset+"/"+fig, target_size=(100, 100, 3))
         x = image.img_to_array(img)
         x = preprocess_input(x)
 

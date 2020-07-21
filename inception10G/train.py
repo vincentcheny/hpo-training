@@ -159,8 +159,8 @@ if __name__ == '__main__':
 	params = get_default_params()
 	tuned_params = nni.get_next_parameter()
 	params.update(tuned_params)
-	path_to_train = '../human_protein/train/'
-	data = pd.read_csv('../human_protein/train.csv')
+	path_to_train = '../../data/human_protein/train/'
+	data = pd.read_csv('../../data/human_protein/train.csv')
 	SIZE = 299
 	epoch = params['TRIAL_BUDGET'] if 'TRIAL_BUDGET' in params.keys() else params['NUM_EPOCH'] # Assume max TRIAL_BUDGET is 70
 	main()

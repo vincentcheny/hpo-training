@@ -1,3 +1,5 @@
+*.log
+*.h5
 /__pycache__
 /.history
 /.idea
@@ -8,10 +10,8 @@
 /bert-tf1/uncased_L-12_H-768_A-12
 /vgg-tf1/estimator-original
 /boosted_trees-tf1/__pycache__
-/boosted_trees-tf1/dispatcher.log
 /boosted_trees-tf1/higgs_data
 /boosted_trees-tf1/higgs_ckpt
-/boosted_trees-tf1/output.log
 /boosted_trees-tf1/tmp*
 /inception/inceptionv3_dog
 /lenet-th/__pycache__

@@ -185,8 +185,8 @@ def acc_eval(x):
 
 
 # Load dataset info
-path_to_train = '../human_protein/train/'
-data = pd.read_csv('../human_protein/train.csv')
+path_to_train = '../../data/human_protein/train/'
+data = pd.read_csv('../../data/human_protein/train.csv')
 
 train_dataset_info = []
 for name, labels in zip(data['Id'], data['Target'].str.split(' ')):
