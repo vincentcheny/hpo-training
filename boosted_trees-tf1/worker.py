@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import os
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
-
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from absl import app as absl_app
 from absl import flags
 import numpy as np
@@ -33,7 +33,7 @@ def read_higgs_data(data_dir, train_start, train_count, eval_start, eval_count):
     # gfile allows numpy to read data from network data sources as well.
     with tf.gfile.Open(npz_filename, "rb") as npz_file:
       with np.load(npz_file) as npz:
-        data = npz["data"]
+        data = npz["data"] # len(data):11000000
   except tf.errors.NotFoundError as e:
     raise RuntimeError(
         "Error loading data; use data_download.py to prepare the data.\n{}: {}"
@@ -172,19 +172,6 @@ def train_boosted_trees(flags_obj):
       features_np=eval_data[:, 1:], label_np=eval_data[:, 0:1])
   tf.logging.info("## Features prepared. Training starts...")
 
-  my_config = tf.ConfigProto( 
-    inter_op_parallelism_threads=int(params['inter_op_parallelism_threads']),
-    intra_op_parallelism_threads=int(params['intra_op_parallelism_threads']),
-    graph_options=tf.GraphOptions(
-        build_cost_model=int(params['build_cost_model']),
-        infer_shapes=params['infer_shapes'],
-        place_pruned_graph=params['place_pruned_graph'],
-        enable_bfloat16_sendrecv=params['enable_bfloat16_sendrecv'],
-        optimizer_options=tf.OptimizerOptions(
-            do_common_subexpression_elimination=params['do_common_subexpression_elimination'],
-            max_folded_constant_in_bytes=int(params['max_folded_constant']),
-            do_function_inlining=params['do_function_inlining'],
-            global_jit_level=params['global_jit_level'])))
   # Though BoostedTreesClassifier is under tf.estimator, faster in-memory
   # training is yet provided as a contrib library.
   from tensorflow.contrib import estimator as contrib_estimator  # pylint: disable=g-import-not-at-top
@@ -194,8 +181,7 @@ def train_boosted_trees(flags_obj):
       model_dir=flags_obj.model_dir or None,
       n_trees=flags_obj.n_trees,
       max_depth=flags_obj.max_depth,
-      learning_rate=flags_obj.learning_rate,
-      config=tf.estimator.RunConfig(session_config=my_config))
+      learning_rate=flags_obj.learning_rate)
 
   # Evaluation.
   eval_results = classifier.evaluate(eval_input_fn)
@@ -276,7 +262,7 @@ def get_default_params():
         "N_TREES":100,
         "LEARNING_RATE":1e-1,
         "MAX_DEPTH":6,
-        "NUM_EXAMPLES":1e6,
+        "NUM_EXAMPLES":5e6,
         "inter_op_parallelism_threads":1,
         "intra_op_parallelism_threads":2,
         "max_folded_constant":6,
