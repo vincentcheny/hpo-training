@@ -1,7 +1,7 @@
 authorName: Vincent
-experimentName: Keras-Application
+experimentName: Resnet50
 trialConcurrency: 1
-maxExecDuration: 12h
+maxExecDuration: 10h
 maxTrialNum: 150
 #choice: local, remote, pai
 trainingServicePlatform: local
