@@ -2,8 +2,18 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from tensorflow.keras import datasets, layers, models, losses, optimizers, metrics, preprocessing, utils, callbacks
 import numpy as np
+import random
+import os
+seed_value=0
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['PYTHONHASHSEED']=str(seed_value)
+random.seed(seed_value)
+np.random.seed(seed_value)
+
+import tensorflow as tf
+tf.compat.v1.set_random_seed(seed_value)
+from tensorflow.keras import datasets, layers, models, losses, optimizers, metrics, preprocessing, utils, callbacks
 import nni
 
 
@@ -69,7 +79,7 @@ def compile_model(model):
 
 
 def main():
-    (x_train, y_train), (x_test, y_test) = datasets.cifar10.load_data()
+    (x_train, y_train), (x_test, y_test) = datasets.cifar10.load_data() # len(x_train):50000 len(x_test):10000
     train_datagen = preprocessing.image.ImageDataGenerator(
         rescale=1./255,
         shear_range=0.1,
@@ -87,12 +97,12 @@ def main():
 
     sn = SqueezeNet()
     sn = compile_model(sn)
-    history = sn.fit_generator(
-        train_generator,
-        steps_per_epoch=400,
+    history = sn.fit(
+        x=train_generator,
+        steps_per_epoch=len(x_train)//10,
         epochs=params['NUM_EPOCH'],
         validation_data=test_generator,
-        validation_steps=200)
+        validation_steps=len(x_test))
 
     final_acc = history.history['val_categorical_accuracy'][params['NUM_EPOCH'] - 1]
     print("Final accuracy: {}".format(final_acc))
@@ -101,21 +111,11 @@ def main():
 
 def get_default_params():
     return {
-        "BATCH_SIZE": 16,
+        "BATCH_SIZE": 32,
         "LEARNING_RATE": 1e-4,
         "DENSE_UNIT": 32,
-        "NUM_EPOCH": 1,
-        "DROP_OUT": 0.3,
-        "inter_op_parallelism_threads": 1,
-        "intra_op_parallelism_threads": 2,
-        "max_folded_constant": 6,
-        "build_cost_model": 4,
-        "do_common_subexpression_elimination": 1,
-        "do_function_inlining": 1,
-        "global_jit_level": 1,
-        "infer_shapes": 1,
-        "place_pruned_graph": 1,
-        "enable_bfloat16_sendrecv": 1
+        "NUM_EPOCH": 2, # 810s/epoch
+        "DROP_OUT": 0.3
     }
 
 
