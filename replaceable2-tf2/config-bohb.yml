@@ -1,0 +1,28 @@
+authorName: Vincent
+experimentName: Xception
+trialConcurrency: 1
+maxExecDuration: 10h
+maxTrialNum: 1000
+#choice: local, remote, pai
+trainingServicePlatform: local
+searchSpacePath: sp.json
+##choice: true, false
+useAnnotation: false
+advisor:
+  builtinAdvisorName: BOHB
+  classArgs:
+    optimize_mode: maximize
+    min_budget: 1
+    max_budget: 9
+    eta: 3
+    min_points_in_model: 6
+    top_n_percent: 15
+    num_samples: 64
+    random_fraction: 0.0 #0.33
+    bandwidth_factor: 3.0
+    min_bandwidth: 0.001
+trial:
+  command: python nni_train.py
+  codeDir: .
+  gpuNum: 1
+#
