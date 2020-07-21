@@ -52,7 +52,7 @@ def format_example(image, label):
     return image, label
 
 
-data = tfds.load(params['DATASET'][0], as_supervised=True, data_dir="../../raw_data")
+data = tfds.load(params['DATASET'][0], as_supervised=True, data_dir="../../data")
 train_data = data['train'] 
 # train_data = train_data.shard(num_shards=100, index=0).map(format_example).shuffle(
 #     SHUFFLE_BUFFER_SIZE,seed=0).batch(params['BATCH_SIZE'])

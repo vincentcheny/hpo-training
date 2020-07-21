@@ -5,7 +5,7 @@ maxExecDuration: 10h
 maxTrialNum: 1000
 #choice: local, remote, pai
 trainingServicePlatform: local
-searchSpacePath: sp.json
+searchSpacePath: search_space.json
 ##choice: true, false
 useAnnotation: false
 advisor:
@@ -13,7 +13,7 @@ advisor:
   classArgs:
     optimize_mode: maximize
     min_budget: 1
-    max_budget: 9
+    max_budget: 12
     eta: 3
     min_points_in_model: 6
     top_n_percent: 15

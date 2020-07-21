@@ -3,5 +3,5 @@
     "optimizer":{"_type":"choice","_value":["adam","sgd","rmsp"]},
     "weight_decay":{"_type":"choice","_value":[5e-2,1e-2,5e-3,1e-3,5e-4,1e-4,5e-5,1e-5]},
     "lr":{"_type":"choice","_value":[5e-1,2.5e-1,1e-1,5e-2,2.5e-2,1e-2,5e-3,2.5e-3,1e-3,5e-4,2.5e-4,1e-4,5e-5,2.5e-5,1e-5]},
-    "epoch":{"_type":"choice","_value":[5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]}
+    "epoch":{"_type":"choice","_value":[10,11,12,13,14,15,16,17,18,19,20]}
 }

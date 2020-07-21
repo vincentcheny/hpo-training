@@ -100,7 +100,7 @@ tuned_params = nni.get_next_parameter()
 params.update(tuned_params)
 
 
-train_df = pd.read_csv("../humpback-whale-identification/train.csv")
+train_df = pd.read_csv("../../data/humpback-whale-identification/train.csv")
 # train_df = train_df[:1000]
 X = prepareImages(train_df, train_df.shape[0], "train")
 X /= 255.0
@@ -132,10 +132,11 @@ else:
     # model.compile(optimizer=Adam(lr=0.002), loss='categorical_crossentropy',
     #               metrics=[categorical_crossentropy, categorical_accuracy, top_5_accuracy])
 
+epochs = params['epoch'] if 'TRIAL_BUDGET' not in params.keys() else params["TRIAL_BUDGET"]
 his = model.fit(X, y, 
-            epochs=params['epoch'], 
+            epochs=epochs, 
             # steps_per_epoch=10, 
             batch_size=params['batch_size'], 
-            verbose=2)
+            verbose=1)
 final_acc = his.history['categorical_accuracy'][params['epoch'] - 1]
 nni.report_final_result(final_acc)

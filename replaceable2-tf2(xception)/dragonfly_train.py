@@ -151,7 +151,7 @@ def acc_eval(x):
 
 final_acc = 0.0
 
-train_df = pd.read_csv("../humpback-whale-identification/train.csv")
+train_df = pd.read_csv("../../data/humpback-whale-identification/train.csv")
 # train_df = train_df[:1000]
 X = prepareImages(train_df, train_df.shape[0], "train")
 X /= 255.0
@@ -162,7 +162,7 @@ batch_list = [8,16,24,32,40,48,56,64,72,80,88,96,104,112,120]
 weight_decay_list = [5e-2,1e-2,5e-3,1e-3,5e-4,1e-4,5e-5,1e-5]
 optimizer_list = ['adam','sgd','rmsp']
 LR_list =  [5e-1,2.5e-1,1e-1,5e-2,2.5e-2,1e-2,5e-3,2.5e-3,1e-3,5e-4,2.5e-4,1e-4,5e-5,2.5e-5,1e-5]
-epoch_list = [5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]
+epoch_list = [10,11,12,13,14,15,16,17,18,19,20]
 
 
 #hardware para
@@ -204,7 +204,7 @@ config_params = {'domain': domain_vars}
 config = load_config(config_params)
 max_num_evals = 60 * 60 * 10
 moo_objectives = [runtime_eval, acc_eval]
-pareto_opt_vals, pareto_opt_pts, history = multiobjective_maximise_functions(moo_objectives, config.domain,max_num_evals,config=config,options=options)
+pareto_opt_vals, pareto_opt_pts, history = multiobjective_maximise_functions(moo_objectives, config.domain,max_num_evals,capital_type="realtime",config=config,options=options)
 f = open("./output.log","w+")
 print(pareto_opt_pts,file=f)
 print("\n",file=f)
