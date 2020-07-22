@@ -1,34 +1,32 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.
-
-"""
-NNI example trial code.
-- Experiment type: Hyper-parameter Optimization
-- Trial framework: Tensorflow v2.x (Keras API)
-- Model: LeNet-5
-- Dataset: MNIST
-"""
+seed_value = 0
+import os, sys
+os.environ['PYTHONHASHSEED']=str(seed_value)
+#os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
+import numpy as np
+np.random.seed(seed_value)
+import tensorflow as tf
+tf.compat.v1.set_random_seed(seed_value)
+import random
+random.seed(seed_value)
 
 import logging
-
-import tensorflow as tf
 from tensorflow.keras import Model
 from tensorflow.keras.callbacks import Callback
 from tensorflow.keras.layers import (Conv2D, Dense, Dropout, Flatten, MaxPool2D)
-from tensorflow.keras.optimizers import Adam
-import os 
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+from tensorflow.keras.optimizers import Adam,SGD,RMSprop
 import nni
-
-_logger = logging.getLogger('cifar10_example')
-_logger.setLevel(logging.INFO)
+import time
 
 
-class MnistModel(Model):
+def my_init(shape, dtype=None):
+    return tf.random.normal(shape, dtype=dtype)
+
+
+class create_model(Model):
     """
     LeNet-5 Model with customizable hyper-parameters
     """
-    def __init__(self, filter1, filter2):
+    def __init__(self, filter1, filter2, dense):
         """
         Initialize hyper-parameters.
         Parameters
@@ -39,16 +37,16 @@ class MnistModel(Model):
             Dimensionality of last hidden layer.
         dropout_rate : float
             Dropout rate between two fully connected (dense) layers, to prevent co-adaptation.
+            kernel_initializer=my_init
         """
         super().__init__()
-        self.conv1 = Conv2D(filters=filter1, kernel_size=(9,9), activation='relu')
+        self.conv1 = Conv2D(filters=filter1, kernel_size=(9,9), kernel_initializer=my_init,activation='relu')
         self.pool1 = MaxPool2D(pool_size=2)
-        self.conv2 = Conv2D(filters=filter2, kernel_size=(5,5), activation='relu')
+        self.conv2 = Conv2D(filters=filter2, kernel_size=(5,5), kernel_initializer=my_init,activation='relu')
         self.pool2 = MaxPool2D(pool_size=2)
         self.flatten = Flatten()
-        self.fc1 = Dense(units=50, activation='relu')
-        # self.dropout = Dropout(rate=dropout_rate)
-        self.fc2 = Dense(units=10, activation='softmax')
+        self.fc1 = Dense(units=dense, kernel_initializer=my_init,activation='relu')
+        self.fc2 = Dense(units=10,activation='softmax')
 
     def call(self, x):
         """Override ``Model.call`` to build LeNet-5 model."""
@@ -58,25 +56,7 @@ class MnistModel(Model):
         x = self.pool2(x)
         x = self.flatten(x)
         x = self.fc1(x)
-        # x = self.dropout(x)
         return self.fc2(x)
-
-
-class ReportIntermediates(Callback):
-    """
-    Callback class for reporting intermediate accuracy metrics.
-    This callback sends accuracy to NNI framework every 100 steps,
-    so you can view the learning curve on web UI.
-    If an assessor is configured in experiment's YAML file,
-    it will use these metrics for early stopping.
-    """
-    def on_epoch_end(self, epoch, logs=None):
-        """Reports intermediate accuracy to NNI framework"""
-        # TensorFlow 2.0 API reference claims the key is `val_acc`, but in fact it's `val_accuracy`
-        if 'val_acc' in logs:
-            nni.report_intermediate_result(logs['val_acc'])
-        else:
-            nni.report_intermediate_result(logs['val_accuracy'])
 
 
 def load_dataset():
@@ -91,39 +71,16 @@ def load_dataset():
     return (x_train, y_train), (x_test, y_test)
 
 
-def get_config():
-    return tf.compat.v1.ConfigProto( 
-        inter_op_parallelism_threads=int(params['inter_op_parallelism_threads']),
-        intra_op_parallelism_threads=int(params['intra_op_parallelism_threads']),
-        graph_options=tf.compat.v1.GraphOptions(
-            build_cost_model=int(params['build_cost_model']),
-            infer_shapes=params['infer_shapes'],
-            place_pruned_graph=params['place_pruned_graph'],
-            enable_bfloat16_sendrecv=params['enable_bfloat16_sendrecv'],
-            optimizer_options=tf.compat.v1.OptimizerOptions(
-                do_common_subexpression_elimination=params['do_common_subexpression_elimination'],
-                max_folded_constant_in_bytes=int(params['max_folded_constant']),
-                do_function_inlining=params['do_function_inlining'],
-                global_jit_level=params['global_jit_level'])))
-
-
 def get_default_params():
-    return {
-        "BATCH_SIZE":32,
-        "LEARNING_RATE":1e-4,
-        "NKERN1":5, 
-        "NKERN2":10,
-        "inter_op_parallelism_threads":1,
-        "intra_op_parallelism_threads":2,
-        "max_folded_constant":6,
-        "build_cost_model":4,
-        "do_common_subexpression_elimination":1,
-        "do_function_inlining":1,
-        "global_jit_level":1,
-        "infer_shapes":1,
-        "place_pruned_graph":1,
-        "enable_bfloat16_sendrecv":1
-    }
+    return {'batch_size':340,
+            'n1':10,
+            'n2':50,
+            'optimizer':"adam",
+            'lr':0.0006,
+            'epoch':80,
+            'dense_size':50
+            }
+
 
 def main(params):
     """
@@ -133,51 +90,55 @@ def main(params):
       - Train the model
       - Report accuracy to tuner
     """
-    model = MnistModel(
-        filter1=params['NKERN1'],
-        filter2=params['NKERN2']
-    )
-    optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=params['LEARNING_RATE'])
-    model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-    _logger.info('Model built')
-
     (x_train, y_train), (x_test, y_test) = load_dataset()
-    _logger.info('Dataset loaded')
 
-    sess = tf.compat.v1.Session(config=get_config())
-    tf.compat.v1.keras.backend.set_session(sess)
-
-    model.fit(
-        x_train,
-        y_train,
-        batch_size=params['BATCH_SIZE'],
-        epochs=81,
-        verbose=0,
-        callbacks=[ReportIntermediates()],
-        validation_data=(x_test, y_test)
+    model = create_model(
+        filter1=params['n1'],
+        filter2=params['n2'],
+        dense = params['dense_size']
     )
-    _logger.info('Training completed')
-
-    loss, accuracy = model.evaluate(x_test, y_test, verbose=0)
-    nni.report_final_result(accuracy)  # send final accuracy to NNI tuner and web UI
-    _logger.info('Final accuracy reported: %s', accuracy)
 
 
-def get_kernel(s):
-    s = s.split(',')
-    NKERN1 = int(s[0].split('(')[1])
-    NKERN2 = int(s[1].split(')')[0])
-    return {"NKERN1":NKERN1, "NKERN2":NKERN2}
+    op_type = params['optimizer']
+    if op_type == 'adam':
+        model.compile(loss='sparse_categorical_crossentropy',
+                optimizer=Adam(lr=params['lr']),
+                metrics=['accuracy'])
+    elif op_type == 'sgd':
+        model.compile(loss='sparse_categorical_crossentropy',
+                optimizer=SGD(learning_rate=params['lr']),
+                metrics=['accuracy'])
+    else:
+        model.compile(loss='sparse_categorical_crossentropy',
+                optimizer=RMSprop(learning_rate=params['lr']),
+                metrics=['accuracy'])
+
+
+
+
+    # optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=params['LEARNING_RATE'])
+    # model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    # _logger.info('Model built')
+    epochs = params['epoch'] if 'TRIAL_BUDGET' not in params.keys() else params["TRIAL_BUDGET"]
+    history = model.fit(
+                        x_train,
+                        y_train,
+                        batch_size=params['batch_size'],
+                        epochs=epochs,
+                        # steps_per_epoch=10,
+                        verbose=2,
+                        validation_data=(x_test, y_test)
+                        # validation_steps=10
+                    )
+
+    val_acc = history.history['val_accuracy'][epochs - 1]
+    nni.report_final_result(val_acc)  # send final accuracy to NNI tuner and web UI
+
 
 if __name__ == '__main__':
     params = get_default_params()
-
-    # fetch hyper-parameters from HPO tuner
-    # comment out following two lines to run the code without NNI framework
     tuned_params = nni.get_next_parameter()
     params.update(tuned_params)
-    # if tuned_params:
-    #     params.update(get_kernel(tuned_params['NUM_KERNAL']))
-
-    _logger.info('Hyper-parameters: %s', params)
+    print("select params!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print(params)
     main(params)
