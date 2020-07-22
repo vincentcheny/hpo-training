@@ -1,5 +1,6 @@
 {
     "BATCH_SIZE":{"_type":"choice","_value":[2,4,6,8,10,12,14,16]},
     "LEARNING_RATE":{"_type":"choice","_value":[5e-6,1e-5,5e-5,1e-4,5e-4,1e-3,5e-3,1e-2,5e-2]},
+    "OPTIMIZER":{"_type":"choice","_value":["adam","sgd","rmsp"]},
     "NUM_EPOCH":{"_type":"choice","_value":[1,2,3,4,5]}
 }

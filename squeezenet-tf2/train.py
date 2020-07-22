@@ -57,7 +57,7 @@ def SqueezeNet(input_shape=(32, 32, 3), classes=10):
 
     x = fire_module(x, fire_id=4, squeeze=32, expand=128)
     x = fire_module(x, fire_id=5, squeeze=32, expand=128)
-    x = layers.Dropout(0.5, name='drop9')(x)
+    x = layers.Dropout(0.5, name='drop9',seed=123)(x)
 
     x = layers.Convolution2D(
         classes, (1, 1), padding='valid', name='conv10')(x)
@@ -82,9 +82,9 @@ def main():
     (x_train, y_train), (x_test, y_test) = datasets.cifar10.load_data() # len(x_train):50000 len(x_test):10000
     train_datagen = preprocessing.image.ImageDataGenerator(
         rescale=1./255,
-        shear_range=0.1,
-        zoom_range=0.1,
-        horizontal_flip=True)
+        shear_range=0,#0.1,
+        zoom_range=0,#0.1,
+        horizontal_flip=False)#True)
     test_datagen = preprocessing.image.ImageDataGenerator(rescale=1./255)
 
     y_train = utils.to_categorical(y_train, num_classes=10)
@@ -95,18 +95,25 @@ def main():
     test_generator = test_datagen.flow(
         x=x_test, y=y_test, batch_size=32, shuffle=True)
 
-    sn = SqueezeNet()
+    IS_LOAD_MODEL = True
+    if IS_LOAD_MODEL:
+        sn = tf.keras.models.load_model('squeezenet.h5',compile=False)
+    else:
+        sn = SqueezeNet()
     sn = compile_model(sn)
+    epochs = params['NUM_EPOCH'] if 'TRIAL_BUDGET' not in params.keys() else params["TRIAL_BUDGET"]
     history = sn.fit(
         x=train_generator,
         steps_per_epoch=len(x_train)//10,
-        epochs=params['NUM_EPOCH'],
+        epochs=epochs,
         validation_data=test_generator,
-        validation_steps=len(x_test))
+        validation_steps=len(x_test),
+        verbose=0)
 
-    final_acc = history.history['val_categorical_accuracy'][params['NUM_EPOCH'] - 1]
+    final_acc = history.history['val_categorical_accuracy'][epochs - 1]
     print("Final accuracy: {}".format(final_acc))
     nni.report_final_result(final_acc)
+    sn.save("squeezenet.h5")
 
 
 def get_default_params():

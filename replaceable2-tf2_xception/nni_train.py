@@ -138,5 +138,5 @@ his = model.fit(X, y,
             # steps_per_epoch=10, 
             batch_size=params['batch_size'], 
             verbose=1)
-final_acc = his.history['categorical_accuracy'][params['epoch'] - 1]
+final_acc = his.history['categorical_accuracy'][epochs - 1]
 nni.report_final_result(final_acc)

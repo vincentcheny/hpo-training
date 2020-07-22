@@ -1,5 +1,6 @@
 *.log
 *.h5
+tmp*
 /__pycache__
 /.history
 /.idea

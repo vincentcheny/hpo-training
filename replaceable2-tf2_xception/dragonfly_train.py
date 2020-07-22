@@ -56,7 +56,7 @@ def prepareImages(data, m, dataset):
         x = preprocess_input(x)
 
         X_train[count] = x
-        if (count%100 == 0):
+        if (count%1000 == 0):
             print("Processing image: ", count+1, ", ", fig)
         count += 1
     
@@ -96,10 +96,11 @@ def runtime_eval(x):
     print("selected parameter !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     print(x)
     # model = MobileNet(input_shape=(100, 100, 3), alpha=1., weights=None, classes=5005)
-    # model = Xception(input_shape=(100, 100, 3), weights=None, classes=5005)
+    # model = Xception(input_shape=(100, 100, 3), weights=None, classes=y.shape[1])
     # model.save('Xception.h5')
     # print("save model weight finish !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    model = tf.keras.models.load_model('Xception.h5',compile=False)
+    
+    model = xception
 
     for layer in model.layers:
         layer.trainable = True
@@ -152,11 +153,11 @@ def acc_eval(x):
 final_acc = 0.0
 
 train_df = pd.read_csv("../../data/humpback-whale-identification/train.csv")
-# train_df = train_df[:1000]
 X = prepareImages(train_df, train_df.shape[0], "train")
 X /= 255.0
 y, label_encoder = prepare_labels(train_df['Id'])
 
+xception = tf.keras.models.load_model('Xception.h5',compile=False)
 
 batch_list = [8,16,24,32,40,48,56,64,72,80,88,96,104,112,120]
 weight_decay_list = [5e-2,1e-2,5e-3,1e-3,5e-4,1e-4,5e-5,1e-5]
