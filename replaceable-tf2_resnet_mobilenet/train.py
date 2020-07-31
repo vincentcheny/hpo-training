@@ -38,7 +38,7 @@ IMG_SHAPE = (IMG_SIZE_LENGTH, IMG_SIZE_WIDTH, 3)
 
 tf.compat.v1.flags.DEFINE_enum(
     name='model_name', 
-    default='mobilenet', 
+    default='resnet', 
     enum_values=["mobilenet", "resnet"], 
     help='specify supported model')
 MODEL_NAME = tf.compat.v1.flags.FLAGS.model_name

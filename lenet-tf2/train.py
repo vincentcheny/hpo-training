@@ -120,17 +120,22 @@ def main(params):
     # model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
     # _logger.info('Model built')
     epochs = params['epoch'] if 'TRIAL_BUDGET' not in params.keys() else params["TRIAL_BUDGET"]
+    print("this trial's buget !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print(epochs)
     history = model.fit(
                         x_train,
                         y_train,
                         batch_size=params['batch_size'],
                         epochs=epochs,
                         # steps_per_epoch=10,
-                        verbose=2,
+                        verbose=1,
                         validation_data=(x_test, y_test)
                         # validation_steps=10
                     )
-
+    train_loss = history.history['loss'][epochs - 1]
+    train_acc = history.history['accuracy'][epochs - 1]
+    print("last epoch information**************************************")
+    print(train_loss,train_acc)
     val_acc = history.history['val_accuracy'][epochs - 1]
     nni.report_final_result(val_acc)  # send final accuracy to NNI tuner and web UI
 

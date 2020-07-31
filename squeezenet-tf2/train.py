@@ -70,14 +70,6 @@ def SqueezeNet(input_shape=(32, 32, 3), classes=10):
     return model
 
 
-def compile_model(model):
-    loss = losses.categorical_crossentropy
-    optimizer = optimizers.RMSprop(lr=0.0001)
-    metric = [metrics.categorical_accuracy, metrics.top_k_categorical_accuracy]
-    model.compile(optimizer, loss, metric)
-    return model
-
-
 def main():
     (x_train, y_train), (x_test, y_test) = datasets.cifar10.load_data() # len(x_train):50000 len(x_test):10000
     train_datagen = preprocessing.image.ImageDataGenerator(
@@ -85,44 +77,58 @@ def main():
         shear_range=0,#0.1,
         zoom_range=0,#0.1,
         horizontal_flip=False)#True)
-    test_datagen = preprocessing.image.ImageDataGenerator(rescale=1./255)
+    test_datagen = preprocessing.image.ImageDataGenerator(
+        rescale=1./255,
+        shear_range=0,#0.1,
+        zoom_range=0,#0.1,)
+    )
 
     y_train = utils.to_categorical(y_train, num_classes=10)
     y_test = utils.to_categorical(y_test, num_classes=10)
 
     train_generator = train_datagen.flow(
-        x=x_train, y=y_train, batch_size=32, shuffle=True)
+        x=x_train, y=y_train, batch_size=params['BATCH_SIZE'], shuffle=False)#True)
     test_generator = test_datagen.flow(
-        x=x_test, y=y_test, batch_size=32, shuffle=True)
+        x=x_test, y=y_test, batch_size=params['BATCH_SIZE'], shuffle=False)#True)
 
     IS_LOAD_MODEL = True
     if IS_LOAD_MODEL:
-        sn = tf.keras.models.load_model('squeezenet.h5',compile=False)
+        model = tf.keras.models.load_model('squeezenet.h5',compile=False)
     else:
-        sn = SqueezeNet()
-    sn = compile_model(sn)
+        model = SqueezeNet()
+    loss = losses.categorical_crossentropy
+    metric = [metrics.categorical_accuracy, metrics.top_k_categorical_accuracy]
+    # optimizer = optimizers.RMSprop(lr=0.0001)
+    if params['OPTIMIZER'] == 'adam':
+        optimizer = optimizers.Adam(learning_rate=params["LEARNING_RATE"])
+    elif params['OPTIMIZER'] == 'sgd':
+        optimizer = optimizers.SGD(learning_rate=params["LEARNING_RATE"])
+    else:
+        optimizer = optimizers.RMSprop(learning_rate=params["LEARNING_RATE"])
+    model.compile(optimizer, loss, metric)
     epochs = params['NUM_EPOCH'] if 'TRIAL_BUDGET' not in params.keys() else params["TRIAL_BUDGET"]
-    history = sn.fit(
+    history = model.fit(
         x=train_generator,
-        steps_per_epoch=len(x_train)//10,
+        steps_per_epoch=len(x_train)//params['BATCH_SIZE']*100,
         epochs=epochs,
         validation_data=test_generator,
         validation_steps=len(x_test),
-        verbose=0)
+        verbose=1)
 
     final_acc = history.history['val_categorical_accuracy'][epochs - 1]
     print("Final accuracy: {}".format(final_acc))
     nni.report_final_result(final_acc)
-    sn.save("squeezenet.h5")
+    # sn.save("squeezenet.h5")
 
 
 def get_default_params():
     return {
-        "BATCH_SIZE": 32,
+        "BATCH_SIZE": 128,
         "LEARNING_RATE": 1e-4,
         "DENSE_UNIT": 32,
-        "NUM_EPOCH": 2, # 810s/epoch
-        "DROP_OUT": 0.3
+        "NUM_EPOCH": 1, # 810s/epoch
+        "DROP_OUT": 0.3,
+        "OPTIMIZER": "adam"
     }
 
 

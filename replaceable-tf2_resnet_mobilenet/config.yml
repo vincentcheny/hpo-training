@@ -16,6 +16,6 @@ tuner:
     #choice: maximize, minimize
     optimize_mode: maximize
 trial:
-  command: python worker.py
+  command: python train.py
   codeDir: .
   gpuNum: 1

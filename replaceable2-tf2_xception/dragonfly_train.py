@@ -100,7 +100,8 @@ def runtime_eval(x):
     # model.save('Xception.h5')
     # print("save model weight finish !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     
-    model = xception
+    # model = xception
+    model = tf.keras.models.load_model('Xception.h5',compile=False)
 
     for layer in model.layers:
         layer.trainable = True
@@ -135,6 +136,7 @@ def runtime_eval(x):
     start = time.time()
     his = model.fit(X, y, 
         epochs=x[4], 
+        # epochs=2,
         # steps_per_epoch=10, 
         batch_size=x[0], 
         verbose=2)
@@ -153,11 +155,12 @@ def acc_eval(x):
 final_acc = 0.0
 
 train_df = pd.read_csv("../../data/humpback-whale-identification/train.csv")
+# train_df = train_df[:1000]
 X = prepareImages(train_df, train_df.shape[0], "train")
 X /= 255.0
 y, label_encoder = prepare_labels(train_df['Id'])
 
-xception = tf.keras.models.load_model('Xception.h5',compile=False)
+
 
 batch_list = [8,16,24,32,40,48,56,64,72,80,88,96,104,112,120]
 weight_decay_list = [5e-2,1e-2,5e-3,1e-3,5e-4,1e-4,5e-5,1e-5]
