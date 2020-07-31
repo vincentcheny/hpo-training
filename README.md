@@ -21,7 +21,9 @@
 | WEIGHT_DECAY  |                          |      [1e-5,5e-2]       |                        |      [1e-5,8e-2]       |                        | [2e-5,2e-3] |
 | NUM_FILTER    |                          |                        |        [16,128]        |         [8,64]         |                        |             |
 
-### Hardware Parameter*
+### Hardware Parameter
+
+#### For any model
 
 |                Name                 | Range  |
 | :---------------------------------: | :----: |
@@ -36,7 +38,15 @@
 |         place_pruned_graph          | [0,1]  |
 |      enable_bfloat16_sendrecv       | [0,1]  |
 
-*Hardware Parameter*: Every model includes hardware parameters listed by default when run with dragonfly.
+#### For GoogLeNet additionally
+
+|        Name        |                     Range                      |
+| :----------------: | :--------------------------------------------: |
+|  cross_device_ops  | ["NcclAllReduce", "HierarchicalCopyAllReduce"] |
+|     num_packs      |                     [0,5]                      |
+| tf_gpu_thread_mode |    ["global", "gpu_private", "gpu_shared"]     |
+
+
 
 ## Performance
 
@@ -48,7 +58,9 @@
 | MobileNet | [Plant Leaves](https://www.tensorflow.org/datasets/catalog/plant_leaves) (6.8G) | 10hrs   | 0.851 (93.13min) | 0.945 (119.23min) | 0.973 (181.94min) | ![](https://lh3.googleusercontent.com/-8RKoBF04W6g/XxkknTOt4pI/AAAAAAAAAT8/Zlk_jWibDL0AcT4KvbemdX6KRw70wPNswCK8BGAsYHg/s512/2020-07-22.png) | ![](https://lh3.googleusercontent.com/-6VJY6WVWFVI/XxkkmYKb22I/AAAAAAAAAT4/IuB7ZZJBey04qk_a1wW35O7pUHmKv4PZgCK8BGAsYHg/s512/2020-07-22.png) |
 | ResNet50  | [Plant Leaves](https://www.tensorflow.org/datasets/catalog/plant_leaves) (6.8G) | 10hrs   | 0.743 (63.36min) | 0.942 (116.21min) | 0.849 (96.83min)  | ![](https://lh3.googleusercontent.com/-U5hhnRP9CaM/Xxkkb26bhLI/AAAAAAAAAT0/hFiQDKpjhcM66EpaZbTWydFoyP07laBNwCK8BGAsYHg/s512/2020-07-22.png) | ![](https://lh3.googleusercontent.com/-xdQZQUfEyOg/XxkkbCGyOQI/AAAAAAAAATw/FDsL1lbDS5MQaCKuaiz1YxJibn38mgHwACK8BGAsYHg/s512/2020-07-22.png) |
 | Inception | [Human Protein](https://www.kaggle.com/mathormad/inceptionv3-baseline-lb-0-379/data) (14G) | 10hrs   | 0.550 (33.38min) | 0.440 (105.63min) | 0.428 (30.50min)  | ![](https://lh3.googleusercontent.com/-4xdgF5j1_U4/XxcVzcPq57I/AAAAAAAAATE/6jNkc5Wtr_Aw5hclerGPNXpIlYUXo28LwCK8BGAsYHg/s512/2020-07-21.png) | ![](https://lh3.googleusercontent.com/-B5pYR_0it2k/XxcVyRe-8fI/AAAAAAAAATA/bOAHdueQOLIZsJGzqWRRKlOoXAqAZJ7bQCK8BGAsYHg/s512/2020-07-21.png) |
-| GoogLeNet |         [ImageNet](http://www.image-net.org/) (134G)         | 40hrs   | 0.490 (65.37min) | 0.497 (72.82min)  | 0.497 (93.32min)  | ![](https://lh3.googleusercontent.com/-nGF0qKF9r6k/XxFMMpWeY7I/AAAAAAAAAS0/GMAbuMyO5Oo-bCAI_dv206vFz9ieSXtqACK8BGAsYHg/s512/2020-07-16.png) | ![](https://lh3.googleusercontent.com/-3LQZ1tU6rKs/XxFMLEC8inI/AAAAAAAAASw/iBjQQBjmnuwLFxBmBKl6nmaigAcJKxD5wCK8BGAsYHg/s512/2020-07-16.png) |
+| GoogLeNet |         [ImageNet](http://www.image-net.org/) (134G)         | 40hrs   | 0.490 (65.37min) | 0.497 (72.82min)  | 0.497 (93.32min)  | ![](https://lh3.googleusercontent.com/-scQi4GIDSqM/XyOpcCn6S6I/AAAAAAAAAWQ/C2ppWRKk8xMHwLvidJSEvO0_gJa8Eq-qwCK8BGAsYHg/s512/2020-07-30.png) | ![](https://lh3.googleusercontent.com/-ppmDys17X34/XyOpbADB-QI/AAAAAAAAAWM/psgsiLGe4QoipSfuoI-_IzXxKM3kLC_aACK8BGAsYHg/s512/2020-07-30.png) |
+
+
 
 ## Unfixed-randomness Performance
 
