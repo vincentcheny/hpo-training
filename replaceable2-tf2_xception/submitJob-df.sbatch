@@ -5,7 +5,7 @@
 #SBATCH --output=/lustre/project/EricLo/chen.yu/hpo-training/replaceable2-tf2_xception/dragonfly.log
 #SBATCH --gres=gpu:1
 #SBATCH --mem=30G
-#SBATCH --nodelist=chpc-gpu002
-#SBATCH --cpus-per-task=2
+#SBATCH --nodelist=chpc-gpu001
+#SBATCH --cpus-per-task=4
 
 python dragonfly_train.py

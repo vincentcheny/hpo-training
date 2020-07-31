@@ -1,5 +1,5 @@
 authorName: Vincent
-experimentName: mobilenet_plantleaves
+experimentName: Xception
 trialConcurrency: 1
 maxExecDuration: 10h
 maxTrialNum: 1000

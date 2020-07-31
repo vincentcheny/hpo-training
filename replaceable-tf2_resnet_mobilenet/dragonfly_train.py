@@ -40,6 +40,7 @@ def format_example(image, label):
 
 
 def runtime_eval(x):
+    print(x)
     data = tfds.load('plant_leaves', as_supervised=True, data_dir="../../data")
     train_data = data['train'] 
     train_data = train_data.map(format_example).batch(x[0])
@@ -177,13 +178,22 @@ domain_vars = [{'type': 'discrete_numeric', 'items': batch_list},
                 {'type': 'discrete_numeric', 'items': global_jit_level_list},
                 ]
 
-dragonfly_args = [ 
+dragonfly_args_mobilenet = [ 
     get_option_specs('report_results_every', False, 2, 'Path to the json or pb config file. '),
     get_option_specs('init_capital', False, None, 'Path to the json or pb config file. '),
-    get_option_specs('init_capital_frac', False, 0.075, 'Path to the json or pb config file. '),
+    get_option_specs('init_capital_frac', False, 0.125, 'Path to the json or pb config file. '),
     get_option_specs('num_init_evals', False, 2, 'Path to the json or pb config file. ')]
 
-options = load_options(dragonfly_args)
+dragonfly_args_resnet = [ 
+    get_option_specs('report_results_every', False, 2, 'Path to the json or pb config file. '),
+    get_option_specs('init_capital', False, None, 'Path to the json or pb config file. '),
+    get_option_specs('init_capital_frac', False, 0.1, 'Path to the json or pb config file. '),
+    get_option_specs('num_init_evals', False, 2, 'Path to the json or pb config file. ')]
+
+if MODEL_NAME == 'mobilenet':
+    options = load_options(dragonfly_args_mobilenet)
+elif MODEL_NAME == 'resnet':
+    options = load_options(dragonfly_args_resnet)
 config_params = {'domain': domain_vars}
 config = load_config(config_params)
 max_num_evals = 60 * 60 * 10

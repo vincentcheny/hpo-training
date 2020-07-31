@@ -22,6 +22,6 @@ advisor:
     bandwidth_factor: 3.0
     min_bandwidth: 0.001
 trial:
-  command: python resnet.py
+  command: python train.py
   codeDir: .
   gpuNum: 1
