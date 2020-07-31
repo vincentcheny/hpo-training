@@ -1,40 +1,29 @@
 # HPO-Training using Dragonfly(multi-obj) & NNI
 
-## Basic Info
-
-|   Model    |                           Dataset                            | Runtime |
-| :--------: | :----------------------------------------------------------: | :-----: |
-|  ResNet50  | [Plant Leaves](https://www.tensorflow.org/datasets/catalog/plant_leaves) (6.8G) |  10hrs  |
-| MobileNet  | [Plant Leaves](https://www.tensorflow.org/datasets/catalog/plant_leaves) (6.8G) |  10hrs  |
-|  Xception  | [Humpback Whale](https://www.kaggle.com/c/humpback-whale-identification) (5.7G) |  10hrs  |
-| Inception  | [Human Protein](https://www.kaggle.com/mathormad/inceptionv3-baseline-lb-0-379/data) (14G) |  10hrs  |
-| SqueezeNet | [Cifar10](https://www.tensorflow.org/api_docs/python/tf/keras/datasets/cifar10) (178M) |  10hrs  |
-|   VGG16    | [Cifar10](https://www.tensorflow.org/api_docs/python/tf/keras/datasets/cifar10) (178M) |  10hrs  |
-|  LeNet-5   | [Cifar10 ](https://www.cs.toronto.edu/~kriz/cifar.html)(350M) |  10hrs  |
-| GoogLeNet  |         [ImageNet](http://www.image-net.org/) (134G)         |  40hrs  |
-
 ## Search Space
 
 ### Model Parameter
 
-|               | ResNet50/<br />MobileNet |        Xception        |       Inception        | SqueezeNet |         VGG16          | LeNet-5     |  GoogLeNet  |
-| :------------ | :----------------------: | :--------------------: | :--------------------: | ---------- | :--------------------: | ----------- | :---------: |
-| BATCH_SIZE    |          [2,16]          |        [8,120]         |         [2,32]         |            |        [8,128]         | [10,711]    |   [8,64]    |
-| LEARNING_RATE |       [5e-6,5e-2]        |      [1e-5,5e-1]       |      [1e-6,1e-2]       |            |      [1e-5,5e-1]       | [1e-6,1e-2] |             |
-| NUM_EPOCH     |          [1,5]           |        [10,20]         |         [2,5]          |            |         [2,30]         |             |   80[1,3]   |
-| DROP_OUT      |                          |                        |                        |            |                        |             |             |
-| DENSE_UNIT    |                          |                        |        [64,512]        |            |       [64,1024]        |             |             |
-| OPTIMIZER     |                          | ["adam","grad","rmsp"] | ["adam","grad","rmsp"] |            | ["adam","grad","rmsp"] |             |             |
-| KERNEL_SIZE   |                          |                        |                        |            |         [1,5]          |             |             |
-| NKERN1        |                          |                        |                        |            |                        | [5,30]      |             |
-| NKERN2        |                          |                        |                        |            |                        | [31,60]     |             |
-| EPSILON       |                          |                        |                        |            |                        |             |  [0.1,1.0]  |
-| INIT_LR       |                          |                        |                        |            |                        |             |  [1e-2,1]   |
-| FINAL_LR      |                          |                        |                        |            |                        |             | [1e-6,5e-4] |
-| WEIGHT_DECAY  |                          |      [1e-5,5e-2]       |                        |            |      [1e-5,8e-2]       |             | [2e-5,2e-3] |
-| NUM_FILTER    |                          |                        |        [16,128]        |            |         [8,64]         |             |             |
+|               | ResNet50/<br />MobileNet |        Xception        |       Inception        |         VGG16          | LeNet-5                |  GoogLeNet  |
+| :------------ | :----------------------: | :--------------------: | :--------------------: | :--------------------: | ---------------------- | :---------: |
+| BATCH_SIZE    |          [2,16]          |        [8,120]         |         [2,32]         |        [8,128]         | [10,800]               |   [8,64]    |
+| LEARNING_RATE |       [5e-6,5e-2]        |      [1e-5,5e-1]       |      [1e-6,1e-2]       |      [1e-5,5e-1]       | [1e-6,1e-2]            |             |
+| NUM_EPOCH     |          [1,5]           |        [10,20]         |         [2,5]          |         [2,30]         | [10,100]               |   80[1,3]   |
+| DROP_OUT      |                          |                        |                        |                        |                        |             |
+| DENSE_UNIT    |                          |                        |        [64,512]        |       [64,1024]        | [16,1024]              |             |
+| OPTIMIZER     |  ["adam","grad","rmsp"]  | ["adam","grad","rmsp"] | ["adam","grad","rmsp"] | ["adam","grad","rmsp"] | ["adam","grad","rmsp"] |             |
+| KERNEL_SIZE   |                          |                        |                        |         [1,5]          |                        |             |
+| NKERN1        |                          |                        |                        |                        | [5,30]                 |             |
+| NKERN2        |                          |                        |                        |                        | [31,60]                |             |
+| EPSILON       |                          |                        |                        |                        |                        |  [0.1,1.0]  |
+| INIT_LR       |                          |                        |                        |                        |                        |  [1e-2,1]   |
+| FINAL_LR      |                          |                        |                        |                        |                        | [1e-6,5e-4] |
+| WEIGHT_DECAY  |                          |      [1e-5,5e-2]       |                        |      [1e-5,8e-2]       |                        | [2e-5,2e-3] |
+| NUM_FILTER    |                          |                        |        [16,128]        |         [8,64]         |                        |             |
 
-### Hardware Parameter*
+### Hardware Parameter
+
+#### For any model
 
 |                Name                 | Range  |
 | :---------------------------------: | :----: |
@@ -49,23 +38,29 @@
 |         place_pruned_graph          | [0,1]  |
 |      enable_bfloat16_sendrecv       | [0,1]  |
 
-*Hardware Parameter*: Every model includes hardware parameters listed by default when run with dragonfly.
+#### For GoogLeNet additionally
+
+|        Name        |                     Range                      |
+| :----------------: | :--------------------------------------------: |
+|  cross_device_ops  | ["NcclAllReduce", "HierarchicalCopyAllReduce"] |
+|     num_packs      |                     [0,5]                      |
+| tf_gpu_thread_mode |    ["global", "gpu_private", "gpu_shared"]     |
+
+
 
 ## Performance
 
-|            |    Dragonfly     |        TPE        |       BOHB       | Status* |                            Result                            |                   Cumulative Best accuracy                   |
-| :--------: | :--------------: | :---------------: | :--------------: | :-----: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-|  ResNet50  |                  |                   |                  |    1    |                                                              |                                                              |
-| MobileNet  |                  |                   |                  |    1    |                                                              |                                                              |
-|  Xception  |                  |                   |                  |    2    |                                                              |                                                              |
-| Inception  | 0.550 (33.38min) | 0.440 (105.63min) | 0.428 (30.50min) |    3    | ![](https://lh3.googleusercontent.com/-4xdgF5j1_U4/XxcVzcPq57I/AAAAAAAAATE/6jNkc5Wtr_Aw5hclerGPNXpIlYUXo28LwCK8BGAsYHg/s512/2020-07-21.png) | ![](https://lh3.googleusercontent.com/-B5pYR_0it2k/XxcVyRe-8fI/AAAAAAAAATA/bOAHdueQOLIZsJGzqWRRKlOoXAqAZJ7bQCK8BGAsYHg/s512/2020-07-21.png) |
-| SqueezeNet |                  |                   |                  |    0    |                                                              |                                                              |
-|   VGG16    | 0.795 (32.91min) |  0.775 (7.04min)  | 0.809 (15.34min) |    2    | ![](https://lh3.googleusercontent.com/-27tMi8mEMdo/XxfTqHRdVdI/AAAAAAAAATU/MJ_7mk8ltBEdV11D1t5UwEBZ4yaHpn1dQCK8BGAsYHg/s512/2020-07-21.png) | ![](https://lh3.googleusercontent.com/-_w5vxnsfHFM/XxfTpK2LZkI/AAAAAAAAATQ/LNbs4xw9L_YQyWBoKtzmPUu21MSlBEhvgCK8BGAsYHg/s512/2020-07-21.png) |
-|  LeNet-5   |                  |                   |                  |    2    |                                                              |                                                              |
-| GoogLeNet  | 0.490 (65.37min) | 0.497 (72.82min)  | 0.497 (93.32min) |    3    | ![](https://lh3.googleusercontent.com/-nGF0qKF9r6k/XxFMMpWeY7I/AAAAAAAAAS0/GMAbuMyO5Oo-bCAI_dv206vFz9ieSXtqACK8BGAsYHg/s512/2020-07-16.png) | ![](https://lh3.googleusercontent.com/-3LQZ1tU6rKs/XxFMLEC8inI/AAAAAAAAASw/iBjQQBjmnuwLFxBmBKl6nmaigAcJKxD5wCK8BGAsYHg/s512/2020-07-16.png) |
-|            |                  |                   |                  |         |                                                              |                                                              |
+|   Model   |                           Dataset                            | Runtime |    Dragonfly     |        TPE        |       BOHB        |                            Result                            |                   Cumulative Best accuracy                   |
+| :-------: | :----------------------------------------------------------: | ------- | :--------------: | :---------------: | :---------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
+|   VGG16   | [Cifar10](https://www.tensorflow.org/api_docs/python/tf/keras/datasets/cifar10) (178M) | 10hrs   | 0.795 (32.91min) |  0.775 (7.04min)  | 0.809 (15.34min)  | ![](https://lh3.googleusercontent.com/-kAz-xqmNzeU/XxklJCqzj_I/AAAAAAAAAUQ/At5eRaCFjA0InUvvmH4dFYuecFyXPQk7QCK8BGAsYHg/s512/2020-07-22.png) | ![](https://lh3.googleusercontent.com/-xrLSbvmdQvY/XxklIEuSDwI/AAAAAAAAAUM/07Z5Nr_9S4w8AwFC1go7KXF-yKKkr6UTgCK8BGAsYHg/s512/2020-07-22.png) |
+|  LeNet-5  | [Cifar10 ](https://www.cs.toronto.edu/~kriz/cifar.html)(350M) | 10hrs   | 0.424 (5.15min)  |  0.474 (5.68min)  |  0.346 (0.91min)  | ![](https://lh3.googleusercontent.com/-gI-UZfMM_oY/XxkYGv0NXyI/AAAAAAAAATk/ZKsxIovv-v06paGVeeJMaZ2YhL_GZvXGwCK8BGAsYHg/s512/2020-07-22.png) | ![](https://lh3.googleusercontent.com/-Q-012FLVO0Y/XxkYEVi7tEI/AAAAAAAAATg/IrwKZz3txNksCozuWW8OT-QL4B6Aui-9QCK8BGAsYHg/s512/2020-07-22.png) |
+| Xception  | [Humpback Whale](https://www.kaggle.com/c/humpback-whale-identification) (5.7G) | 10hrs   | 0.685 (25.49min) | 0.995 (22.22min)  | 0.403 (33.61min)  | ![](https://lh3.googleusercontent.com/-Sxxftb3bnfg/XxnT8tG81OI/AAAAAAAAAUg/UAKlCL6DJuINCmJ41ZIez4EE04DdDzd3gCK8BGAsYHg/s512/2020-07-23.png) | ![](https://lh3.googleusercontent.com/-AL-CRndM2x0/XxnT7x1PFFI/AAAAAAAAAUc/Ba6fZdZGV7AsY7wyjaY9qnWPDFsGNUWZQCK8BGAsYHg/s512/2020-07-23.png) |
+| MobileNet | [Plant Leaves](https://www.tensorflow.org/datasets/catalog/plant_leaves) (6.8G) | 10hrs   | 0.851 (93.13min) | 0.945 (119.23min) | 0.973 (181.94min) | ![](https://lh3.googleusercontent.com/-8RKoBF04W6g/XxkknTOt4pI/AAAAAAAAAT8/Zlk_jWibDL0AcT4KvbemdX6KRw70wPNswCK8BGAsYHg/s512/2020-07-22.png) | ![](https://lh3.googleusercontent.com/-6VJY6WVWFVI/XxkkmYKb22I/AAAAAAAAAT4/IuB7ZZJBey04qk_a1wW35O7pUHmKv4PZgCK8BGAsYHg/s512/2020-07-22.png) |
+| ResNet50  | [Plant Leaves](https://www.tensorflow.org/datasets/catalog/plant_leaves) (6.8G) | 10hrs   | 0.743 (63.36min) | 0.942 (116.21min) | 0.849 (96.83min)  | ![](https://lh3.googleusercontent.com/-U5hhnRP9CaM/Xxkkb26bhLI/AAAAAAAAAT0/hFiQDKpjhcM66EpaZbTWydFoyP07laBNwCK8BGAsYHg/s512/2020-07-22.png) | ![](https://lh3.googleusercontent.com/-xdQZQUfEyOg/XxkkbCGyOQI/AAAAAAAAATw/FDsL1lbDS5MQaCKuaiz1YxJibn38mgHwACK8BGAsYHg/s512/2020-07-22.png) |
+| Inception | [Human Protein](https://www.kaggle.com/mathormad/inceptionv3-baseline-lb-0-379/data) (14G) | 10hrs   | 0.550 (33.38min) | 0.440 (105.63min) | 0.428 (30.50min)  | ![](https://lh3.googleusercontent.com/-4xdgF5j1_U4/XxcVzcPq57I/AAAAAAAAATE/6jNkc5Wtr_Aw5hclerGPNXpIlYUXo28LwCK8BGAsYHg/s512/2020-07-21.png) | ![](https://lh3.googleusercontent.com/-B5pYR_0it2k/XxcVyRe-8fI/AAAAAAAAATA/bOAHdueQOLIZsJGzqWRRKlOoXAqAZJ7bQCK8BGAsYHg/s512/2020-07-21.png) |
+| GoogLeNet |         [ImageNet](http://www.image-net.org/) (134G)         | 40hrs   | 0.490 (65.37min) | 0.497 (72.82min)  | 0.497 (93.32min)  | ![](https://lh3.googleusercontent.com/-scQi4GIDSqM/XyOpcCn6S6I/AAAAAAAAAWQ/C2ppWRKk8xMHwLvidJSEvO0_gJa8Eq-qwCK8BGAsYHg/s512/2020-07-30.png) | ![](https://lh3.googleusercontent.com/-ppmDys17X34/XyOpbADB-QI/AAAAAAAAAWM/psgsiLGe4QoipSfuoI-_IzXxKM3kLC_aACK8BGAsYHg/s512/2020-07-30.png) |
 
-*\** 0:``To be fixed randomness``1:``To be deployed``2:``Running``3:``Done``
+
 
 ## Unfixed-randomness Performance
 
