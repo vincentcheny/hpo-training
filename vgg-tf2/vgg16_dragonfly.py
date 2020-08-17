@@ -117,6 +117,7 @@ def model_fn(x):
 def runtime_eval(x):
 	print("dragonfly selected params!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 	print(x)
+	return np.random.rand()
 	model = model_fn(x)
 	op_type = x[1]
 	if op_type == 'adam':
@@ -183,6 +184,7 @@ def runtime_eval(x):
 	return float(spent_time)
 
 def acc_eval(x):
+	return np.random.rand()
 	global final_acc
 	return float(final_acc)
 
@@ -251,24 +253,98 @@ domain_vars = [{'type': 'discrete_numeric', 'items': LR_list},
                 {'type': 'discrete_numeric', 'items': global_jit_level_list},
                 ]
 
-dragonfly_args = [ 
-	get_option_specs('report_results_every', False, 2, 'Path to the json or pb config file. '),
-	get_option_specs('init_capital', False, None, 'Path to the json or pb config file. '),
-	get_option_specs('init_capital_frac', False, 0.017, 'Path to the json or pb config file. '),
-	get_option_specs('num_init_evals', False, 2, 'Path to the json or pb config file. ')]
+is_load_from = ["file", "var"]
+if is_load_from == "file":
+	points = [
+			[['adam', False, False, True, False, False], [0.01, 16, 28, 8, 2, 0.004, 512, 1, 8, 2, 2]], 
+			[['sgd', False, False, True, True, False], [0.0005, 64, 22, 56, 4, 0.08, 512, 2, 12, 6, 0]], 
+			[['sgd', True, True, True, False, False], [0.01, 32, 2, 16, 4, 0.008, 128, 3, 12, 8, 1]]]
+	vals = [
+		[-0.004353399806552463, 0.10000000149011612], 
+		[-0.05593207067913479, 0.09719999879598618], 
+		[-0.00861075931125217, 0.10000000149011612]]
+	true_vals= [
+		[-0.004353399806552463, 0.10000000149011612], 
+		[-0.05593207067913479, 0.09719999879598618], 
+		[-0.00861075931125217, 0.10000000149011612]]
+	for i in range(3):
+		points += points
+		vals += vals
+		true_vals += true_vals
 
-options = load_options(dragonfly_args)
+	data_to_save = {'points': points,
+					'vals': vals,
+					'true_vals': true_vals}
+	temp_save_path = './dragonfly.saved'
+	import pickle
+	with open(temp_save_path, 'wb') as save_file_handle:
+		pickle.dump(data_to_save, save_file_handle)
+	load_args = [
+		get_option_specs('progress_load_from', False, temp_save_path,
+		'Load progress (from possibly a previous run) from this file.')	
+	]
+	options = load_options(load_args)
+elif is_load_from == "var":
+	from argparse import Namespace
+	points = [
+			[['adam', False, False, True, False, False], [0.01, 16, 28, 8, 2, 0.004, 512, 1, 8, 2, 2]], 
+			[['sgd', False, False, True, True, False], [0.0005, 64, 22, 56, 4, 0.08, 512, 2, 12, 6, 0]], 
+			[['sgd', True, True, True, False, False], [0.01, 32, 2, 16, 4, 0.008, 128, 3, 12, 8, 1]]]
+	vals = [
+		[-0.004353399806552463, 0.10000000149011612], 
+		[-0.05593207067913479, 0.09719999879598618], 
+		[-0.00861075931125217, 0.10000000149011612]]
+	true_vals= [
+		[-0.004353399806552463, 0.10000000149011612], 
+		[-0.05593207067913479, 0.09719999879598618], 
+		[-0.00861075931125217, 0.10000000149011612]]
+	for i in range(1):
+		points += [
+			[['adam', False, False, True, False, False], [random.random(), 16, 28, 8, 2, random.random(), 512, 1, 8, 2, 2]], 
+			[['sgd', False, False, True, True, False], [random.random(), 64, 22, 56, 4, random.random(), 512, 2, 12, 6, 0]], 
+			[['sgd', True, True, True, False, False], [random.random(), 32, 2, 16, 4, random.random(), 128, 3, 12, 8, 1]]]
+		vals += [-random.random(), random.random()]
+		true_vals += [-random.random(), random.random()]
+	import pprint
+	pp = pprint.PrettyPrinter(indent=4)
+	pp.pprint(points)
+	print(len(points),len(vals),len(true_vals))
+	qinfos = []
+	for i in range(len(points)):
+		pt = points[i]
+		val = vals[i]
+		true_val = true_vals[i]
+		qinfo = Namespace(point=pt, val=val, true_val=true_val)
+		qinfos.append(qinfo)
+	load_args = [
+		get_option_specs('prev_evaluations', False, Namespace(qinfos=qinfos),
+    		'Data for any previous evaluations.')	
+	]
+	options = load_options(load_args)
+	# qinfo = Namespace(point=pt, val=val, true_val=true_val)
+	# self.options.prev_evaluations.qinfos
+	# attr:point, val, true_val
+else:
+	dragonfly_args = [ 
+		get_option_specs('report_results_every', False, 2, 'Path to the json or pb config file. '),
+		get_option_specs('init_capital', False, None, 'Path to the json or pb config file. '),
+		get_option_specs('init_capital_frac', False, 0.017, 'Path to the json or pb config file. '),
+		get_option_specs('num_init_evals', False, 2, 'Path to the json or pb config file. ')]
+	options = load_options(dragonfly_args)
 config_params = {'domain': domain_vars}
 config = load_config(config_params)
-max_num_evals = 60 * 60 * 10
+max_num_evals = 1 #60 * 60 * 10
 moo_objectives = [runtime_eval, acc_eval]
-pareto_opt_vals, pareto_opt_pts, history = multiobjective_maximise_functions(moo_objectives, config.domain,max_num_evals,capital_type='realtime',config=config,options=options)
-f = open("./output.log","w+")
-print(pareto_opt_pts,file=f)
-print("\n",file=f)
-print(pareto_opt_vals,file=f)
-print("\n",file=f)
-print(history,file=f)
+st = time.time()
+pareto_opt_vals, pareto_opt_pts, history = multiobjective_maximise_functions(moo_objectives, config.domain,max_num_evals,capital_type='num_evals',config=config,options=options)
+et = time.time()
+print(f"runtime: {et-st:.4f}s")
+# f = open("./output.log","w+")
+# print(pareto_opt_pts,file=f)
+# print("\n",file=f)
+# print(pareto_opt_vals,file=f)
+# print("\n",file=f)
+# print(history,file=f)
 
 
 

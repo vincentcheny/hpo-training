@@ -72,15 +72,28 @@ def load_dataset():
 
 
 def get_default_params():
-    return {'batch_size':340,
+    return {'batch_size':500,
             'n1':10,
             'n2':50,
             'optimizer':"adam",
             'lr':0.0006,
-            'epoch':80,
+            'epoch':100,
             'dense_size':50
             }
 
+def get_config():
+    return tf.compat.v1.ConfigProto( 
+        inter_op_parallelism_threads=int(params['inter_op_parallelism_threads']),
+        intra_op_parallelism_threads=int(params['intra_op_parallelism_threads']),
+        graph_options=tf.compat.v1.GraphOptions(
+            infer_shapes=params['infer_shapes'],
+            place_pruned_graph=params['place_pruned_graph'],
+            enable_bfloat16_sendrecv=params['enable_bfloat16_sendrecv'],
+            optimizer_options=tf.compat.v1.OptimizerOptions(
+                do_common_subexpression_elimination=params['do_common_subexpression_elimination'],
+                max_folded_constant_in_bytes=int(params['max_folded_constant']),
+                do_function_inlining=params['do_function_inlining'],
+                global_jit_level=params['global_jit_level'])))
 
 def main(params):
     """
@@ -113,37 +126,40 @@ def main(params):
                 optimizer=RMSprop(learning_rate=params['lr']),
                 metrics=['accuracy'])
 
-
+    sess = tf.compat.v1.Session(config=get_config())
+    tf.compat.v1.keras.backend.set_session(sess)
 
 
     # optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=params['LEARNING_RATE'])
     # model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
     # _logger.info('Model built')
-    epochs = params['epoch'] if 'TRIAL_BUDGET' not in params.keys() else params["TRIAL_BUDGET"]
+    epochs = params['epoch'] if 'TRIAL_BUDGET' not in params.keys() else params["TRIAL_BUDGET"]*5
     print("this trial's buget !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    print(epochs)
+    print(f"Number of epochs:{epochs}")
+    st = time.time()
     history = model.fit(
                         x_train,
                         y_train,
                         batch_size=params['batch_size'],
-                        epochs=epochs,
-                        # steps_per_epoch=10,
-                        verbose=1,
-                        validation_data=(x_test, y_test)
-                        # validation_steps=10
+                        epochs=1,#epochs,
+                        steps_per_epoch=50000//params['batch_size'],
+                        verbose=2,
+                        validation_data=(x_test, y_test),
+                        validation_steps=10000//params['batch_size'],
                     )
-    train_loss = history.history['loss'][epochs - 1]
-    train_acc = history.history['accuracy'][epochs - 1]
-    print("last epoch information**************************************")
-    print(train_loss,train_acc)
-    val_acc = history.history['val_accuracy'][epochs - 1]
-    nni.report_final_result(val_acc)  # send final accuracy to NNI tuner and web UI
+    train_loss = history.history['loss'][-1]#[epochs - 1]
+    train_acc = history.history['accuracy'][-1]#[epochs - 1]
+    print(f"train_loss:{train_loss},train_acc:{train_acc}")
+    val_acc = history.history['val_accuracy'][-1]#[epochs - 1]
+    et = time.time()
+    runtime = (et-st)/60.0
+    report_dict = {'default':val_acc,'accuracy':val_acc,'runtime':runtime}
+    nni.report_final_result(report_dict)  # send final accuracy to NNI tuner and web UI
 
 
 if __name__ == '__main__':
     params = get_default_params()
     tuned_params = nni.get_next_parameter()
     params.update(tuned_params)
-    print("select params!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    print(params)
+    print(f"params:{params}")
     main(params)

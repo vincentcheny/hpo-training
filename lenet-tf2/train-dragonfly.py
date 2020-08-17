@@ -75,7 +75,6 @@ def load_dataset():
 def runtime_eval(x):
     print("dragonfly selected params!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     print(x)
-
     (x_train, y_train), (x_test, y_test) = load_dataset()
 
     model = create_model(filter1=x[0],filter2=x[1],dense=x[2])

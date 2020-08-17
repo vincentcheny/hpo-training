@@ -1,11 +1,11 @@
 authorName: Vincent
-experimentName: lenet_cifar10
+experimentName: vgg16_vin
 trialConcurrency: 1
-maxExecDuration: 10h
-maxTrialNum: 10000
+maxExecDuration: 6h
+maxTrialNum: 1000
 #choice: local, remote, pai
 trainingServicePlatform: local
-searchSpacePath: search_space.json
+searchSpacePath: sp.json
 ##choice: true, false
 useAnnotation: false
 advisor:
@@ -13,16 +13,16 @@ advisor:
   classArgs:
     optimize_mode: maximize
     min_budget: 1
-    # max_budget: 12
     max_budget: 9
     eta: 3
-    min_points_in_model: 8
+    min_points_in_model: 9
     top_n_percent: 15
     num_samples: 64
     random_fraction: 0.0 #0.33
     bandwidth_factor: 3.0
     min_bandwidth: 0.001
 trial:
-  command: python train.py
+  command: python vgg16_nni_soo.py
   codeDir: .
   gpuNum: 1
+#

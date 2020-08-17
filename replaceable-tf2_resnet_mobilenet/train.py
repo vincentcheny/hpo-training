@@ -21,7 +21,8 @@ def get_default_params():
         "BATCH_SIZE": 4,
         "LEARNING_RATE": 8e-6,
         # 'MODEL': ('mnist', 48, 48, 10),
-        'DATASET': ('plant_leaves', 600, 400, 22),
+        # 'DATASET': ('plant_leaves', 600, 400, 22),
+        'DATASET': ('cats_vs_dogs', 32, 32, 2),
         "OPTIMIZER": "adam",
         'NUM_EPOCH': 2 # 20min/epoch
     }
@@ -54,7 +55,7 @@ def format_example(image, label):
     return image, label
 
 
-data = tfds.load(params['DATASET'][0], as_supervised=True, data_dir="../../data")
+data = tfds.load(params['DATASET'][0],data_dir="/uac/rshr/cyliu/bigDataStorage/moo/data")
 train_data = data['train'] 
 # train_data = train_data.shard(num_shards=100, index=0).map(format_example).shuffle(
 #     SHUFFLE_BUFFER_SIZE,seed=0).batch(params['BATCH_SIZE'])

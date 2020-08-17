@@ -14,5 +14,6 @@
     "global_jit_level":{"_type":"choice","_value":[0,1,2]},
     "infer_shapes":{"_type":"choice","_value":[0,1]},
     "place_pruned_graph":{"_type":"choice","_value":[0,1]},
-    "enable_bfloat16_sendrecv":{"_type":"choice","_value":[0,1]}
+    "enable_bfloat16_sendrecv":{"_type":"choice","_value":[0,1]},
+    "PREFERENCE":{"_type":"choice","_value":["runtime"]}
 }

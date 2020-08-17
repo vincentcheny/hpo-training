@@ -91,7 +91,7 @@ def main():
     test_generator = test_datagen.flow(
         x=x_test, y=y_test, batch_size=params['BATCH_SIZE'], shuffle=False)#True)
 
-    IS_LOAD_MODEL = True
+    IS_LOAD_MODEL = False
     if IS_LOAD_MODEL:
         model = tf.keras.models.load_model('squeezenet.h5',compile=False)
     else:
