@@ -1,2 +1,7 @@
 #!/bin/bash
-echo Please manually download folder "train" and file "train.csv" from https://www.kaggle.com/mathormad/inceptionv3-baseline-lb-0-379/data?
+# echo Please manually download folder "train" and file "train.csv" from https://www.kaggle.com/mathormad/inceptionv3-baseline-lb-0-379/data?
+curl 'https://storage.googleapis.com/kaggle-competitions-data/kaggle-v2/10418/862236/compressed/train.zip?GoogleAccessId=web-data@kaggle-161607.iam.gserviceaccount.com&Expires=1598074819&Signature=krq9%2F1c0rfv1XNR%2FCfdOHItbg90DC6tWeWnAbwxidRxPxnqrZ31A4rfnBGKLsq8TViQh1q95UQk3usILyjQSqjKpFfqIQov%2BWQzjqMTfQQuZSlIQo68OboSz3%2BNBWMPB%2Bd3FH6w8vLqHQ%2BCSg%2BSSGXcDqPpcGGt%2FqODD8c6%2F2epHzF3Iyz%2BBYZlw2%2BCkXORhj5ZSqDbuKOYRCLOoQbAU0MOe4VLRebXjpjM3qExQatbtFIbP337%2B5Jq1oC7rsBVTnAATXJtv0Id%2BWuXtoxwBMSV2jcCVhhnk44bzOkOybljzgJaOTtgqg%2BqR6yXGoZ38BEpuDccVUzwCD2JtY54T3g%3D%3D&response-content-disposition=attachment%3B+filename%3Dtrain.zip' -H 'authority: storage.googleapis.com' -H 'upgrade-insecure-requests: 1' -H 'dnt: 1' -H 'user-agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36' -H 'sec-fetch-dest: document' -H 'accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9' -H 'sec-fetch-site: cross-site' -H 'sec-fetch-mode: navigate' -H 'sec-fetch-user: ?1' -H 'referer: https://www.kaggle.com/' -H 'accept-language: en-US,en;q=0.9,zh;q=0.8,zh-CN;q=0.7' --compressed -o train.zip
+mkdir train && cd train
+mv ../train.zip .
+unzip train.zip
+cd ..

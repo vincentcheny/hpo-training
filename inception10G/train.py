@@ -76,11 +76,9 @@ def create_model(input_shape, n_out):
 	               #weights='imagenet',
 	               weights=None,
 	               input_shape=input_shape)
-	#base_model.save('save_model.h5')
-	load_model = tf.keras.models.load_model('save_model.h5',compile=False)
+	
 	bn = BatchNormalization()(input_tensor)
-	#x = base_model(bn)
-	x = load_model(bn)
+	x = base_model(bn)
 	x = Conv2D(params['FILTERS'], kernel_size=(params['KERNEL_SIZE'],params['KERNEL_SIZE']), activation='relu',kernel_initializer='zeros')(x)
 	x = Flatten()(x)
 	#x = Dropout(params['DROP_OUT'])(x)
@@ -113,8 +111,13 @@ def main():
 	validation_generator = data_generator.create_train(
 	    train_dataset_info[valid_indexes], 10, (SIZE,SIZE,3), augument=False)
 
-	model = create_model(input_shape=(SIZE,SIZE,3), n_out=28)
-	#model = tf.keras.models.load_model('model_weight.h5',compile=False)
+	mirrored_strategy = tf.distribute.MirroredStrategy()
+	with mirrored_strategy.scope():
+		is_load_model = True
+		if is_load_model:
+			model = tf.keras.models.load_model("../../save/inception_human_save")
+		else:
+			model = create_model(input_shape=(SIZE,SIZE,3), n_out=28)
 	for layer in model.layers:
 		layer.trainable = True
 	
@@ -142,11 +145,12 @@ def main():
 	
 	final_acc = his.history['val_accuracy'][epoch-1]
 	nni.report_final_result(final_acc)
-	#model.save('model_weight.h5')
+	# keras_model_path = "../../save/inception_human_save"
+	# model.save(keras_model_path)
 
 def get_default_params():
 	return {
-	'BATCH_SIZE':2,
+	'BATCH_SIZE':128,
 	'LEARNING_RATE':5e-5,
         'NUM_EPOCH':1,
 	"DENSE_UNIT":512,
@@ -159,8 +163,9 @@ if __name__ == '__main__':
 	params = get_default_params()
 	tuned_params = nni.get_next_parameter()
 	params.update(tuned_params)
-	path_to_train = '../../data/human_protein/train/'
-	data = pd.read_csv('../../data/human_protein/train.csv')
+	# path_to_train = '../../data/human_protein/train/'
+	path_to_train = '../../../data/human/train/'
+	data = pd.read_csv('../../../data/human/train.csv')
 	SIZE = 299
 	epoch = params['TRIAL_BUDGET'] if 'TRIAL_BUDGET' in params.keys() else params['NUM_EPOCH'] # Assume max TRIAL_BUDGET is 70
 	main()
