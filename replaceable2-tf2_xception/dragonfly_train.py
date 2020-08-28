@@ -12,22 +12,13 @@ tf.compat.v1.set_random_seed(seed_value)
 import pandas as pd 
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
-from keras import layers
-from keras.preprocessing import image
-from keras.layers import Input, Dense, Activation, BatchNormalization, Flatten, Conv2D
-from keras.layers import AveragePooling2D, MaxPooling2D, Dropout
-from keras.models import Model
 
-import keras.backend as K
-from keras.models import Sequential
-
-from keras.metrics import categorical_accuracy, top_k_categorical_accuracy, categorical_crossentropy
-from keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
-from keras.optimizers import *
+from tensorflow.keras.metrics import categorical_accuracy, top_k_categorical_accuracy, categorical_crossentropy
+from tensorflow.keras.optimizers import *
 # from keras.applications import MobileNet
 # from keras.applications.mobilenet import preprocess_input
-from keras.applications import Xception
-from keras.applications.xception import preprocess_input
+from tensorflow.keras.applications import Xception
+from tensorflow.keras.applications.xception import preprocess_input
 
 from dragonfly import load_config, multiobjective_maximise_functions,multiobjective_minimise_functions
 from dragonfly import maximise_function,minimise_function

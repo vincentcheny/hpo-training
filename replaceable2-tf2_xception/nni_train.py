@@ -15,22 +15,13 @@ tf.compat.v1.set_random_seed(seed_value)
 import pandas as pd 
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
-from keras import layers
-from keras.preprocessing import image
-from keras.layers import Input, Dense, Activation, BatchNormalization, Flatten, Conv2D
-from keras.layers import AveragePooling2D, MaxPooling2D, Dropout
-from keras.models import Model
 
-import keras.backend as K
-from keras.models import Sequential
-
-from keras.metrics import categorical_accuracy, top_k_categorical_accuracy, categorical_crossentropy
-from keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
-from keras.optimizers import *
+from tensorflow.keras.metrics import categorical_accuracy, top_k_categorical_accuracy, categorical_crossentropy
+from tensorflow.keras.optimizers import *
 # from keras.applications import MobileNet
 # from keras.applications.mobilenet import preprocess_input
-from keras.applications import Xception
-from keras.applications.xception import preprocess_input
+from tensorflow.keras.applications import Xception
+from tensorflow.keras.applications.xception import preprocess_input
 import nni
 import time
 
@@ -109,10 +100,14 @@ y, label_encoder = prepare_labels(train_df['Id'])
 
 # model = MobileNet(input_shape=(100, 100, 3), alpha=1., weights=None, classes=5005)
 # model = Xception(input_shape=(100, 100, 3), weights=None, classes=5005)
-# model = Xception(input_shape=(100, 100, 3), weights=None, classes=y.shape[1])
+is_load_model = False
+if is_load_model:
+    model = tf.keras.models.load_model('Xception.h5',compile=False)
+else:
+    model = Xception(input_shape=(100, 100, 3), weights=None, classes=y.shape[1])
 # model.save('Xception_test.h5')
 # print("save model weight finish !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-model = tf.keras.models.load_model('Xception.h5',compile=False)
+
 
 
 for layer in model.layers:
