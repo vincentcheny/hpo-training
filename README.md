@@ -3,6 +3,7 @@
 ## Prerequisite
 
 ```bash
+conda create -yn hpo-env python=3.6 numpy=1.18.5 && conda activate hpo-env
 pip install -r requirements.txt
 nnictl package install --name=BOHB
 ```
