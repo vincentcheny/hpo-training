@@ -1,6 +1,14 @@
-seed_value= 0
+import argparse
+parser = argparse.ArgumentParser(description='manual to this script')
+parser.add_argument('--seed', type=int, default=123)
+parser.add_argument('--log_path', type=str, default='./temp.log')
+args = parser.parse_args()
+
+seed_value= args.seed
 import os
 os.environ['PYTHONHASHSEED']=str(seed_value)
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 import numpy as np
 np.random.seed(seed_value)
 import random
@@ -8,30 +16,28 @@ random.seed(seed_value)
 import tensorflow as tf
 tf.compat.v1.set_random_seed(seed_value)
 
-import keras
-from keras.layers import Conv2D, MaxPooling2D, ZeroPadding2D, Convolution2D
-
-from keras.datasets import cifar10
-from keras.preprocessing.image import ImageDataGenerator
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation, Flatten
-from keras.layers import Conv2D, MaxPooling2D, BatchNormalization
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, ZeroPadding2D, Convolution2D
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, BatchNormalization
 from tensorflow.keras.optimizers import Adam,SGD,RMSprop
-from keras.layers.core import Lambda
-from keras import backend as K
-from keras import regularizers
-from keras.datasets import cifar10
+from tensorflow.keras import backend as K
+from tensorflow.keras import regularizers
+from tensorflow.python.keras.datasets.cifar import load_batch
 from dragonfly import load_config, multiobjective_maximise_functions,multiobjective_minimise_functions
 from dragonfly import maximise_function,minimise_function
 from dragonfly.utils.option_handler import get_option_specs, load_options
 import shutil
 import time
 
+
+NUM_GPU = 2
+
 def my_init(shape, dtype=None):
 	return tf.random.normal(shape, dtype=dtype)
 
-
-##model def
+# model def
 def model_fn(x):
 	model = Sequential()
 	weight_decay = x[6]
@@ -115,27 +121,34 @@ def model_fn(x):
 
 
 def runtime_eval(x):
-	print("dragonfly selected params!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-	print(x)
-	return np.random.rand()
-	model = model_fn(x)
-	op_type = x[1]
-	if op_type == 'adam':
-		model.compile(loss='categorical_crossentropy',
-                    optimizer=Adam(lr=x[0]),
-                    metrics=['accuracy'])
-	elif op_type == 'sgd':
-		model.compile(loss='categorical_crossentropy',
-                    optimizer=SGD(learning_rate=x[0]),
-                    metrics=['accuracy'])
+	print(f'Trial Config:{x}')
+	if x[17] in ["global", "gpu_private", "gpu_shared"]:
+		os.environ['TF_GPU_THREAD_MODE'] = x[17]
+	cross_device_ops = x[18]
+	num_packs = x[19]
+	if cross_device_ops == "HierarchicalCopyAllReduce":
+		mirrored_strategy = tf.distribute.MirroredStrategy(
+			cross_device_ops=tf.distribute.HierarchicalCopyAllReduce(num_packs=num_packs))
+	elif cross_device_ops == "NcclAllReduce":
+		mirrored_strategy = tf.distribute.MirroredStrategy(
+			cross_device_ops=tf.distribute.NcclAllReduce(num_packs=num_packs))
 	else:
-		model.compile(loss='categorical_crossentropy',
-                    optimizer=RMSprop(learning_rate=x[0]),
-                    metrics=['accuracy'])
-
-
-	# sgd = optimizers.SGD(lr=x[0], decay=x[1], momentum=0.9, nesterov=True)
-	# model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+		mirrored_strategy = tf.distribute.MirroredStrategy()
+	with mirrored_strategy.scope():
+		model = model_fn(x)
+		op_type = x[1]
+		if op_type == 'adam':
+			model.compile(loss='categorical_crossentropy',
+						optimizer=Adam(lr=x[0]),
+						metrics=['accuracy', 'top_k_categorical_accuracy'])
+		elif op_type == 'sgd':
+			model.compile(loss='categorical_crossentropy',
+						optimizer=SGD(learning_rate=x[0]),
+						metrics=['accuracy', 'top_k_categorical_accuracy'])
+		else:
+			model.compile(loss='categorical_crossentropy',
+						optimizer=RMSprop(learning_rate=x[0]),
+						metrics=['accuracy', 'top_k_categorical_accuracy'])
 
 	sess =  tf.compat.v1.Session(config=tf.compat.v1.ConfigProto( 
 		inter_op_parallelism_threads=x[8],
@@ -167,38 +180,65 @@ def runtime_eval(x):
 	# (std, mean, and principal components if ZCA whitening is applied).
 
 	start = time.time()
-	history = model.fit_generator(datagen.flow(x_train, y_train,batch_size=x[2]),
-                                  steps_per_epoch=x_train.shape[0] // x[2],
-                                  #steps_per_epoch=10,
-                                  #epochs = 2,
-                                  epochs=x[3],
-                                  validation_data=(x_test, y_test),
-                                  #validation_steps=10, 
-                                  verbose=2)
+	batch_size = x[2] * NUM_GPU
+	his = model.fit(datagen.flow(x_train, y_train,batch_size=batch_size),
+						steps_per_epoch=x_train.shape[0] // batch_size,
+						#steps_per_epoch=10,
+						#epochs = 2,
+						epochs=x[3],
+						validation_data=(x_test, y_test),
+						#validation_steps=10, 
+						verbose=2)
 	end = time.time()
-	spent_time = (start - end) / 3600.0
-	val_acc = history.history['val_accuracy'][x[3]-1]
-	#val_acc = history.history['val_accuracy'][2-1]
 	global final_acc
+	spent_time = (start - end) / 3600.0
+	train_acc = 0. if len(his.history['accuracy']) < 1 else his.history['accuracy'][-1]
+	train_top5_acc = 0. if len(his.history['top_k_categorical_accuracy']) < 1 else his.history['top_k_categorical_accuracy'][-1]
+	val_acc = 0. if len(his.history['val_accuracy']) < 1 else his.history['val_accuracy'][-1]
+	val_top5_acc = 0. if len(his.history['val_top_k_categorical_accuracy']) < 1 else his.history['val_top_k_categorical_accuracy'][-1]
+	with open(args.log_path,"a") as f:
+		print(train_acc, train_top5_acc, val_acc, val_top5_acc, spent_time*60, start, end, x,file=f)
 	final_acc = val_acc
 	return float(spent_time)
 
 def acc_eval(x):
-	return np.random.rand()
 	global final_acc
 	return float(final_acc)
 
+def load_data(path):
+	num_train_samples = 50000
 
+	x_train = np.empty((num_train_samples, 3, 32, 32), dtype='uint8')
+	y_train = np.empty((num_train_samples,), dtype='uint8')
+
+	for i in range(1, 6):
+		fpath = os.path.join(path, 'data_batch_' + str(i))
+		(x_train[(i - 1) * 10000:i * 10000, :, :, :],
+			y_train[(i - 1) * 10000:i * 10000]) = load_batch(fpath)
+
+	fpath = os.path.join(path, 'test_batch')
+	x_test, y_test = load_batch(fpath)
+
+	y_train = np.reshape(y_train, (len(y_train), 1))
+	y_test = np.reshape(y_test, (len(y_test), 1))
+
+	if K.image_data_format() == 'channels_last':
+		x_train = x_train.transpose(0, 2, 3, 1)
+		x_test = x_test.transpose(0, 2, 3, 1)
+
+	x_test = x_test.astype(x_train.dtype)
+	y_test = y_test.astype(y_train.dtype)
+
+	return (x_train, y_train), (x_test, y_test)
 
 final_acc = 0.0
-
-
-(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+data_path = '/research/dept7/ychen/data/cifar10'
+(x_train, y_train), (x_test, y_test) = load_data(data_path)
 x_train = x_train.astype('float32')
 x_test = x_test.astype('float32')
 
-y_train = keras.utils.to_categorical(y_train, 10)
-y_test = keras.utils.to_categorical(y_test, 10)
+y_train = tf.keras.utils.to_categorical(y_train, 10)
+y_test = tf.keras.utils.to_categorical(y_test, 10)
 
 ##default setting, 2 epoch 27%, 5 epoch 53.3%
 # learning_rate = 0.1
@@ -206,7 +246,7 @@ y_test = keras.utils.to_categorical(y_test, 10)
 LR_list =  [5e-1,2.5e-1,1e-1,5e-2,2.5e-2,1e-2,5e-3,2.5e-3,1e-3,5e-4,2.5e-4,1e-4,5e-5,2.5e-5,1e-5]
 optimizer_list = ['adam','sgd','rmsp']
 batch_list = [8,16,32,64,128]
-epoch_list = [2,4,6,8,10,12,14,16,18,20,22,24,26,28,30]
+epoch_list = [3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27]
 filter_list = [8,16,24,32,40,48,56,64]
 KS_list = [1,2,3,4,5]
 weight_decay_list = [8e-2,4e-2,1e-2,8e-3,4e-3,1e-3,8e-4,4e-4,1e-4,8e-5,4e-5,1e-5]
@@ -233,6 +273,10 @@ max_folded_constant_list = [2,4,6,8,10]
 do_function_inlining_list = [True,False]
 global_jit_level_list = [0,1,2]
 
+tf_gpu_thread_mode_list = ["global", "gpu_private", "gpu_shared"]
+cross_device_ops_list = ["NcclAllReduce","HierarchicalCopyAllReduce"]
+num_packs_list = [0,1,2,3,4,5]
+
 
 domain_vars = [{'type': 'discrete_numeric', 'items': LR_list},
                 {'type': 'discrete', 'items': optimizer_list},
@@ -251,106 +295,26 @@ domain_vars = [{'type': 'discrete_numeric', 'items': LR_list},
                 {'type': 'discrete_numeric', 'items': max_folded_constant_list},
                 {'type': 'discrete', 'items': do_function_inlining_list},
                 {'type': 'discrete_numeric', 'items': global_jit_level_list},
+				{'type': 'discrete', 'items': tf_gpu_thread_mode_list},
+				{'type': 'discrete', 'items': cross_device_ops_list},
+				{'type': 'discrete_numeric', 'items': num_packs_list}
                 ]
 
-is_load_from = ["file", "var"]
-if is_load_from == "file":
-	points = [
-			[['adam', False, False, True, False, False], [0.01, 16, 28, 8, 2, 0.004, 512, 1, 8, 2, 2]], 
-			[['sgd', False, False, True, True, False], [0.0005, 64, 22, 56, 4, 0.08, 512, 2, 12, 6, 0]], 
-			[['sgd', True, True, True, False, False], [0.01, 32, 2, 16, 4, 0.008, 128, 3, 12, 8, 1]]]
-	vals = [
-		[-0.004353399806552463, 0.10000000149011612], 
-		[-0.05593207067913479, 0.09719999879598618], 
-		[-0.00861075931125217, 0.10000000149011612]]
-	true_vals= [
-		[-0.004353399806552463, 0.10000000149011612], 
-		[-0.05593207067913479, 0.09719999879598618], 
-		[-0.00861075931125217, 0.10000000149011612]]
-	for i in range(3):
-		points += points
-		vals += vals
-		true_vals += true_vals
+dragonfly_args = [ 
+	get_option_specs('report_results_every', False, 2, 'Path to the json or pb config file. '),
+	get_option_specs('init_capital', False, None, 'Path to the json or pb config file. '),
+	get_option_specs('init_capital_frac', False, 0.017, 'Path to the json or pb config file. '),
+	get_option_specs('num_init_evals', False, 2, 'Path to the json or pb config file. ')]
 
-	data_to_save = {'points': points,
-					'vals': vals,
-					'true_vals': true_vals}
-	temp_save_path = './dragonfly.saved'
-	import pickle
-	with open(temp_save_path, 'wb') as save_file_handle:
-		pickle.dump(data_to_save, save_file_handle)
-	load_args = [
-		get_option_specs('progress_load_from', False, temp_save_path,
-		'Load progress (from possibly a previous run) from this file.')	
-	]
-	options = load_options(load_args)
-elif is_load_from == "var":
-	from argparse import Namespace
-	points = [
-			[['adam', False, False, True, False, False], [0.01, 16, 28, 8, 2, 0.004, 512, 1, 8, 2, 2]], 
-			[['sgd', False, False, True, True, False], [0.0005, 64, 22, 56, 4, 0.08, 512, 2, 12, 6, 0]], 
-			[['sgd', True, True, True, False, False], [0.01, 32, 2, 16, 4, 0.008, 128, 3, 12, 8, 1]]]
-	vals = [
-		[-0.004353399806552463, 0.10000000149011612], 
-		[-0.05593207067913479, 0.09719999879598618], 
-		[-0.00861075931125217, 0.10000000149011612]]
-	true_vals= [
-		[-0.004353399806552463, 0.10000000149011612], 
-		[-0.05593207067913479, 0.09719999879598618], 
-		[-0.00861075931125217, 0.10000000149011612]]
-	for i in range(1):
-		points += [
-			[['adam', False, False, True, False, False], [random.random(), 16, 28, 8, 2, random.random(), 512, 1, 8, 2, 2]], 
-			[['sgd', False, False, True, True, False], [random.random(), 64, 22, 56, 4, random.random(), 512, 2, 12, 6, 0]], 
-			[['sgd', True, True, True, False, False], [random.random(), 32, 2, 16, 4, random.random(), 128, 3, 12, 8, 1]]]
-		vals += [-random.random(), random.random()]
-		true_vals += [-random.random(), random.random()]
-	import pprint
-	pp = pprint.PrettyPrinter(indent=4)
-	pp.pprint(points)
-	print(len(points),len(vals),len(true_vals))
-	qinfos = []
-	for i in range(len(points)):
-		pt = points[i]
-		val = vals[i]
-		true_val = true_vals[i]
-		qinfo = Namespace(point=pt, val=val, true_val=true_val)
-		qinfos.append(qinfo)
-	load_args = [
-		get_option_specs('prev_evaluations', False, Namespace(qinfos=qinfos),
-    		'Data for any previous evaluations.')	
-	]
-	options = load_options(load_args)
-	# qinfo = Namespace(point=pt, val=val, true_val=true_val)
-	# self.options.prev_evaluations.qinfos
-	# attr:point, val, true_val
-else:
-	dragonfly_args = [ 
-		get_option_specs('report_results_every', False, 2, 'Path to the json or pb config file. '),
-		get_option_specs('init_capital', False, None, 'Path to the json or pb config file. '),
-		get_option_specs('init_capital_frac', False, 0.017, 'Path to the json or pb config file. '),
-		get_option_specs('num_init_evals', False, 2, 'Path to the json or pb config file. ')]
-	options = load_options(dragonfly_args)
+options = load_options(dragonfly_args)
 config_params = {'domain': domain_vars}
 config = load_config(config_params)
-max_num_evals = 1 #60 * 60 * 10
+max_num_evals = 60 * 60 * 60
 moo_objectives = [runtime_eval, acc_eval]
-st = time.time()
-pareto_opt_vals, pareto_opt_pts, history = multiobjective_maximise_functions(moo_objectives, config.domain,max_num_evals,capital_type='num_evals',config=config,options=options)
-et = time.time()
-print(f"runtime: {et-st:.4f}s")
-# f = open("./output.log","w+")
-# print(pareto_opt_pts,file=f)
-# print("\n",file=f)
-# print(pareto_opt_vals,file=f)
-# print("\n",file=f)
-# print(history,file=f)
-
-
-
-
-
-
-
-
-
+pareto_opt_vals, pareto_opt_pts, history = multiobjective_maximise_functions(moo_objectives, config.domain,max_num_evals,capital_type='realtime',config=config,options=options)
+f = open("./output.log","w+")
+print(pareto_opt_pts,file=f)
+print("\n",file=f)
+print(pareto_opt_vals,file=f)
+print("\n",file=f)
+print(history,file=f)

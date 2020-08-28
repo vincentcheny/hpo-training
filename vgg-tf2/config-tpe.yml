@@ -1,11 +1,11 @@
 authorName: Vincent
-experimentName: vgg16
+experimentName: tpe_vgg16
 trialConcurrency: 1
-maxExecDuration: 10h
+maxExecDuration: 60h
 maxTrialNum: 1000
 #choice: local, remote, pai
 trainingServicePlatform: local
-searchSpacePath: sp.json
+searchSpacePath: search_space.json
 #choice: true, false
 useAnnotation: false
 tuner:
@@ -16,6 +16,6 @@ tuner:
     #choice: maximize, minimize
     optimize_mode: maximize
 trial:
-  command: python vgg16_nni.py
+  command: python train-nni.py --seed 12 --log_path ./2-TPE.log
   codeDir: .
-  gpuNum: 1
+  gpuNum: 2

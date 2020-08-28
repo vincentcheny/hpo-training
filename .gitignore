@@ -1,6 +1,7 @@
 *.log
 *.h5
 tmp*
+slurm-log
 /__pycache__
 /.history
 /.idea

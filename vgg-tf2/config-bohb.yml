@@ -1,19 +1,19 @@
 authorName: Vincent
-experimentName: vgg16_vin
+experimentName: bohb_vgg16
 trialConcurrency: 1
-maxExecDuration: 6h
+maxExecDuration: 60h
 maxTrialNum: 1000
 #choice: local, remote, pai
 trainingServicePlatform: local
-searchSpacePath: sp.json
+searchSpacePath: search_space.json
 ##choice: true, false
 useAnnotation: false
 advisor:
   builtinAdvisorName: BOHB
   classArgs:
     optimize_mode: maximize
-    min_budget: 1
-    max_budget: 9
+    min_budget: 3
+    max_budget: 27
     eta: 3
     min_points_in_model: 9
     top_n_percent: 15
@@ -22,7 +22,6 @@ advisor:
     bandwidth_factor: 3.0
     min_bandwidth: 0.001
 trial:
-  command: python vgg16_nni_soo.py
+  command: python train-nni.py --seed 1234 --log_path ./1-BOHB.log
   codeDir: .
-  gpuNum: 1
-#
+  gpuNum: 2
