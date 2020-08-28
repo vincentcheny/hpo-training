@@ -7,7 +7,6 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import math
 import numpy as np
 np.random.seed(seed_value)
-import keras
 import tensorflow as tf
 tf.compat.v1.set_random_seed(seed_value)
 from functools import partial
@@ -188,13 +187,14 @@ params.update(tuned_params)
 
 
 ## global fix variable 
-dataset_dir = '/uac/rshr/cyliu/bigDataStorage/imagenet_500classes/'
+dataset_dir = '/research/dept7/ychen/data/imagenet_500classes/'
 NUM_CLASSES = 500
 IN_SHAPE = (224, 224, 3)
 NUM_DATA_WORKERS = 12
 # NUM_GPU = 1
 NUM_GPU = len([x.name for x in device_lib.list_local_devices() if x.device_type == 'GPU'])
-print(f"Using {NUM_GPU} GPUs to train.")
+if NUM_GPU < 1: NUM_GPU = 1
+print(f"Using {NUM_GPU} workers to train.")
 NUM_DISTRIBUTE = NUM_GPU if NUM_GPU > 0 else 1
 
 ## seachspace & adjusted variable

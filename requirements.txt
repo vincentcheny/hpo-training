@@ -1,0 +1,7 @@
+tensorflow
+tensorflow_datasets
+nni==1.7.1
+dragonfly-opt
+pandas
+scikit-image
+imgaug

@@ -1,0 +1,21 @@
+authorName: Vincent
+experimentName: tpe_lenet_cifar10
+trialConcurrency: 1
+maxExecDuration: 60h
+maxTrialNum: 10000
+#choice: local, remote, pai
+trainingServicePlatform: local
+searchSpacePath: search_space.json
+#choice: true, false
+useAnnotation: false
+tuner:
+  #choice: TPE, Random, Anneal, Evolution, BatchTuner, MetisTuner, GPTuner
+  #SMAC (SMAC should be installed through nnictl)
+  builtinTunerName: TPE
+  classArgs:
+    #choice: maximize, minimize
+    optimize_mode: maximize
+trial:
+  command: python train-nni.py --seed 0 --log_path ./2-TPE.log
+  codeDir: .
+  gpuNum: 2
