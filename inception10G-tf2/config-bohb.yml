@@ -1,7 +1,7 @@
 authorName: Vincent
-experimentName: ImageNetBOHB
+experimentName: SOOInception
 trialConcurrency: 1
-maxExecDuration: 10h
+maxExecDuration: 72h
 maxTrialNum: 200
 #choice: local, remote, pai
 trainingServicePlatform: local
@@ -13,8 +13,8 @@ advisor:
   classArgs:
     optimize_mode: maximize
     min_budget: 1
-    max_budget: 9
-    eta: 3
+    max_budget: 5
+    eta: 2
     min_points_in_model: 8
     top_n_percent: 15
     num_samples: 64
@@ -22,6 +22,6 @@ advisor:
     bandwidth_factor: 3.0
     min_bandwidth: 0.001
 trial:
-  command: python train.py
+  command: python train-nni.py --seed 1234 --log_path ./1-BOHB.log
   codeDir: .
-  gpuNum: 1
+  gpuNum: 2

@@ -1,7 +1,7 @@
 authorName: Vincent
-experimentName: Inception10G
+experimentName: TPEInception
 trialConcurrency: 1
-maxExecDuration: 10h
+maxExecDuration: 60h
 maxTrialNum: 200
 #choice: local, remote, pai
 trainingServicePlatform: local
@@ -16,6 +16,6 @@ tuner:
     #choice: maximize, minimize
     optimize_mode: maximize
 trial:
-  command: python train.py
+  command: python train-nni.py --seed 1234 --log_path ./2-TPE.log
   codeDir: .
-  gpuNum: 1
+  gpuNum: 2

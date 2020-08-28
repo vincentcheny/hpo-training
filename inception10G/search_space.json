@@ -1,9 +1,0 @@
-{
-   "BATCH_SIZE":{"_type":"choice","_value":[2,4,8,12,16,24,32]},
-   "LEARNING_RATE":{"_type":"choice","_value":[1e-6,5e-6,1e-5,5e-5,1e-4,5e-4,1e-3,5e-3,1e-2]},
-   "DENSE_UNIT":{"_type":"choice","_value":[64,128,256,512]},
-   "NUM_EPOCH":{"_type":"choice","_value":[2,3,4,5]},
-   "FILTERS":{"_type":"choice","_value":[16,32,48,64,128]},
-   "KERNEL_SIZE":{"_type":"choice","_value":[1,2,3,4,5]},
-   "OPTIMIZER":{"_type":"choice","_value":["sgd","rmsp"]}
-}

@@ -2,7 +2,7 @@
 *.h5
 tmp*
 slurm-log
-/__pycache__
+__pycache__
 /.history
 /.idea
 /bert-tf1/__pycache__

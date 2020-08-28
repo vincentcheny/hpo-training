@@ -1,0 +1,8 @@
+{
+   "BATCH_SIZE":{"_type":"choice","_value":[16,32,48,64,80]},
+   "LEARNING_RATE":{"_type":"choice","_value":[1e-6,5e-6,1e-5,5e-5,1e-4,5e-4,1e-3,5e-3,1e-2]},
+   "NUM_EPOCH":{"_type":"choice","_value":[1,2,3,4,5]},
+   "DENSE_UNIT":{"_type":"choice","_value":[64,128,256,512]},
+   "DROPOUT":{"_type":"choice","_value":[0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6]},
+   "OPTIMIZER":{"_type":"choice","_value":["sgd","rmsp","adam"]}
+}
