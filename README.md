@@ -1,5 +1,12 @@
 # HPO-Training using Dragonfly(multi-obj) & NNI
 
+## Prerequisite
+
+```bash
+pip install -r requirements.txt
+nnictl package install --name=BOHB
+```
+
 ## Search Space
 
 ### Model Parameter
@@ -8,7 +15,7 @@
 | :------------ | :----------------------: | :--------------------: | :--------------------: | :--------------------: | ---------------------- | :---------: |
 | BATCH_SIZE    |          [2,16]          |        [8,120]         |         [2,32]         |        [8,128]         | [10,800]               |   [8,64]    |
 | LEARNING_RATE |       [5e-6,5e-2]        |      [1e-5,5e-1]       |      [1e-6,1e-2]       |      [1e-5,5e-1]       | [1e-6,1e-2]            |             |
-| NUM_EPOCH     |          [1,5]           |        [10,20]         |         [2,5]          |         [2,30]         | [10,100]               |   80[1,3]   |
+| NUM_EPOCH     |          [1,5]           |        [10,20]         |         [2,5]          |         [3,27]         | [10,100]               |   80[1,3]   |
 | DROP_OUT      |                          |                        |                        |                        |                        |             |
 | DENSE_UNIT    |                          |                        |        [64,512]        |       [64,1024]        | [16,1024]              |             |
 | OPTIMIZER     |  ["adam","grad","rmsp"]  | ["adam","grad","rmsp"] | ["adam","grad","rmsp"] | ["adam","grad","rmsp"] | ["adam","grad","rmsp"] |             |
@@ -23,46 +30,54 @@
 
 ### Hardware Parameter
 
-#### For any model
+|                Name                 |                     Range                      |
+| :---------------------------------: | :--------------------------------------------: |
+|    inter_op_parallelism_threads     |                     [2,4]                      |
+|    intra_op_parallelism_threads     |                     [2,6]                      |
+|         max_folded_constant         |                     [2,10]                     |
+|          build_cost_model           |                     [0,8]                      |
+| do_common_subexpression_elimination |                     [0,1]                      |
+|        do_function_inlining         |                     [0,1]                      |
+|          global_jit_level           |                     [0,2]                      |
+|            infer_shapes             |                     [0,1]                      |
+|         place_pruned_graph          |                     [0,1]                      |
+|      enable_bfloat16_sendrecv       |                     [0,1]                      |
+|          cross_device_ops*          | ["NcclAllReduce", "HierarchicalCopyAllReduce"] |
+|             num_packs*              |                     [0,5]                      |
+|         tf_gpu_thread_mode*         |    ["global", "gpu_private", "gpu_shared"]     |
 
-|                Name                 | Range  |
-| :---------------------------------: | :----: |
-|    inter_op_parallelism_threads     | [2,4]  |
-|    intra_op_parallelism_threads     | [2,6]  |
-|         max_folded_constant         | [2,10] |
-|          build_cost_model           | [0,8]  |
-| do_common_subexpression_elimination | [0,1]  |
-|        do_function_inlining         | [0,1]  |
-|          global_jit_level           | [0,2]  |
-|            infer_shapes             | [0,1]  |
-|         place_pruned_graph          | [0,1]  |
-|      enable_bfloat16_sendrecv       | [0,1]  |
-
-#### For GoogLeNet additionally
-
-|        Name        |                     Range                      |
-| :----------------: | :--------------------------------------------: |
-|  cross_device_ops  | ["NcclAllReduce", "HierarchicalCopyAllReduce"] |
-|     num_packs      |                     [0,5]                      |
-| tf_gpu_thread_mode |    ["global", "gpu_private", "gpu_shared"]     |
-
-
+*Exclude LeNet, Xception, MobileNet and ResNet50
 
 ## Performance
 
-|   Model   |                           Dataset                            | Runtime |     Dragonfly     |        TPE        |       BOHB        |                            Result                            |                   Cumulative Best accuracy                   |
-| :-------: | :----------------------------------------------------------: | ------- | :---------------: | :---------------: | :---------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-|   VGG16   | [Cifar10](https://www.tensorflow.org/api_docs/python/tf/keras/datasets/cifar10) (178M) | 10hrs   | 0.795 (32.91min)  |  0.775 (7.04min)  | 0.809 (15.34min)  | ![](https://lh3.googleusercontent.com/-kAz-xqmNzeU/XxklJCqzj_I/AAAAAAAAAUQ/At5eRaCFjA0InUvvmH4dFYuecFyXPQk7QCK8BGAsYHg/s512/2020-07-22.png) | ![](https://lh3.googleusercontent.com/-xrLSbvmdQvY/XxklIEuSDwI/AAAAAAAAAUM/07Z5Nr_9S4w8AwFC1go7KXF-yKKkr6UTgCK8BGAsYHg/s512/2020-07-22.png) |
-|  LeNet-5  | [Cifar10 ](https://www.cs.toronto.edu/~kriz/cifar.html)(350M) | 10hrs   |  0.424 (5.15min)  |  0.474 (5.68min)  |  0.346 (0.91min)  | ![](https://lh3.googleusercontent.com/-gI-UZfMM_oY/XxkYGv0NXyI/AAAAAAAAATk/ZKsxIovv-v06paGVeeJMaZ2YhL_GZvXGwCK8BGAsYHg/s512/2020-07-22.png) | ![](https://lh3.googleusercontent.com/-Q-012FLVO0Y/XxkYEVi7tEI/AAAAAAAAATg/IrwKZz3txNksCozuWW8OT-QL4B6Aui-9QCK8BGAsYHg/s512/2020-07-22.png) |
-| Xception  | [Humpback Whale](https://www.kaggle.com/c/humpback-whale-identification) (5.7G) | 10hrs   | 0.685 (25.49min)  | 0.995 (22.22min)  | 0.403 (33.61min)  | ![](https://lh3.googleusercontent.com/-Sxxftb3bnfg/XxnT8tG81OI/AAAAAAAAAUg/UAKlCL6DJuINCmJ41ZIez4EE04DdDzd3gCK8BGAsYHg/s512/2020-07-23.png) | ![](https://lh3.googleusercontent.com/-AL-CRndM2x0/XxnT7x1PFFI/AAAAAAAAAUc/Ba6fZdZGV7AsY7wyjaY9qnWPDFsGNUWZQCK8BGAsYHg/s512/2020-07-23.png) |
-| MobileNet | [Plant Leaves](https://www.tensorflow.org/datasets/catalog/plant_leaves) (6.8G) | 10hrs   | 0.851 (93.13min)  | 0.945 (119.23min) | 0.973 (181.94min) | ![](https://lh3.googleusercontent.com/-8RKoBF04W6g/XxkknTOt4pI/AAAAAAAAAT8/Zlk_jWibDL0AcT4KvbemdX6KRw70wPNswCK8BGAsYHg/s512/2020-07-22.png) | ![](https://lh3.googleusercontent.com/-6VJY6WVWFVI/XxkkmYKb22I/AAAAAAAAAT4/IuB7ZZJBey04qk_a1wW35O7pUHmKv4PZgCK8BGAsYHg/s512/2020-07-22.png) |
-| ResNet50  | [Plant Leaves](https://www.tensorflow.org/datasets/catalog/plant_leaves) (6.8G) | 10hrs   | 0.743 (63.36min)  | 0.942 (116.21min) | 0.849 (96.83min)  | ![](https://lh3.googleusercontent.com/-U5hhnRP9CaM/Xxkkb26bhLI/AAAAAAAAAT0/hFiQDKpjhcM66EpaZbTWydFoyP07laBNwCK8BGAsYHg/s512/2020-07-22.png) | ![](https://lh3.googleusercontent.com/-xdQZQUfEyOg/XxkkbCGyOQI/AAAAAAAAATw/FDsL1lbDS5MQaCKuaiz1YxJibn38mgHwACK8BGAsYHg/s512/2020-07-22.png) |
-| Inception | [Human Protein](https://www.kaggle.com/mathormad/inceptionv3-baseline-lb-0-379/data) (14G) | 10hrs   | 0.550 (33.38min)  | 0.440 (105.63min) | 0.428 (30.50min)  | ![](https://lh3.googleusercontent.com/-4xdgF5j1_U4/XxcVzcPq57I/AAAAAAAAATE/6jNkc5Wtr_Aw5hclerGPNXpIlYUXo28LwCK8BGAsYHg/s512/2020-07-21.png) | ![](https://lh3.googleusercontent.com/-B5pYR_0it2k/XxcVyRe-8fI/AAAAAAAAATA/bOAHdueQOLIZsJGzqWRRKlOoXAqAZJ7bQCK8BGAsYHg/s512/2020-07-21.png) |
-| GoogLeNet |         [ImageNet](http://www.image-net.org/) (134G)         | 50hrs   | 0.912 (513.70min) | 0.898 (767.76min) | 0.896 (510.13min) | ![](https://lh3.googleusercontent.com/-h_SmYOD-178/XyQOyNYeb-I/AAAAAAAAAWg/7pzlTXMLp2cyMTdcxPM7kTK44B4YaiclgCK8BGAsYHg/s512/2020-07-31.png) | ![](https://lh3.googleusercontent.com/-rq6bw1aUyZI/XyQOwy2LZAI/AAAAAAAAAWc/gptSvcFyxmog8VtCKpiffDmx_xuQne47wCK8BGAsYHg/s512/2020-07-31.png) |
+|                            Model                             |                           Dataset                            | Runtime |                            Result                            |
+| :----------------------------------------------------------: | :----------------------------------------------------------: | :-----: | :----------------------------------------------------------: |
+|                            VGG16                             | [Cifar10](https://www.tensorflow.org/api_docs/python/tf/keras/datasets/cifar10) (178M) |  10hrs  | ![](https://lh3.googleusercontent.com/-bIm3QBZpNaI/X0j136L96SI/AAAAAAAAAbI/QG27CuwxUTcnln5FHo3Q2m0Qsv304y-1wCK8BGAsYHg/s512/2020-08-28.png) |
+| [DenseNet](https://www.kaggle.com/ratan123/aptos-2019-keras-baseline) | [Blindness Detection](https://www.kaggle.com/c/aptos2019-blindness-detection) (10G) |  15hrs  | ![](https://lh3.googleusercontent.com/-mBhVGI6I-3U/X0iCSJIt5jI/AAAAAAAAAaw/-tk362L0jXwIQKirTeZ7reGzHLXrrkX2QCK8BGAsYHg/s512/2020-08-27.png) |
+|                          Inception                           | [Human Protein](https://www.kaggle.com/mathormad/inceptionv3-baseline-lb-0-379/data) (14G) |  20hrs  | ![](https://lh3.googleusercontent.com/-NXkEeTZnwEU/X0iBt0xv-jI/AAAAAAAAAak/Mxb2HTdaPSs_Oq8ZZNPvTAOJDYhLK0q_wCK8BGAsYHg/s512/2020-08-27.png) |
+| [GoogLeNet](https://github.com/vincentcheny/keras_imagenet)  |         [ImageNet](http://www.image-net.org/) (134G)         |  50hrs  | ![](https://lh3.googleusercontent.com/-InEwCSUkhxY/X0j-MxnYbwI/AAAAAAAAAbU/p8G_7Hb073shM5TbXDT6lEzxIvCoRkL5wCK8BGAsYHg/s512/2020-08-28.png) |
 
 
 
-## Unfixed-randomness Performance
+<details>
+  <summary>Performance without GPU parameters</summary>
+
+
+|   Model   |                           Dataset                            | Runtime |                            Result                            |                   Cumulative Best accuracy                   |
+| :-------: | :----------------------------------------------------------: | ------- | :----------------------------------------------------------: | :----------------------------------------------------------: |
+|   VGG16   | [Cifar10](https://www.tensorflow.org/api_docs/python/tf/keras/datasets/cifar10) (178M) | 10hrs   | ![](https://lh3.googleusercontent.com/-kAz-xqmNzeU/XxklJCqzj_I/AAAAAAAAAUQ/At5eRaCFjA0InUvvmH4dFYuecFyXPQk7QCK8BGAsYHg/s512/2020-07-22.png) | ![](https://lh3.googleusercontent.com/-xrLSbvmdQvY/XxklIEuSDwI/AAAAAAAAAUM/07Z5Nr_9S4w8AwFC1go7KXF-yKKkr6UTgCK8BGAsYHg/s512/2020-07-22.png) |
+|  LeNet-5  | [Cifar10 ](https://www.cs.toronto.edu/~kriz/cifar.html)(350M) | 10hrs   | ![](https://lh3.googleusercontent.com/-gI-UZfMM_oY/XxkYGv0NXyI/AAAAAAAAATk/ZKsxIovv-v06paGVeeJMaZ2YhL_GZvXGwCK8BGAsYHg/s512/2020-07-22.png) | ![](https://lh3.googleusercontent.com/-Q-012FLVO0Y/XxkYEVi7tEI/AAAAAAAAATg/IrwKZz3txNksCozuWW8OT-QL4B6Aui-9QCK8BGAsYHg/s512/2020-07-22.png) |
+| Xception  | [Humpback Whale](https://www.kaggle.com/c/humpback-whale-identification) (5.7G) | 10hrs   | ![](https://lh3.googleusercontent.com/-Sxxftb3bnfg/XxnT8tG81OI/AAAAAAAAAUg/UAKlCL6DJuINCmJ41ZIez4EE04DdDzd3gCK8BGAsYHg/s512/2020-07-23.png) | ![](https://lh3.googleusercontent.com/-AL-CRndM2x0/XxnT7x1PFFI/AAAAAAAAAUc/Ba6fZdZGV7AsY7wyjaY9qnWPDFsGNUWZQCK8BGAsYHg/s512/2020-07-23.png) |
+| MobileNet | [Plant Leaves](https://www.tensorflow.org/datasets/catalog/plant_leaves) (6.8G) | 10hrs   | ![](https://lh3.googleusercontent.com/-8RKoBF04W6g/XxkknTOt4pI/AAAAAAAAAT8/Zlk_jWibDL0AcT4KvbemdX6KRw70wPNswCK8BGAsYHg/s512/2020-07-22.png) | ![](https://lh3.googleusercontent.com/-6VJY6WVWFVI/XxkkmYKb22I/AAAAAAAAAT4/IuB7ZZJBey04qk_a1wW35O7pUHmKv4PZgCK8BGAsYHg/s512/2020-07-22.png) |
+| ResNet50  | [Plant Leaves](https://www.tensorflow.org/datasets/catalog/plant_leaves) (6.8G) | 10hrs   | ![](https://lh3.googleusercontent.com/-U5hhnRP9CaM/Xxkkb26bhLI/AAAAAAAAAT0/hFiQDKpjhcM66EpaZbTWydFoyP07laBNwCK8BGAsYHg/s512/2020-07-22.png) | ![](https://lh3.googleusercontent.com/-xdQZQUfEyOg/XxkkbCGyOQI/AAAAAAAAATw/FDsL1lbDS5MQaCKuaiz1YxJibn38mgHwACK8BGAsYHg/s512/2020-07-22.png) |
+| Inception | [Human Protein](https://www.kaggle.com/mathormad/inceptionv3-baseline-lb-0-379/data) (14G) | 10hrs   | ![](https://lh3.googleusercontent.com/-4xdgF5j1_U4/XxcVzcPq57I/AAAAAAAAATE/6jNkc5Wtr_Aw5hclerGPNXpIlYUXo28LwCK8BGAsYHg/s512/2020-07-21.png) | ![](https://lh3.googleusercontent.com/-B5pYR_0it2k/XxcVyRe-8fI/AAAAAAAAATA/bOAHdueQOLIZsJGzqWRRKlOoXAqAZJ7bQCK8BGAsYHg/s512/2020-07-21.png) |
+| GoogLeNet |         [ImageNet](http://www.image-net.org/) (134G)         | 50hrs   | ![](https://lh3.googleusercontent.com/-h_SmYOD-178/XyQOyNYeb-I/AAAAAAAAAWg/7pzlTXMLp2cyMTdcxPM7kTK44B4YaiclgCK8BGAsYHg/s512/2020-07-31.png) | ![](https://lh3.googleusercontent.com/-rq6bw1aUyZI/XyQOwy2LZAI/AAAAAAAAAWc/gptSvcFyxmog8VtCKpiffDmx_xuQne47wCK8BGAsYHg/s512/2020-07-31.png) |
+
+</details>
+
+
+<details>
+  <summary>Unfixed-randomness Performance</summary>
 
 |                           |    Dragonfly     |       TPE        |    Hyperband     |                            Result                            |                   Cumulative Best accuracy                   |
 | :-----------------------: | :--------------: | :--------------: | :--------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
@@ -72,3 +87,4 @@
 | Inception (Human Protein) | 0.55 (33min23s)  | 0.514 (49min41s) | 0.504 (25min37s) | ![](https://lh3.googleusercontent.com/-RrIW_LWbZtg/XvhHkLlpKSI/AAAAAAAAAPo/9pHOJIdV8KUSwP0d5ow4C9A2_ApgRs9VgCK8BGAsYHg/s512/2020-06-28.png) | ![](https://lh3.googleusercontent.com/-RBEETTccvK0/XvhHiwwqlDI/AAAAAAAAAPk/OJTEzU_XlWk4_EDbSfnH8-HCFAgOhEbCACK8BGAsYHg/s512/2020-06-28.png) |
 |         ResNet50          | 0.924 (77min21s) | 0.923 (75min21s) | 0.886 (67min5s)  | ![](https://lh3.googleusercontent.com/-9pIHqTL3Zi0/XvMr-gHilXI/AAAAAAAAAPA/iXxC7JbekYEE1uUDvAMi1p9bL0gz06DnwCK8BGAsYHg/s512/2020-06-24.png) | ![](https://lh3.googleusercontent.com/-0o4gDW65aQ8/Xuu7X9KZ1JI/AAAAAAAAAh4/Zg9fmmxLAAklY1yr509itEPjphfURw5tQCK8BGAsYHg/s512/2020-06-18.png) |
 
+</details>
