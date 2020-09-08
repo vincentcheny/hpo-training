@@ -3,9 +3,14 @@
 ## Prerequisite
 
 ```bash
-conda create -yn hpo-env python=3.6 numpy=1.18.5 && conda activate hpo-env
+conda create -yn hpo-env python=3.6 numpy && conda activate hpo-env
 pip install -r requirements.txt
 nnictl package install --name=BOHB
+
+# For CUHKPrototypeTuner only
+pip install nni https://github.com/vincentcheny/hpo-training/releases/download/v1.0/dragonfly-0.1.6.1-py3-none-any.whl
+wget https://github.com/vincentcheny/hpo-training/releases/download/v1.0/CUHKPrototypeTuner-1.0-py3-none-any.whl
+nnictl package install CUHKPrototypeTuner-1.0-py3-none-any.whl
 ```
 
 ## Search Space
