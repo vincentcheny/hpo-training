@@ -22,6 +22,6 @@ advisor:
     bandwidth_factor: 3.0
     min_bandwidth: 0.001
 trial:
-  command: python train-nni.py --seed 1234 --log_path ./1-BOHB.log
+  command: python train-nni.py --seed 64 --log_path ./1-BOHB.log
   codeDir: .
   gpuNum: 2

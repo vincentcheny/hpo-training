@@ -6,6 +6,5 @@
     "filter_num":{"_type":"choice","_value":[8,16,24,32,40,48,56,64]},
     "kernel_size":{"_type":"choice","_value":[1,2,3,4,5]},
     "weight_decay":{"_type":"choice","_value":[8e-2,4e-2,1e-2,8e-3,4e-3,1e-3,8e-4,4e-4,1e-4,8e-5,4e-5,1e-5]},
-    "dense_size":{"_type":"choice","_value":[64,128,256,512,1024]},
-    "PREFERENCE":{"_type":"choice","_value":["accuracy"]}
+    "dense_size":{"_type":"choice","_value":[64,128,256,512,1024]}
 }

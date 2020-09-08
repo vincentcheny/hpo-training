@@ -1,0 +1,23 @@
+{
+    "learning_rate":{"_type":"choice","_value":[5e-1,2.5e-1,1e-1,5e-2,2.5e-2,1e-2,5e-3,2.5e-3,1e-3,5e-4,2.5e-4,1e-4,5e-5,2.5e-5,1e-5]},
+    "optimizer":{"_type":"choice","_value":["adam","sgd","rmsp"]},
+    "batch_size":{"_type":"choice","_value":[8,16,32,64,128]},
+    "epoch":{"_type":"choice","_value":[3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27]},
+    "filter_num":{"_type":"choice","_value":[8,16,24,32,40,48,56,64]},
+    "kernel_size":{"_type":"choice","_value":[1,2,3,4,5]},
+    "weight_decay":{"_type":"choice","_value":[8e-2,4e-2,1e-2,8e-3,4e-3,1e-3,8e-4,4e-4,1e-4,8e-5,4e-5,1e-5]},
+    "dense_size":{"_type":"choice","_value":[64,128,256,512,1024]},
+
+    "inter_op_parallelism_threads":{"_type":"choice","_value":[1,2,3,4]},
+    "intra_op_parallelism_threads":{"_type":"choice","_value":[2,4,6,8,10,12]},
+    "infer_shapes":{"_type":"choice","_value":[0,1]},
+    "place_pruned_graph":{"_type":"choice","_value":[0,1]},
+    "enable_bfloat16_sendrecv":{"_type":"choice","_value":[0,1]},
+    "do_common_subexpression_elimination":{"_type":"choice","_value":[0,1]},
+    "max_folded_constant":{"_type":"choice","_value":[2,4,6,8,10]},
+    "do_function_inlining":{"_type":"choice","_value":[0,1]},
+    "global_jit_level":{"_type":"choice","_value":[0,1,2]},
+    "tf_gpu_thread_mode":{"_type":"choice","_value":["global", "gpu_private", "gpu_shared"]},
+    "cross_device_ops":{"_type":"choice","_value":["NcclAllReduce","HierarchicalCopyAllReduce"]},
+    "num_packs":{"_type":"choice","_value":[0,1,2,3,4,5]}
+}

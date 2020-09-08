@@ -122,6 +122,12 @@ def model_fn(x):
 
 def runtime_eval(x):
 	print(f'Trial Config:{x}')
+	global final_acc
+	# random.seed()
+	# final_acc = random.random()+1.01
+	# t = random.random()+1.01
+	# print(f'final_acc:{final_acc} t:{t}')
+	# return t
 	if x[17] in ["global", "gpu_private", "gpu_shared"]:
 		os.environ['TF_GPU_THREAD_MODE'] = x[17]
 	cross_device_ops = x[18]
@@ -135,7 +141,8 @@ def runtime_eval(x):
 	else:
 		mirrored_strategy = tf.distribute.MirroredStrategy()
 	with mirrored_strategy.scope():
-		model = model_fn(x)
+		model = tf.keras.models.load_model('./save',compile=False)
+		# model = model_fn(x)
 		op_type = x[1]
 		if op_type == 'adam':
 			model.compile(loss='categorical_crossentropy',
@@ -190,20 +197,20 @@ def runtime_eval(x):
 						#validation_steps=10, 
 						verbose=2)
 	end = time.time()
-	global final_acc
-	spent_time = (start - end) / 3600.0
+	# global final_acc
+	spent_time = (end - start) / 3600.0
 	train_acc = 0. if len(his.history['accuracy']) < 1 else his.history['accuracy'][-1]
 	train_top5_acc = 0. if len(his.history['top_k_categorical_accuracy']) < 1 else his.history['top_k_categorical_accuracy'][-1]
 	val_acc = 0. if len(his.history['val_accuracy']) < 1 else his.history['val_accuracy'][-1]
 	val_top5_acc = 0. if len(his.history['val_top_k_categorical_accuracy']) < 1 else his.history['val_top_k_categorical_accuracy'][-1]
 	with open(args.log_path,"a") as f:
-		print(train_acc, train_top5_acc, val_acc, val_top5_acc, spent_time*60, start, end, x,file=f)
+		print(f'{train_acc:.10f} {train_top5_acc:.10f} {val_acc:.10f} {val_top5_acc:.10f} {spent_time*60:.10f} {start:.10f} {end:.10f} {x}',file=f)
 	final_acc = val_acc
-	return float(spent_time)
+	return float(-spent_time)*10
 
 def acc_eval(x):
 	global final_acc
-	return float(final_acc)
+	return float(final_acc)*10
 
 def load_data(path):
 	num_train_samples = 50000
@@ -246,7 +253,7 @@ y_test = tf.keras.utils.to_categorical(y_test, 10)
 LR_list =  [5e-1,2.5e-1,1e-1,5e-2,2.5e-2,1e-2,5e-3,2.5e-3,1e-3,5e-4,2.5e-4,1e-4,5e-5,2.5e-5,1e-5]
 optimizer_list = ['adam','sgd','rmsp']
 batch_list = [8,16,32,64,128]
-epoch_list = [3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27]
+epoch_list = [1,2,3,4,5]
 filter_list = [8,16,24,32,40,48,56,64]
 KS_list = [1,2,3,4,5]
 weight_decay_list = [8e-2,4e-2,1e-2,8e-3,4e-3,1e-3,8e-4,4e-4,1e-4,8e-5,4e-5,1e-5]
@@ -303,15 +310,15 @@ domain_vars = [{'type': 'discrete_numeric', 'items': LR_list},
 dragonfly_args = [ 
 	get_option_specs('report_results_every', False, 2, 'Path to the json or pb config file. '),
 	get_option_specs('init_capital', False, None, 'Path to the json or pb config file. '),
-	get_option_specs('init_capital_frac', False, 0.017, 'Path to the json or pb config file. '),
-	get_option_specs('num_init_evals', False, 2, 'Path to the json or pb config file. ')]
+	# get_option_specs('init_capital_frac', False, 0.017, 'Path to the json or pb config file. '),
+	get_option_specs('num_init_evals', False, 1, 'Path to the json or pb config file. ')]
 
 options = load_options(dragonfly_args)
 config_params = {'domain': domain_vars}
 config = load_config(config_params)
 max_num_evals = 60 * 60 * 60
 moo_objectives = [runtime_eval, acc_eval]
-pareto_opt_vals, pareto_opt_pts, history = multiobjective_maximise_functions(moo_objectives, config.domain,max_num_evals,capital_type='realtime',config=config,options=options)
+pareto_opt_vals, pareto_opt_pts, history = multiobjective_maximise_functions(moo_objectives, config.domain,max_num_evals,config=config,options=options)
 f = open("./output.log","w+")
 print(pareto_opt_pts,file=f)
 print("\n",file=f)
