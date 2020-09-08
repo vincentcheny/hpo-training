@@ -3,11 +3,17 @@
 ## Prerequisite
 
 ```bash
-conda create -yn hpo-env python=3.6 numpy && conda activate hpo-env
+# Necessary environment to run all models
+conda create -yn env_name python=3.6 && conda activate env_name
 pip install -r requirements.txt
+
+# Dragonfly installation
+pip install https://github.com/vincentcheny/hpo-training/releases/download/v1.0/dragonfly-0.1.6.1-py3-none-any.whl
+
+# BOHB installation
 nnictl package install --name=BOHB
 
-# For CUHKPrototypeTuner only
+# CUHKPrototypeTuner installation
 pip install nni https://github.com/vincentcheny/hpo-training/releases/download/v1.0/dragonfly-0.1.6.1-py3-none-any.whl
 wget https://github.com/vincentcheny/hpo-training/releases/download/v1.0/CUHKPrototypeTuner-1.0-py3-none-any.whl
 nnictl package install CUHKPrototypeTuner-1.0-py3-none-any.whl
@@ -60,7 +66,7 @@ nnictl package install CUHKPrototypeTuner-1.0-py3-none-any.whl
 | :----------------------------------------------------------: | :----------------------------------------------------------: | :-----: | :----------------------------------------------------------: |
 |                            VGG16                             | [Cifar10](https://www.tensorflow.org/api_docs/python/tf/keras/datasets/cifar10) (178M) |  10hrs  | ![](https://lh3.googleusercontent.com/-Lkq4TB2YgeQ/X1B3DA2TwDI/AAAAAAAAAcE/YQAsq7OTcvkH3H0jMScxpF96SQYsQoyEgCK8BGAsYHg/s0/2020-09-02.png) |
 | [DenseNet](https://www.kaggle.com/ratan123/aptos-2019-keras-baseline) | [Blindness Detection](https://www.kaggle.com/c/aptos2019-blindness-detection) (10G) |  15hrs  | ![](https://lh3.googleusercontent.com/-7RV--Gw9xxs/X1Gzrls_m3I/AAAAAAAAAcY/A7WUdgzzkpsU0cgedPgogroLu8yUkcfMQCK8BGAsYHg/s0/2020-09-03.png) |
-|                          Inception                           | [Human Protein](https://www.kaggle.com/mathormad/inceptionv3-baseline-lb-0-379/data) (14G) |  20hrs  | ![](https://lh3.googleusercontent.com/-NXkEeTZnwEU/X0iBt0xv-jI/AAAAAAAAAak/Mxb2HTdaPSs_Oq8ZZNPvTAOJDYhLK0q_wCK8BGAsYHg/s0/2020-08-27.png) |
+|                          Inception                           | [Human Protein](https://www.kaggle.com/mathormad/inceptionv3-baseline-lb-0-379/data) (14G) |  20hrs  | ![](https://lh3.googleusercontent.com/-jLtsWxO15uI/X1WuFwg3RrI/AAAAAAAAAcs/Bh2aHVAMlwkaxVCJzzqmkWRwyuasWzmTwCK8BGAsYHg/s0/2020-09-06.png) |
 |                          GoogLeNet                           |         [ImageNet](http://www.image-net.org/) (134G)         |  50hrs  | ![](https://lh3.googleusercontent.com/-InEwCSUkhxY/X0j-MxnYbwI/AAAAAAAAAbU/p8G_7Hb073shM5TbXDT6lEzxIvCoRkL5wCK8BGAsYHg/s0/2020-08-28.png) |
 
 
