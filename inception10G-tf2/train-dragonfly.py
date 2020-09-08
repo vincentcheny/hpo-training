@@ -197,7 +197,7 @@ def runtime_eval(x):
 	# model.save(keras_model_path)
 	end = time.time()
 	global final_acc
-	spent_time = (start - end) / 3600.0
+	spent_time = (end - start) / 3600.0
 	train_acc = 0. if len(his.history['accuracy']) < 1 else his.history['accuracy'][-1]
 	train_top5_acc = 0. if len(his.history['top_k_categorical_accuracy']) < 1 else his.history['top_k_categorical_accuracy'][-1]
 	val_acc = 0. if len(his.history['val_accuracy']) < 1 else his.history['val_accuracy'][-1]
@@ -205,7 +205,7 @@ def runtime_eval(x):
 	with open(args.log_path,"a") as f:
 		print(train_acc, train_top5_acc, val_acc, val_top5_acc, spent_time*(-60), start, end, x, file=f)
 	final_acc = val_acc
-	return spent_time
+	return -spent_time
 
 def acc_eval(x):
 	global final_acc
@@ -279,7 +279,7 @@ domain_vars = [{'type': 'discrete_numeric', 'items': batch_list},
 dragonfly_args = [ 
 	get_option_specs('report_results_every', False, 2, 'Path to the json or pb config file. '),
 	get_option_specs('init_capital', False, None, 'Path to the json or pb config file. '),
-	get_option_specs('init_capital_frac', False, 0.07, 'Path to the json or pb config file. '),
+	# get_option_specs('init_capital_frac', False, 0.07, 'Path to the json or pb config file. '),
 	get_option_specs('num_init_evals', False, 2, 'Path to the json or pb config file. ')
 ]
 

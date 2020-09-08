@@ -16,6 +16,6 @@ tuner:
     #choice: maximize, minimize
     optimize_mode: maximize
 trial:
-  command: python train-nni.py --seed 1234 --log_path ./2-TPE.log
+  command: python train-nni.py --seed 4000 --log_path ./2-TPE.log
   codeDir: .
   gpuNum: 2

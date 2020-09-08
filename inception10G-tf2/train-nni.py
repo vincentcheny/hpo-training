@@ -170,7 +170,7 @@ def main():
         # validation_steps=10,
         epochs=epoch,
         # epochs=5,
-        verbose=1)
+        verbose=2)
     # keras_model_path = "../../save/inception_human_save_tpe"
     # model.save(keras_model_path)
     end = time.time()
@@ -184,7 +184,7 @@ def main():
     if args.is_soo:
         nni.report_final_result(val_acc)
     else:
-        report_dict = {'accuracy': val_acc, 'runtime': spent_time, 'default': val_acc}
+        report_dict = {'runtime': spent_time, 'default': val_acc, 'maximize':['default']}
         nni.report_final_result(report_dict)
 
 

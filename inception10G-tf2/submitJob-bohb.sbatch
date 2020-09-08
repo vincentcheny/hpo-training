@@ -2,7 +2,7 @@
 #SBATCH --job-name=bohb_inception
 #SBATCH --mail-type=FAIL #NONE, BEGIN, END, FAIL, REQUEUE, ALL
 #SBATCH --mail-user=cy0906@163.com
-#SBATCH --output=/research/dept7/ychen/model/inception10G/comparison/slurm-log/1-BOHB.log
+#SBATCH --output=/research/dept7/ychen/model/hpo-training/inception10G-tf2/slurm-log/1-BOHB.log
 #SBATCH --gres=gpu:2
 #SBATCH -w gpu21
 #SBATCH -p batch_72h

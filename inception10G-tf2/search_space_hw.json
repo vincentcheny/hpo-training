@@ -1,0 +1,21 @@
+{
+   "BATCH_SIZE":{"_type":"choice","_value":[16,32,48,64,80]},
+   "LEARNING_RATE":{"_type":"choice","_value":[1e-6,5e-6,1e-5,5e-5,1e-4,5e-4,1e-3,5e-3,1e-2]},
+   "NUM_EPOCH":{"_type":"choice","_value":[1,2,3,4,5]},
+   "DENSE_UNIT":{"_type":"choice","_value":[64,128,256,512]},
+   "DROPOUT":{"_type":"choice","_value":[0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6]},
+   "OPTIMIZER":{"_type":"choice","_value":["sgd","rmsp","adam"]},
+   
+   "inter_op_parallelism_threads":{"_type":"choice","_value":[1,2,3,4]},
+   "intra_op_parallelism_threads":{"_type":"choice","_value":[2,4,6,8,10,12]},
+   "infer_shapes":{"_type":"choice","_value":[0,1]},
+   "place_pruned_graph":{"_type":"choice","_value":[0,1]},
+   "enable_bfloat16_sendrecv":{"_type":"choice","_value":[0,1]},
+   "do_common_subexpression_elimination":{"_type":"choice","_value":[0,1]},
+   "max_folded_constant":{"_type":"choice","_value":[2,4,6,8,10]},
+   "do_function_inlining":{"_type":"choice","_value":[0,1]},
+   "global_jit_level":{"_type":"choice","_value":[0,1,2]},
+   "tf_gpu_thread_mode":{"_type":"choice","_value":["global", "gpu_private", "gpu_shared"]},
+   "cross_device_ops":{"_type":"choice","_value":["NcclAllReduce","HierarchicalCopyAllReduce"]},
+   "num_packs":{"_type":"choice","_value":[0,1,2,3,4,5]}
+}
