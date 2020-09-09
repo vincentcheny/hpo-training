@@ -1,0 +1,1 @@
+from .cuhk_prototype_tuner import CUHKPrototypeTuner, CUHKPrototypeClassArgsValidator
