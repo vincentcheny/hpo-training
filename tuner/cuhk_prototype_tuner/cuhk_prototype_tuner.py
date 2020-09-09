@@ -157,7 +157,7 @@ class CUHKPrototypeTuner(Tuner):
         self._update_history(qinfos)
         self._add_data_to_model(qinfos) 
         
-    def extract(self, value, opposite_key='maximize'):
+    def extract(self, value, non_opposite_key='maximize'):
         """
         Extract from reported value
         Parameters
@@ -165,13 +165,13 @@ class CUHKPrototypeTuner(Tuner):
         value : dict
             Invalid Value:
                 0.2
-                {'default':0.2,'accuracy':0.2}
-                {'default':0.2,'accuracy':0.2,'runtime':46,'maximize':'loss'}
+                {'default':0.2,'attr0':0.3,'attr1':46,'maximize':'attr2'}
             Valid Value:
-                {'default':0.2,'accuracy':0.2,'runtime':46}
-                {'default':0.2,'accuracy':0.2,'runtime':10,'maximize':'accuracy'}
-                {'default':0.2,'accuracy':0.2,'runtime':23.45,'maximize':['accuracy','runtime']}
-        opposite_key : str
+                {'default':0.2,'attr0':0.3}
+                {'default':0.2,'attr0':0.3,'attr1':46}
+                {'default':0.2,'attr0':0.3,'attr1':10,'maximize':'attr0'}
+                {'default':0.2,'attr0':0.3,'attr1':23.45,'maximize':['attr0','attr1']}
+        non_opposite_key : str
             Specify values in which attribute need to take the opposite value
         
         Return
@@ -182,27 +182,28 @@ class CUHKPrototypeTuner(Tuner):
             raise ValueError(f'{value} is in an unexpected type.')
 
         for attr in value:
-            if not isinstance(value[attr], (float, int)) and attr != opposite_key:
+            if not isinstance(value[attr], (float, int)) and attr != non_opposite_key:
                 raise ValueError(f'{value} has an attribute {attr} with unexpected type.')
 
-        if opposite_key not in value:
+        if non_opposite_key not in value:
             return [value[attr] for attr in value]
 
-        if not isinstance(value[opposite_key], (str, list)):
-            raise ValueError(f'{opposite_key} is in an unexpected type.')
+        if not isinstance(value[non_opposite_key], (str, list)):
+            raise ValueError(f'{non_opposite_key} is in an unexpected type.')
 
-        if isinstance(value[opposite_key], str):
-            value[opposite_key] = [value[opposite_key]]
+        if isinstance(value[non_opposite_key], str):
+            value[non_opposite_key] = [value[non_opposite_key]]
 
-        for x in value[opposite_key]:
+        for x in value[non_opposite_key]:
             if not isinstance(x, str):
-                raise ValueError(f'{opposite_key} has a value {x} with unexpected type.')
+                raise ValueError(f'{non_opposite_key} has a value {x} with unexpected type.')
             if x not in value:
-                raise ValueError(f'{opposite_key} has an unexpected value {x}.')
-
-        for attr in value[opposite_key]:
-            value[attr] = -value[attr]
-        return [value[attr] for attr in value if attr != opposite_key]
+                raise ValueError(f'{non_opposite_key} has an unexpected value {x}.')
+        
+        for attr in value:
+            if attr not in value[non_opposite_key] and attr != non_opposite_key:
+                value[attr] = -value[attr]
+        return [value[attr] for attr in value if attr != non_opposite_key]
 
     def dict2qinfos(self, parameters, report_value):
         '''
