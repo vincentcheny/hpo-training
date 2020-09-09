@@ -1,0 +1,20 @@
+authorName: Vincent
+experimentName: DFTunerBlind
+trialConcurrency: 1
+maxExecDuration: 60h
+maxTrialNum: 200
+#choice: local, remote, pai
+trainingServicePlatform: local
+searchSpacePath: search_space.json
+#choice: true, false
+useAnnotation: false
+tuner:
+  builtinTunerName: DFTuner
+  classArgs:
+    random_seed: 256
+    num_init_evals: 2
+    build_new_model_every: 5
+trial:
+  command: python train-nni.py --seed 256 --log_path ./3-DFTuner.log
+  codeDir: .
+  gpuNum: 2
