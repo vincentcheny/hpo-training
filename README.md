@@ -3,25 +3,10 @@
 ## Installation
 
 ```bash
-# Necessary environment to run all models
-conda create -yn env_name python=3.6 && conda activate env_name
-pip install -r requirements.txt
-
-# Dragonfly installation
-pip install https://github.com/vincentcheny/hpo-training/releases/download/v1.0/dragonfly-0.1.6.1-py3-none-any.whl
-
-# BOHB installation
-nnictl package install --name=BOHB
-
-# CUHKPrototypeTuner installation for v1.0
-pip install nni https://github.com/vincentcheny/hpo-training/releases/download/v1.0/dragonfly-0.1.6.1-py3-none-any.whl
-wget https://github.com/vincentcheny/hpo-training/releases/download/v1.0/CUHKPrototypeTuner-1.0-py3-none-any.whl
-nnictl package install CUHKPrototypeTuner-1.0-py3-none-any.whl
-
-# CUHKPrototypeTuner installation for v1.1 or after
+# CUHKPrototypeTuner
 pip install nni
-wget https://github.com/vincentcheny/hpo-training/releases/download/v1.1/CUHKPrototypeTuner-1.1-py3-none-any.whl
-nnictl package install CUHKPrototypeTuner-1.1-py3-none-any.whl
+wget https://github.com/vincentcheny/hpo-training/releases/download/v1.2/CUHKPrototypeTuner-1.2-py3-none-any.whl
+nnictl package install CUHKPrototypeTuner-1.2-py3-none-any.whl
 ```
 
 ## Search Space
