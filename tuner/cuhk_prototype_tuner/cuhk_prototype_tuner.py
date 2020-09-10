@@ -99,6 +99,8 @@ class CUHKPrototypeTuner(Tuner):
         -------
         params : dict
         """
+        if len(self.search_space) == 0:
+            return []
         if self.trial_idx < self.num_init_evals:           
             if self.trial_idx == 0 or not hasattr(self, 'init_qinfo'):
                 ret_dom_pts = sample_from_cp_domain(
@@ -109,7 +111,7 @@ class CUHKPrototypeTuner(Tuner):
                     integral_sample_type='latin_hc',
                     nn_sample_type='latin_hc')
                 self.init_qinfo = ret_dom_pts
-            return self.qinfo2dict(self.init_qinfo[self.trial_idx])
+            return self.qinfo2dict(self.init_qinfo[self.trial_idx]) if self.trial_idx < len(self.init_qinfo) else {}
         else:
             # opt/multiobjective_gp_bandit.py: 190
             # _main_loop_pre() or _set_next_gp()
@@ -386,11 +388,12 @@ class CUHKPrototypeTuner(Tuner):
         idx0 = idx1 = 0
         for para_name in self.search_space.keys():
             if isinstance(self.search_space[para_name]['_value'][0], (float, int)):
-                if isinstance(qinfo[1][idx1], np.float64):
-                    qinfo[1][idx1] = float(qinfo[1][idx1])
-                if isinstance(qinfo[1][idx1], np.int64):
-                    qinfo[1][idx1] = int(qinfo[1][idx1])
-                params[para_name] = qinfo[1][idx1]
+                numerical_idx = 1 if len(qinfo) > 1 else 0
+                if isinstance(qinfo[numerical_idx][idx1], np.float64):
+                    qinfo[numerical_idx][idx1] = float(qinfo[numerical_idx][idx1])
+                if isinstance(qinfo[numerical_idx][idx1], np.int64):
+                    qinfo[numerical_idx][idx1] = int(qinfo[numerical_idx][idx1])
+                params[para_name] = qinfo[numerical_idx][idx1]
                 idx1 += 1
             else:
                 if isinstance(qinfo[0][idx0], np.str_):
