@@ -11,13 +11,14 @@ from nni.utils import ClassArgsValidator
 from nni.tuner import Tuner
 
 from argparse import Namespace
-from dragonfly import load_config
-from dragonfly.utils.option_handler import get_option_specs, load_options
-from dragonfly.gp.cartesian_product_gp import CPGPFitter
-from dragonfly.opt import multiobjective_gpb_acquisitions
-from dragonfly.opt.multiobjective_gp_bandit import multiobjective_gp_bandit_args
-from dragonfly.exd.exd_core import exd_core_args
-from dragonfly.opt.gp_bandit import gp_bandit_args
+# from dragonfly import load_config
+from .dragonfly.utils.option_handler import get_option_specs, load_options
+from .dragonfly.gp.cartesian_product_gp import CPGPFitter
+from .dragonfly.opt import multiobjective_gpb_acquisitions
+from .dragonfly.opt.multiobjective_gp_bandit import multiobjective_gp_bandit_args
+from .dragonfly.exd.exd_core import exd_core_args
+from .dragonfly.exd.cp_domain_utils import sample_from_cp_domain, load_config
+from .dragonfly.opt.gp_bandit import gp_bandit_args
 
 logger = logging.getLogger('CUHK_AutoML')
 EVAL_ERROR_CODE = 'eval_error_250320181729'
@@ -45,6 +46,7 @@ class CUHKPrototypeTuner(Tuner):
         """
         if random_seed is not None:
             random.seed(random_seed)
+            np.random.seed(random_seed)
         self.num_init_evals = num_init_evals
         self.build_new_model_every = build_new_model_every
         self.total_data = dict()
@@ -97,15 +99,19 @@ class CUHKPrototypeTuner(Tuner):
         -------
         params : dict
         """
-        if self.trial_idx < self.num_init_evals:
-            params = dict()
-            for para_name in self.search_space.keys():
-                options = self.search_space[para_name]['_value']
-                params[para_name] = random.choice(options)
-            return params
+        if self.trial_idx < self.num_init_evals:           
+            if self.trial_idx == 0 or not hasattr(self, 'init_qinfo'):
+                ret_dom_pts = sample_from_cp_domain(
+                    cp_domain=self.domain, 
+                    num_samples=self.num_init_evals,
+                    domain_samplers=None,
+                    euclidean_sample_type='latin_hc',
+                    integral_sample_type='latin_hc',
+                    nn_sample_type='latin_hc')
+                self.init_qinfo = ret_dom_pts
+            return self.qinfo2dict(self.init_qinfo[self.trial_idx])
         else:
             # opt/multiobjective_gp_bandit.py: 190
-
             # _main_loop_pre() or _set_next_gp()
             if not hasattr(self, 'gp_processors') or self.gp_processors is None:
                 self._build_new_gps(self.num_objectives)
