@@ -162,6 +162,9 @@ class CUHKPrototypeTuner(Tuner):
             self.num_objectives = len(report_value)
         
         qinfos = self.dict2qinfos(parameters, report_value)
+        for qinfo in qinfos:
+            if float('inf') in qinfo.val:
+                return
         self._update_history(qinfos)
         self._add_data_to_model(qinfos) 
         
@@ -300,7 +303,7 @@ class CUHKPrototypeTuner(Tuner):
         if self.gps is None:
             return
         qinfos = [qinfo for qinfo in qinfos
-                if qinfo.val != EVAL_ERROR_CODE]
+                if qinfo.val != EVAL_ERROR_CODE and qinfo.val != float('inf')]
         if len(qinfos) == 0:
             return
         new_points = [qinfo.point for qinfo in qinfos]
