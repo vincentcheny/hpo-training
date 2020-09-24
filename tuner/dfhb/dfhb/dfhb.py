@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 """
-hyperband_advisor.py
+dfhb_advisor.py
 """
 
 import copy
@@ -21,6 +21,7 @@ from nni.protocol import CommandType, send
 from nni.utils import NodeType, OptimizeMode, MetricType
 from nni import parameter_expressions
 from .moo import MultiObjectiveOptimizer
+import threading
 
 _logger = logging.getLogger(__name__)
 
@@ -28,6 +29,7 @@ _next_parameter_id = 0
 _KEY = 'TRIAL_BUDGET'
 _epsilon = 1e-6
 MOO = None
+con = threading.Condition()
 
 
 def create_parameter_id():
@@ -101,6 +103,7 @@ class Bracket():
         self.num_finished_configs = []  # [ n, n, n, ... ]
         # self.optimize_mode = OptimizeMode(optimize_mode)
         self.no_more_trial = False
+        
 
     def is_completed(self):
         """check whether this bracket has sent out all the hyperparameter configurations"""
@@ -134,6 +137,8 @@ class Bracket():
         -------
         None
         """
+        while len(self.configs_perf) < i+1:
+            self.configs_perf.append(dict())
         if parameter_id in self.configs_perf[i]:
             if self.configs_perf[i][parameter_id][0] < seq:
                 self.configs_perf[i][parameter_id] = [seq, value]
@@ -150,13 +155,27 @@ class Bracket():
             the ith round
         """
         global _KEY
+        while len(self.num_finished_configs) < i+1:
+            self.num_finished_configs.append(0)
         self.num_finished_configs[i] += 1
+        con.acquire()
+        while len(self.num_configs_to_run) < i+1:
+            _logger.debug(f'wait for self.num_configs_to_run with length {i+1}')
+            con.wait()
+        con.release()
         _logger.debug('bracket id: %d, round: %d %d, finished: %d, all: %d', self.bracket_id, self.i, i,
                       self.num_finished_configs[i], self.num_configs_to_run[i])
         if self.num_finished_configs[i] >= self.num_configs_to_run[i] \
                 and self.no_more_trial is False:
             # choose candidate configs from finished configs to run in the next round
             assert self.i == i + 1
+            next_n, next_r = self.get_n_r()
+            _logger.debug('bracket %s next round %s, next_n=%d, next_r=%d', self.bracket_id, self.i, next_n, next_r)
+            con.acquire()
+            while len(self.configs_perf[i]) < next_n:
+                _logger.debug(f'wait for notification of round {self.i}')
+                con.wait()
+            con.release()
             this_round_perf = self.configs_perf[i]
             # if self.optimize_mode is OptimizeMode.Maximize:
             #     sorted_perf = sorted(this_round_perf.items(), key=lambda kv: kv[1][1], reverse=True)  # reverse
@@ -164,8 +183,7 @@ class Bracket():
             #     sorted_perf = sorted(this_round_perf.items(), key=lambda kv: kv[1][1])
             sorted_perf = sorted(this_round_perf.items(), key=lambda kv: kv[1])
             _logger.debug('bracket %s next round %s, sorted hyper configs: %s', self.bracket_id, self.i, sorted_perf)
-            next_n, next_r = self.get_n_r()
-            _logger.debug('bracket %s next round %s, next_n=%d, next_r=%d', self.bracket_id, self.i, next_n, next_r)
+            
             hyper_configs = dict()
             for k in range(next_n):
                 params_id = sorted_perf[k][0]
@@ -252,7 +270,7 @@ class DFHB(MsgDispatcherBase):
         self.eta = eta
         self.brackets = dict()  # dict of Bracket
         self.generated_hyper_configs = []  # all the configs waiting for run
-        self.generated_hyper_configs_all = []
+        self.generated_hyper_configs_all = {}
         self.completed_hyper_configs = []  # all the completed configs
         self.s_max = math.floor(math.log(self.R, self.eta) + _epsilon)
         self.curr_s = self.s_max
@@ -309,7 +327,8 @@ class DFHB(MsgDispatcherBase):
                                                                                                    self.searchspace_json,
                                                                                                    self.random_state)
             self.generated_hyper_configs = generated_hyper_configs.copy()
-            self.generated_hyper_configs_all = self.generated_hyper_configs
+            for item in generated_hyper_configs.copy():
+                self.generated_hyper_configs_all[item[0]] = item[1]
             self.curr_s -= 1
 
         assert self.generated_hyper_configs
@@ -338,7 +357,8 @@ class DFHB(MsgDispatcherBase):
         if hyper_configs is not None:
             _logger.debug('bracket %s next round %s, hyper_configs: %s', bracket_id, i, hyper_configs)
             self.generated_hyper_configs = self.generated_hyper_configs + hyper_configs
-            self.generated_hyper_configs_all = self.generated_hyper_configs
+            for item in self.generated_hyper_configs.copy():
+                self.generated_hyper_configs_all[item[0]] = item[1]
 
     def handle_trial_end(self, data):
         """
@@ -383,7 +403,7 @@ class DFHB(MsgDispatcherBase):
             self.job_id_para_id_map[data['trial_job_id']] = ret['parameter_id']
             send(CommandType.SendTrialJobParameter, json_tricks.dumps(ret))
         else:
-            # value = self.MOO.extract(data['value'])
+            assert isinstance(data['value'], dict)
             if 'maximize' in data['value'] and \
                 (isinstance(data['value']['maximize'], str) and data['value']['maximize'] == 'default' or \
                 isinstance(data['value']['maximize'], list) and 'default' in data['value']['maximize']):
@@ -406,9 +426,18 @@ class DFHB(MsgDispatcherBase):
                 self.brackets[bracket_id].set_config_perf(int(i), data['parameter_id'], sys.maxsize, value)
                 self.completed_hyper_configs.append(data)
                 if int(i) >= self.s_max or int(i) >= 1:
-                    MOO.receive_trial_result(data['parameter_id'], self.generated_hyper_configs_all[j], data['value'])
+                    config = self.generated_hyper_configs_all[data['parameter_id']].copy()
+                    if _KEY in config:
+                        del config[_KEY]
+                    MOO.receive_trial_result(data['parameter_id'], config, data['value'])
+                con.acquire()
+                con.notify()
+                con.release()
             elif data['type'] == MetricType.PERIODICAL:
                 self.brackets[bracket_id].set_config_perf(int(i), data['parameter_id'], data['sequence'], value)
+                con.acquire()
+                con.notify()
+                con.release()
             else:
                 raise ValueError('Data type not supported: {}'.format(data['type']))
 
