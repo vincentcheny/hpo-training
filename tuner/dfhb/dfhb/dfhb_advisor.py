@@ -31,6 +31,8 @@ _epsilon = 1e-6
 MOO = None
 con = threading.Condition()
 
+def hello():
+    print('hello world')
 
 def create_parameter_id():
     """Create an id

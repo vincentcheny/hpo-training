@@ -5,7 +5,7 @@ import setuptools
 
 setuptools.setup(
     name = 'DFHB',
-    version = '1.1',
+    version = '1.2',
     packages = setuptools.find_packages(exclude=['*test*']),
 
     python_requires = '>=3.6',
@@ -13,7 +13,7 @@ setuptools.setup(
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
         'Operating System :: ',
-        'NNI Package :: advisor :: DFHB :: dfhb.dfhb.DFHB :: dfhb.dfhb.DFHBClassArgsValidator'
+        'NNI Package :: advisor :: DFHB :: dfhb.dfhb_advisor.DFHB :: dfhb.dfhb_advisor.DFHBClassArgsValidator'
     ],
     
     author = 'DFHB Team',
