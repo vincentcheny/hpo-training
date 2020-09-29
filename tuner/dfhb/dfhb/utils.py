@@ -3,6 +3,7 @@ import os
 import copy
 import shutil
 import glob
+import hashlib
 heap=[]
 
 def preprocess(tid, config, path):
@@ -24,7 +25,7 @@ def preprocess(tid, config, path):
 	'''
 	item = copy.deepcopy(config)
 	item.pop('TRIAL_BUDGET')
-	hash_code = str(abs(hash(str(item))))
+	hash_code = hashlib.md5(str(item).encode('utf-8')).hexdigest()[:16]
 	load_pattern = '*' + hash_code
 	load_paths = glob.glob(os.path.join(path, load_pattern))
 	trial_budget = int(config['TRIAL_BUDGET'])
@@ -34,7 +35,7 @@ def preprocess(tid, config, path):
 	else:
 		is_load = True
 		load_path = load_paths[-1]
-	save_path = os.path.join(path, "-".join(tid, trial_budget, hash_code))
+	save_path = os.path.join(path, "-".join([tid, str(trial_budget), hash_code]))
 	remain_trial_budget = trial_budget
 	remain_trial_budget -= int(load_path.split('/')[-1].split('-')[1]) if len(load_path)>0 else 0
 	return is_load, load_path, save_path, remain_trial_budget
