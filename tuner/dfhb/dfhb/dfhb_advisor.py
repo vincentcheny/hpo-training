@@ -22,6 +22,7 @@ from nni.utils import NodeType, OptimizeMode, MetricType
 from nni import parameter_expressions
 from .moo import MultiObjectiveOptimizer
 import threading
+import time
 
 _logger = logging.getLogger(__name__)
 
@@ -31,8 +32,6 @@ _epsilon = 1e-6
 MOO = None
 con = threading.Condition()
 
-def hello():
-    print('hello world')
 
 def create_parameter_id():
     """Create an id
@@ -316,6 +315,7 @@ class DFHB(MsgDispatcherBase):
 
     def _get_one_trial_job(self):
         """get one trial job, i.e., one hyperparameter configuration."""
+        time.sleep(2)
         if not self.generated_hyper_configs:
             if self.curr_s < 0:
                 self.curr_s = self.s_max
