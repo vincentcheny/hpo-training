@@ -5,7 +5,7 @@ import setuptools
 
 setuptools.setup(
     name = 'DFHB',
-    version = '1.2',
+    version = '1.4',
     packages = setuptools.find_packages(exclude=['*test*']),
 
     python_requires = '>=3.6',

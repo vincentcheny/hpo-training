@@ -76,7 +76,7 @@ class MultiObjectiveOptimizer():
         Return a set of trial (hyper-)parameters, as a serializable object.
         Parameters
         ----------
-        parameter_id : int
+        parameter_id : str
         Returns
         -------
         params : dict
@@ -126,12 +126,12 @@ class MultiObjectiveOptimizer():
             qinfo = self._determine_next_query() 
             return self.qinfo2dict(qinfo)
 
-    def receive_trial_result(self, parameter_id, parameters, value, **kwargs):
+    def receive_trial_result(self, parameters, value, **kwargs):
         """
         Record an observation of the objective function
         Parameters
         ----------
-        parameter_id : int
+        parameter_id : str
         parameters : dict
         value : dict/float
             if value is dict, it should have "default" key.
