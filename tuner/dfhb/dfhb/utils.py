@@ -10,7 +10,8 @@ def preprocess(tid, config, path):
 	'''
 	Parameters
 	----------
-	model: tensorflow.python.keras.engine.training.Model
+	tid: str
+		trial id
 	config: dict
 		trial configuration
 	path: str
