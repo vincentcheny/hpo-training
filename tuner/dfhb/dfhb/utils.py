@@ -6,7 +6,7 @@ import glob
 import hashlib
 heap=[]
 
-def preprocess(tid, config, path):
+def preprocess(tid, config, path, is_torch=True):
 	'''
 	Parameters
 	----------
@@ -37,6 +37,8 @@ def preprocess(tid, config, path):
 		is_load = True
 		load_path = load_paths[-1]
 	save_path = os.path.join(path, "-".join([tid, str(trial_budget), hash_code]))
+	if is_torch:
+		save_path += ".pt"
 	remain_trial_budget = trial_budget
 	remain_trial_budget -= int(load_path.split('/')[-1].split('-')[1]) if len(load_path)>0 else 0
 	return is_load, load_path, save_path, remain_trial_budget
