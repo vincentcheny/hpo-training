@@ -27,7 +27,7 @@ def preprocess(tid, config, path):
 	item = copy.deepcopy(config)
 	item.pop('TRIAL_BUDGET')
 	hash_code = hashlib.md5(str(item).encode('utf-8')).hexdigest()[:16]
-	load_pattern = '*' + hash_code
+	load_pattern = '*' + hash_code + '*'
 	load_paths = glob.glob(os.path.join(path, load_pattern))
 	trial_budget = int(config['TRIAL_BUDGET'])
 	if trial_budget == 1 or len(load_paths) < 1:
