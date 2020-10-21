@@ -14,9 +14,9 @@ from schema import Schema, Optional
 from nni import ClassArgsValidator
 from nni.protocol import CommandType, send
 from nni.msg_dispatcher_base import MsgDispatcherBase
-from nni.utils import OptimizeMode, MetricType, extract_scalar_reward
+from nni.utils import OptimizeMode, MetricType
 from nni.common import multi_phase_enabled
-from .moo import MultiObjectiveOptimizer
+from .moo import MultiObjectiveOptimizerManager
 
 logger = logging.getLogger('DFHB_Advisor')
 
@@ -84,13 +84,11 @@ class Bracket:
     optimize_mode: str
         optimize mode, 'maximize' or 'minimize'
     """
-    # def __init__(self, s, s_max, eta, max_budget, optimize_mode):
-    def __init__(self, s, s_max, eta, max_budget):
+    def __init__(self, s, s_max, eta, max_budget, max_concurrency, max_idle_percentage=0.5):
         self.s = s
         self.s_max = s_max
         self.eta = eta
         self.max_budget = max_budget
-        # self.optimize_mode = OptimizeMode(optimize_mode)
 
         self.n = math.ceil((s_max + 1) * eta**s / (s + 1) - _epsilon)
         self.r = max_budget / eta**s
@@ -100,14 +98,32 @@ class Bracket:
         self.num_configs_to_run = []    # [ n, n, n, ... ]
         self.num_finished_configs = []  # [ n, n, n, ... ]
         self.no_more_trial = False
+        self.max_concurrency = max_concurrency
+        self.max_idle_percentage = max_idle_percentage
+
+    def update_max_concurrency(self, new_max_concurrency):
+        self.max_concurrency = new_max_concurrency
 
     def is_completed(self):
         """check whether this bracket has sent out all the hyperparameter configurations"""
         return self.no_more_trial
 
-    def get_n_r(self):
+    def get_n_r(self, upper_bound=None):
         """return the values of n and r for the next round"""
-        return math.floor(self.n / self.eta**self.i + _epsilon), math.floor(self.r * self.eta**self.i +_epsilon)
+        next_n = math.floor(self.n / self.eta**self.i + _epsilon)
+
+        if self.max_concurrency > next_n: # when extra resources are available
+            next_n = self.max_concurrency
+            self.i = self.s # set current round to be the last round
+            return next_n, math.floor(self.r * self.eta**self.s +_epsilon)
+
+        # check resource-budget alignment
+        # e.g. max_concurrency is 2 and next_n is 3, then next_n will be added to 4 for better alignment
+        if self.max_concurrency - next_n % self.max_concurrency > 0:
+            next_n = next_n + self.max_concurrency - next_n % self.max_concurrency
+        if upper_bound != None and next_n > upper_bound:
+            next_n = upper_bound
+        return next_n, math.floor(self.r * self.eta**self.i +_epsilon)
 
     def increase_i(self):
         """i means the ith round. Increase i by 1"""
@@ -125,7 +141,7 @@ class Bracket:
         seq: int
             sequence number, e.g., epoch number or batch number
         value: int
-            latest result with sequence number seq
+            latest result(sorting key) with sequence number seq
 
         Returns
         -------
@@ -137,7 +153,7 @@ class Bracket:
         else:
             self.configs_perf[i][parameter_id] = [seq, value]
 
-    def inform_trial_end(self, i):
+    def inform_trial_end(self, i, moo_manager, completed_hyper_configs):
         """If the trial is finished and the corresponding round (i.e., i) has all its trials finished,
         it will choose the top k trials for the next round (i.e., i+1)
 
@@ -156,25 +172,40 @@ class Bracket:
         self.num_finished_configs[i] += 1
         logger.debug('bracket id: %d, round: %d %d, finished: %d, all: %d',
                      self.s, self.i, i, self.num_finished_configs[i], self.num_configs_to_run[i])
+        
         if self.num_finished_configs[i] >= self.num_configs_to_run[i] and self.no_more_trial is False:
+            current_r = math.floor(self.r * self.eta**(self.i-1) +_epsilon)
             # choose candidate configs from finished configs to run in the next round
             assert self.i == i + 1
             # finish this bracket
             if self.i > self.s:
                 self.no_more_trial = True
+                for params_id in self.configs_perf[i]:
+                    params = self.hyper_configs[i][params_id]
+                    for config in completed_hyper_configs[current_r][::-1]:
+                        if config["param"] == params:
+                            moo_manager.receive_trial_result(parameters=params, value=config["value"], budget=current_r)
                 return None
-            this_round_perf = self.configs_perf[i]
+
+            this_round_perf = self.configs_perf[i] # [ {id: [seq, acc]}, {}, ... ]
             sorted_perf = sorted(
-                    this_round_perf.items(), key=lambda kv: kv[1][1])
+                this_round_perf.items(), key=lambda kv: kv[1][1])
             logger.debug(
                 'bracket %s next round %s, sorted hyper configs: %s', self.s, self.i, sorted_perf)
-            next_n, next_r = self.get_n_r()
+            next_n, next_r = self.get_n_r(upper_bound=len(sorted_perf))
+
             logger.debug('bracket %s next round %s, next_n=%d, next_r=%d',
                          self.s, self.i, next_n, next_r)
             hyper_configs = dict()
+            
             for k in range(next_n):
                 params_id = sorted_perf[k][0]
                 params = self.hyper_configs[i][params_id]
+                for config in completed_hyper_configs[current_r][::-1]:
+                    if config["param"] == params:
+                        moo_manager.receive_trial_result(parameters=params, value=config["value"], budget=current_r)
+                        break
+
                 params[_KEY] = next_r  # modify r
                 # generate new id
                 increased_id = params_id.split('_')[-1]
@@ -185,13 +216,17 @@ class Bracket:
             return [[key, value] for key, value in hyper_configs.items()]
         return None
 
-    def get_hyperparameter_configurations(self, num, r, config_generator):
+    def get_hyperparameter_configurations(self, num, r, manager):
         """generate num hyperparameter configurations from search space using Bayesian optimization
 
         Parameters
         ----------
         num: int
             the number of hyperparameter configurations
+        r: int
+            trial budget
+        manager: MultiObjectiveOptimizerManager
+            manage multiple optimizers with different budget
 
         Returns
         -------
@@ -203,8 +238,7 @@ class Bracket:
         hyperparameter_configs = dict()
         for _ in range(num):
             params_id = create_bracket_parameter_id(self.s, self.i)
-            # params = config_generator.get_config(r)
-            params = config_generator.generate_parameters(params_id)
+            params = manager.generate_parameters(r)
             params[_KEY] = r
             hyperparameter_configs[params_id] = params
         self._record_hyper_configs(hyperparameter_configs)
@@ -229,10 +263,11 @@ class Bracket:
 class DFHBClassArgsValidator(ClassArgsValidator):
     def validate_class_args(self, **kwargs):
         Schema({
+            Optional('eta'): self.range('eta', int, 2, 9999),
             Optional('min_budget'): self.range('min_budget', int, 0, 9999),
             Optional('max_budget'): self.range('max_budget', int, 0, 9999),
-            Optional('eta'): self.range('eta', int, 2, 9999),
-            Optional('random_seed'): self.range('random_seed', int, 0, 99999999)
+            Optional('random_seed'): self.range('random_seed', int, 0, 9999),
+            Optional('max_idle_percentage'): self.range('max_idle_percentage', float, 0, 1),
         }).validate(kwargs)
 
 class DFHB(MsgDispatcherBase):
@@ -256,13 +291,18 @@ class DFHB(MsgDispatcherBase):
         after evaluating each configuration on the same subset size, only a fraction of
         1/eta of them 'advances' to the next round.
         Must be greater or equal to 2.
+    random_seed: int
+    max_idle_percentage: float
+        Maximum percentage of idle workers allowed considering the number of trials in the 
+        last 2 rounds. Default to be 1. Must be between 0 and 1.
     """
 
     def __init__(self,
                  min_budget=1,
                  max_budget=3,
                  eta=3,
-                 random_seed=0):
+                 random_seed=0,
+                 max_idle_percentage=0.5):
         super(DFHB, self).__init__()
         self.min_budget = min_budget
         self.max_budget = max_budget
@@ -272,7 +312,7 @@ class DFHB(MsgDispatcherBase):
         # all the configs waiting for run
         self.generated_hyper_configs = []
         # all the completed configs
-        self.completed_hyper_configs = []
+        self.completed_hyper_configs = dict()
 
         self.s_max = math.floor(
             math.log(self.max_budget / self.min_budget, self.eta) + _epsilon)
@@ -285,8 +325,8 @@ class DFHB(MsgDispatcherBase):
         # [key, value] = [parameter_id, parameter]
         self.parameters = dict()
 
-        # config generator
-        self.cg = None
+        # MultiObjectiveOptimizerManager
+        self.moo_manager = None
 
         # record the latest parameter_id of the trial job trial_job_id.
         # if there is no running parameter_id, self.job_id_para_id_map[trial_job_id] == None
@@ -294,6 +334,8 @@ class DFHB(MsgDispatcherBase):
         self.job_id_para_id_map = dict()
         # record the unsatisfied parameter request from trial jobs
         self.unsatisfied_jobs = []
+        self.max_concurrency = 1
+        self.max_idle_percentage = max_idle_percentage
 
     def handle_initialize(self, data):
         """Initialize Tuner, including creating Bayesian optimization-based parametric models
@@ -311,7 +353,7 @@ class DFHB(MsgDispatcherBase):
         """
         logger.info('start to handle_initialize')
         self.search_space = data
-        self.cg = MultiObjectiveOptimizer(self.random_seed)
+        self.moo_manager = MultiObjectiveOptimizerManager(random_seed=self.random_seed)
         assert isinstance(self.search_space, dict)
         try:
             assert all(self.search_space[var]["_type"] == "choice" for var in self.search_space)
@@ -319,7 +361,7 @@ class DFHB(MsgDispatcherBase):
             raise KeyError(f'Error: Search space missed a key:{ke}')
         except AssertionError as ae:
             raise AssertionError(f'Some types in search space are not "choice".')
-        self.cg.update_search_space(self.search_space)
+        self.moo_manager.update_search_space(self.search_space)
 
         # generate first brackets
         self.generate_new_bracket()
@@ -333,16 +375,15 @@ class DFHB(MsgDispatcherBase):
             logger.info("s < 0, Finish this round of Hyperband in DFHB. Generate new round")
             self.curr_s = self.s_max
         self.brackets[self.curr_s] = Bracket(
-            s=self.curr_s, s_max=self.s_max, eta=self.eta, max_budget=self.max_budget
-            # max_budget=self.max_budget, optimize_mode=self.optimize_mode
+            s=self.curr_s, s_max=self.s_max, eta=self.eta, max_budget=self.max_budget, max_concurrency=self.max_concurrency, max_idle_percentage=self.max_idle_percentage
         )
         next_n, next_r = self.brackets[self.curr_s].get_n_r()
         logger.debug(
             'new SuccessiveHalving iteration, next_n=%d, next_r=%d', next_n, next_r)
-        # rewrite with TPE
+
         generated_hyper_configs = self.brackets[self.curr_s].get_hyperparameter_configurations(
-            next_n, next_r, self.cg)
-        self.generated_hyper_configs = generated_hyper_configs.copy()
+            next_n, next_r, self.moo_manager)
+        self.generated_hyper_configs = generated_hyper_configs
 
     def handle_request_trial_jobs(self, data):
         """receive the number of request and generate trials
@@ -352,9 +393,11 @@ class DFHB(MsgDispatcherBase):
         data: int
             number of trial jobs that nni manager ask to generate
         """
+        if self.max_concurrency < data:
+            self.max_concurrency = data
+            self.brackets[self.curr_s].update_max_concurrency(self.max_concurrency)
         # Receive new request
         self.credit += data
-
         for _ in range(self.credit):
             self._request_one_trial_job()
 
@@ -448,16 +491,17 @@ class DFHB(MsgDispatcherBase):
 
     def _handle_trial_end(self, parameter_id):
         s, i, _ = parameter_id.split('_')
-        hyper_configs = self.brackets[int(s)].inform_trial_end(int(i))
+        hyper_configs = self.brackets[int(s)].inform_trial_end(int(i), self.moo_manager, self.completed_hyper_configs)
 
         if hyper_configs is not None:
             logger.debug(
                 'bracket %s next round %s, hyper_configs: %s', s, i, hyper_configs)
             self.generated_hyper_configs = self.generated_hyper_configs + hyper_configs
         # Finish this bracket and generate a new bracket
-        elif self.brackets[int(s)].no_more_trial:
-            self.curr_s -= 1
-            self.generate_new_bracket()
+        else:
+            if self.brackets[int(s)].no_more_trial:
+                self.curr_s -= 1
+                self.generate_new_bracket()
         self._send_new_trial()
 
     def handle_report_metric_data(self, data):
@@ -512,13 +556,14 @@ class DFHB(MsgDispatcherBase):
                 assert 'sequence' in data
                 self.brackets[s].set_config_perf(
                     int(i), data['parameter_id'], sys.maxsize, value)
-                self.completed_hyper_configs.append(data)
-
+                
                 _parameters = self.parameters[data['parameter_id']]
-                _parameters.pop(_KEY)
-                # update BO with loss, max_s budget, hyperparameters
-                if int(s) == int(i): # only record the last round's result in each bracket
-                    self.cg.receive_trial_result(parameters=_parameters, value=data['value'])
+                budget = _parameters.pop(_KEY)
+
+                if budget not in self.completed_hyper_configs:
+                    self.completed_hyper_configs[budget] = list()
+                self.completed_hyper_configs[budget].append({"param":_parameters, "value":data['value']})
+
             elif data['type'] == MetricType.PERIODICAL:
                 self.brackets[s].set_config_perf(
                     int(i), data['parameter_id'], data['sequence'], value)
@@ -555,7 +600,6 @@ class DFHB(MsgDispatcherBase):
             if not _value:
                 logger.info("Useless trial data, value is %s, skip this trial data.", _value)
                 continue
-            _value = self.extract_scalar_value(_value, extract_key='default', opposite_key='maximize')
             budget_exist_flag = False
             barely_params = dict()
             for keys in _params:
@@ -567,7 +611,7 @@ class DFHB(MsgDispatcherBase):
             if not budget_exist_flag:
                 _budget = self.max_budget
                 logger.info("Set \"TRIAL_BUDGET\" value to %s (max budget)", self.max_budget)
-            self.cg.receive_trial_result(parameters=barely_params, value=trial_info['value'])
+            self.moo_manager.receive_trial_result(parameters=barely_params, value=trial_info['value'], budget=_budget)
         logger.info("Successfully import tuning data to DFHB advisor.")
     
     def extract_scalar_value(self, raw_data, extract_key='default', opposite_key='maximize'):

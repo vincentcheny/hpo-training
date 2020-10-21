@@ -12,12 +12,12 @@ from .dragonfly.exd.exd_core import exd_core_args
 from .dragonfly.exd.cp_domain_utils import sample_from_cp_domain, load_config
 from .dragonfly.opt.gp_bandit import gp_bandit_args
 
+import ConfigSpace as CS
+import ConfigSpace.hyperparameters as CSH
+
 EVAL_ERROR_CODE = 'eval_error_250320181729'
 
-class MultiObjectiveOptimizer():
-    """
-    CUHKPrototypeTuner is a tuner enable tuning with multiple objectives.
-    """
+class MultiObjectiveOptimizerManager():
 
     def __init__(self, random_seed=None, num_init_evals=2, build_new_model_every=5):
         """
@@ -31,33 +31,25 @@ class MultiObjectiveOptimizer():
             np.random.seed(random_seed)
         self.num_init_evals = num_init_evals
         self.build_new_model_every = build_new_model_every
-        self.total_data = dict()
         self.search_space = dict()
         self.domain = None
         self.trial_idx = 0
         self.num_objectives = 0
-        self.curr_acq = None
-        self.gps = None
         self.options = Namespace()
-        self.history = Namespace(
-            query_points=[],
-            query_vals=[]
-        )
-        self.get_acq_opt_max_evals = None
-        self.acq_opt_method = 'ga'
-        self.eval_points_in_progress = []
-
+        self.config_space=CS.ConfigurationSpace(seed=random_seed)
+        self.optimizers = dict()
+    
     def update_search_space(self, search_space):
         """
         Generate a MOO-BO model based on dragonfly
         Update search space definition in tuner by search_space in parameters.
-        Will called when first setup experiemnt or update search space in WebUI.
+        Called when first setup experiemnt or update search space in WebUI.
         Parameters
         ----------
         search_space : dict
 
         search_space example:
-        OrderedDict([('learning_rate', OrderedDict([('_type', 'choice'), ('_value', [0.5, 0.25, 0.1, 0.05, 0.025, 0.01, 0.005, 0.0025, 0.001, 0.0005, 0.00025, 0.0001, 5e-05, 2.5e-05, 1e-05])])), ('optimizer', OrderedDict([('_type', 'choice'), ('_value', ['adam', 'sgd', 'rmsp'])])), ('batch_size', OrderedDict([('_type', 'choice'), ('_value', [8, 16, 32, 64, 128])])), ('epoch1', OrderedDict([('_type', 'choice'), ('_value', [3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27])])), ('epoch', OrderedDict([('_type', 'choice'), ('_value', [1])])), ('filter_num', OrderedDict([('_type', 'choice'), ('_value', [8, 16, 24, 32, 40, 48, 56, 64])])), ('kernel_size', OrderedDict([('_type', 'choice'), ('_value', [1, 2, 3, 4, 5])])), ('weight_decay', OrderedDict([('_type', 'choice'), ('_value', [0.08, 0.04, 0.01, 0.008, 0.004, 0.001, 0.0008, 0.0004, 0.0001, 8e-05, 4e-05, 1e-05])])), ('dense_size', OrderedDict([('_type', 'choice'), ('_value', [64, 128, 256, 512, 1024])]))])
+        OrderedDict([('learning_rate', OrderedDict([('_type', 'choice'), ('_value', [0.5, 0.25, 0.1, 0.05, 0.025, 0.01])])), ('optimizer', OrderedDict([('_type', 'choice'), ('_value', ['adam', 'sgd', 'rmsp'])])), ('batch_size', OrderedDict([('_type', 'choice'), ('_value', [8, 16, 32, 64, 128])])), ('epoch1', OrderedDict([('_type', 'choice'), ('_value', [3, 5, 7, 9, 11, 13])])), ('filter_num', OrderedDict([('_type', 'choice'), ('_value', [8, 16, 24, 32, 40, 48, 56, 64])])), ('kernel_size', OrderedDict([('_type', 'choice'), ('_value', [1, 2, 3, 4, 5])])), ('weight_decay', OrderedDict([('_type', 'choice'), ('_value', [0.08, 0.04, 0.01, 0.008])])), ('dense_size', OrderedDict([('_type', 'choice'), ('_value', [64, 128, 256, 512, 1024])]))])
         """
         config = self.sp2config(search_space)
         self.domain = config.domain
@@ -71,34 +63,97 @@ class MultiObjectiveOptimizer():
         self.options = opt_options
         self.search_space = search_space
 
-    def generate_parameters(self, parameter_id, **kwargs):
+        for var in self.search_space:
+            _type = str(self.search_space[var]["_type"])
+            if _type == 'choice':
+                self.config_space.add_hyperparameter(CSH.CategoricalHyperparameter(
+                    var, choices=self.search_space[var]["_value"]))
+            else:
+                raise ValueError(
+                    'unrecognized type in search_space, type is {}'.format(_type))
+                
+    def sp2config(self,search_space):
+        domain_vars = []
+        for name in search_space:
+            domain_var = {
+                'name': name,
+                'type': 'discrete_numeric' if isinstance(search_space[name]['_value'][0], (float, int)) else 'discrete',
+                'items': search_space[name]['_value']
+            }
+            domain_vars.append(domain_var)
+        config_params = {'domain': domain_vars}
+        config = load_config(config_params)
+        return config
+
+    def _get_user_options(self):
+        options = load_options([ 
+            get_option_specs('init_capital', False, None, 'The capital to be used for initialisation.'),
+            get_option_specs('num_init_evals', False, self.num_init_evals, 'The number of evaluations for initialisation.')
+        ])
+        return options
+    
+    def get_all_cp_moo_gp_bandit_args(self):
+        return multiobjective_gp_bandit_args + exd_core_args + gp_bandit_args
+    
+    def generate_parameters(self, budget):
+        if budget not in self.optimizers:
+            self.optimizers[budget] = MultiObjectiveOptimizer(self)
+        return self.optimizers[budget].generate_parameters()
+    
+    def receive_trial_result(self, parameters, value, budget):
+        if budget not in self.optimizers:
+            self.optimizers[budget] = MultiObjectiveOptimizer(self)
+        self.optimizers[budget].receive_trial_result(parameters, value)
+
+
+class MultiObjectiveOptimizer():
+    """
+    MultiObjectiveOptimizer is a tuner enable tuning with multiple objectives.
+    """
+
+    def __init__(self, manager):
+        self.trial_idx = 0
+        self.curr_acq = None
+        self.gps = None
+        self.history = Namespace(
+            query_points=[],
+            query_vals=[]
+        )
+        self.get_acq_opt_max_evals = None
+        self.acq_opt_method = 'ga'
+        self.eval_points_in_progress = []
+        self.manager = manager
+
+    def generate_parameters(self):
         """
         Return a set of trial (hyper-)parameters, as a serializable object.
         Parameters
         ----------
-        parameter_id : str
+
         Returns
         -------
         params : dict
         """
-        if len(self.search_space) == 0:
+        if len(self.manager.search_space) == 0:
             return []
-        if self.trial_idx < self.num_init_evals:           
-            if self.trial_idx == 0 or not hasattr(self, 'init_qinfo'):
-                ret_dom_pts = sample_from_cp_domain(
-                    cp_domain=self.domain, 
-                    num_samples=self.num_init_evals,
-                    domain_samplers=None,
-                    euclidean_sample_type='latin_hc',
-                    integral_sample_type='latin_hc',
-                    nn_sample_type='latin_hc')
-                self.init_qinfo = ret_dom_pts
-            return self.qinfo2dict(self.init_qinfo[self.trial_idx]) if self.trial_idx < len(self.init_qinfo) else {}
+        if self.trial_idx < self.manager.num_init_evals:           
+            # if self.trial_idx == 0 or not hasattr(self, 'init_qinfo'):
+            #     ret_dom_pts = sample_from_cp_domain(
+            #         cp_domain=self.domain, 
+            #         num_samples=self.num_init_evals,
+            #         domain_samplers=None,
+            #         euclidean_sample_type='latin_hc',
+            #         integral_sample_type='latin_hc',
+            #         nn_sample_type='latin_hc')
+            #     self.init_qinfo = ret_dom_pts
+            # return self.qinfo2dict(self.init_qinfo[self.trial_idx]) if self.trial_idx < len(self.init_qinfo) else {}
+            
+            return self.manager.config_space.sample_configuration().get_dictionary()
         else:
             # opt/multiobjective_gp_bandit.py: 190
             # _main_loop_pre() or _set_next_gp()
             if not hasattr(self, 'gp_processors') or self.gp_processors is None:
-                self._build_new_gps(self.num_objectives)
+                self._build_new_gps(self.manager.num_objectives)
             self.gps = []
             for gp_processor in self.gp_processors:
                 ret = gp_processor.gp_fitter.get_next_gp()
@@ -126,22 +181,21 @@ class MultiObjectiveOptimizer():
             qinfo = self._determine_next_query() 
             return self.qinfo2dict(qinfo)
 
-    def receive_trial_result(self, parameters, value, **kwargs):
+    def receive_trial_result(self, parameters, value):
         """
         Record an observation of the objective function
         Parameters
         ----------
-        parameter_id : str
         parameters : dict
         value : dict/float
             if value is dict, it should have "default" key.
             value is final metrics of the trial.
         """
-        if self.trial_idx < self.num_init_evals:
+        if self.trial_idx < self.manager.num_init_evals:
             self.trial_idx += 1
         report_value = self.extract(value)
-        if self.num_objectives != len(report_value):
-            self.num_objectives = len(report_value)
+        if self.manager.num_objectives != len(report_value):
+            self.manager.num_objectives = len(report_value)
         
         qinfos = self.dict2qinfos(parameters, report_value)
         for qinfo in qinfos:
@@ -230,46 +284,22 @@ class MultiObjectiveOptimizer():
             self.history.query_vals.append(qinfo.val)
             self.eval_points_in_progress.append(qinfo.point)
 
-    def sp2config(self,search_space):
-        domain_vars = []
-        for name in search_space:
-            domain_var = {
-                'name': name,
-                'type': 'discrete_numeric' if isinstance(search_space[name]['_value'][0], (float, int)) else 'discrete',
-                'items': search_space[name]['_value']
-            }
-            domain_vars.append(domain_var)
-        config_params = {'domain': domain_vars}
-        
-        config = load_config(config_params)
-        return config
-    
-    def _get_user_options(self):
-        options = load_options([ 
-            get_option_specs('init_capital', False, None, 'The capital to be used for initialisation.'),
-            get_option_specs('num_init_evals', False, self.num_init_evals, 'The number of evaluations for initialisation.')
-        ])
-        return options
-    
-    def get_all_cp_moo_gp_bandit_args(self):
-        return multiobjective_gp_bandit_args + exd_core_args + gp_bandit_args
-
     def _build_new_gps(self, num_objectives):
         # Invoke the GP fitter.
         self.gp_processors = []
         for i in range(num_objectives):
             gp_fitter = self._get_non_mf_gp_fitter(i)
             # Fits gp and adds it to gp_processor
-            gp_fitter.fit_gp_for_gp_bandit(self.build_new_model_every)
+            gp_fitter.fit_gp_for_gp_bandit(self.manager.build_new_model_every)
             gp_processor = Namespace()
             gp_processor.gp_fitter = gp_fitter
             self.gp_processors.append(gp_processor)
     
     def _get_non_mf_gp_fitter(self, gp_idx):
         """ Returns the Non-Multi-fidelity GP Fitter. """
-        options = Namespace(**vars(self.options)) # opt/multiobjective_gp_bandit.py: 285
+        options = Namespace(**vars(self.manager.options)) # opt/multiobjective_gp_bandit.py: 285
         reg_data = self._get_moo_gp_reg_data(gp_idx)
-        return CPGPFitter(reg_data[0], reg_data[1], self.domain, domain_kernel_ordering=['', ''], options=options)
+        return CPGPFitter(reg_data[0], reg_data[1], self.manager.domain, domain_kernel_ordering=['', ''], options=options)
     
     def _get_moo_gp_reg_data(self, obj_ind): # opt/multiobjective_gp_bandit.py: 257
         """ Returns the current data to be added to the GP. """
@@ -341,20 +371,20 @@ class MultiObjectiveOptimizer():
             curr_acq=curr_acq,
             max_evals=max_num_acq_opt_evals,
             t=self.trial_idx,
-            domain=self.domain,
+            domain=self.manager.domain,
             eval_points_in_progress=self.eval_points_in_progress,
             acq_opt_method=self.acq_opt_method,
-            handle_parallel=self.options.handle_parallel,
-            mf_strategy=self.options.mf_strategy,
+            handle_parallel=self.manager.options.handle_parallel,
+            mf_strategy=self.manager.options.mf_strategy,
             is_mf=False,
-            obj_weights=np.abs(np.random.normal(loc=0.0, scale=10, size=(self.num_objectives,))), # opt/multiobjective_gp_bandit.py:78
-            reference_point=[-1.0]*self.num_objectives # opt/multiobjective_gp_bandit.py:90
+            obj_weights=np.abs(np.random.normal(loc=0.0, scale=10, size=(self.manager.num_objectives,))), # opt/multiobjective_gp_bandit.py:78
+            reference_point=[-1.0]*self.manager.num_objectives # opt/multiobjective_gp_bandit.py:90
         )
         return ret
 
     def _set_up_cp_acq_opt_ga(self):
         """ Set up optimisation for acquisition using rand. """
-        domain_types = [dom.get_type() for dom in self.domain.list_of_domains]
+        domain_types = [dom.get_type() for dom in self.manager.domain.list_of_domains]
         if 'neural_network' in domain_types:
             # Because Neural networks can be quite expensive
             self._set_up_cp_acq_opt_with_params(1, 500, 2e4)
@@ -364,15 +394,15 @@ class MultiObjectiveOptimizer():
     def _set_up_cp_acq_opt_with_params(self, lead_const, min_iters, max_iters):
         """ Sets up optimisation for acquisition using direct. """
         if self.get_acq_opt_max_evals is None:
-            dim_factor = lead_const * min(5, self.domain.get_dim())**2
+            dim_factor = lead_const * min(5, self.manager.domain.get_dim())**2
             self.get_acq_opt_max_evals = lambda t: np.clip(dim_factor * np.sqrt(min(t, 1000)),
                                                             min_iters, max_iters)
 
     def qinfo2dict(self, qinfo):
         params = dict()
         idx0 = idx1 = 0
-        for para_name in self.search_space.keys():
-            if isinstance(self.search_space[para_name]['_value'][0], (float, int)):
+        for para_name in self.manager.search_space.keys():
+            if isinstance(self.manager.search_space[para_name]['_value'][0], (float, int)):
                 numerical_idx = 1 if len(qinfo) > 1 else 0
                 if isinstance(qinfo[numerical_idx][idx1], np.float64):
                     qinfo[numerical_idx][idx1] = float(qinfo[numerical_idx][idx1])

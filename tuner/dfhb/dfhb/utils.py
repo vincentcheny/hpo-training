@@ -6,7 +6,7 @@ import glob
 import hashlib
 heap=[]
 
-def preprocess(tid, config, path, is_torch=True):
+def preprocess(tid: str, config: dict, path: str):
 	'''
 	Parameters
 	----------
@@ -23,6 +23,10 @@ def preprocess(tid, config, path, is_torch=True):
 	load_path: str
 	save_path: str
 	remain_trial_budget: int
+
+	Introduction
+	------------
+	Maintain the checkpoints in the path based on configuration.
 	'''
 	item = copy.deepcopy(config)
 	item.pop('TRIAL_BUDGET')
@@ -37,8 +41,6 @@ def preprocess(tid, config, path, is_torch=True):
 		is_load = True
 		load_path = load_paths[-1]
 	save_path = os.path.join(path, "-".join([tid, str(trial_budget), hash_code]))
-	if is_torch:
-		save_path += ".pt"
 	remain_trial_budget = trial_budget
 	remain_trial_budget -= int(load_path.split('/')[-1].split('-')[1]) if len(load_path)>0 else 0
 	return is_load, load_path, save_path, remain_trial_budget
@@ -64,6 +66,18 @@ def postprocess(model, result, config, path, heap_size):
 		a path storing checkpointing folders 
 	heap_size: int
 		maximum number of ckpt to keep for next round's loading
+	
+	Return
+	------
+	None
+
+	Introduction
+	------------
+	Maintain a heap of checkpoints with some given size.
+
+	Notes
+	-----
+	Not compatible with PyTorch for the time being.
 	'''
 	if not isinstance(heap_size, int) or heap_size <= 0:
 		raise ValueError(f"ValueError: heap_size should be a positive integer but gets a value {heap_size}.")
