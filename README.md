@@ -3,10 +3,10 @@
 ## Installation
 
 ```bash
-# CUHKPrototypeTuner
+# DFHB
 pip install nni
-wget https://github.com/vincentcheny/hpo-training/releases/download/v1.3/CUHKPrototypeTuner-1.3-py3-none-any.whl
-nnictl package install CUHKPrototypeTuner-1.3-py3-none-any.whl
+wget https://github.com/vincentcheny/hpo-training/releases/download/dfhb_v1.5/DFHB-1.5-py3-none-any.whl
+nnictl package install DFHB-1.5-py3-none-any.whl
 ```
 
 ## Search Space
@@ -57,9 +57,20 @@ nnictl package install CUHKPrototypeTuner-1.3-py3-none-any.whl
 |                            VGG16                             | [Cifar10](https://www.tensorflow.org/api_docs/python/tf/keras/datasets/cifar10) (178M) |  11hrs  | ![](https://lh3.googleusercontent.com/-qyOCs-yEHJQ/X2L7KnlzRMI/AAAAAAAAAfk/UbkRS7sl82AvEodCqZT3gwtdUQLwDMBJACK8BGAsYHg/s0/2020-09-16.png) |
 | [DenseNet](https://www.kaggle.com/ratan123/aptos-2019-keras-baseline) | [Blindness Detection](https://www.kaggle.com/c/aptos2019-blindness-detection) (10G) |  13hrs  | ![](https://lh3.googleusercontent.com/-FOWn1hbHB5A/X2L7A9F6JdI/AAAAAAAAAfg/x5nCuyoFYvQdzWHyFB1m-D7N92sBUCSmQCK8BGAsYHg/s0/2020-09-16.png) |
 |                          Inception                           | [Human Protein](https://www.kaggle.com/mathormad/inceptionv3-baseline-lb-0-379/data) (14G) |  10hrs  | ![](https://lh3.googleusercontent.com/-9fgPN9cbHnc/X2L6odzzyEI/AAAAAAAAAfY/2D60nIbPU9wZEsWavyQD0nZVpp-uORHMACK8BGAsYHg/s0/2020-09-16.png) |
+|                          GoogLeNet                           |         [ImageNet](http://www.image-net.org/) (134G)         |  66hrs  | ![](https://lh3.googleusercontent.com/-03vAi9X-VUo/X40f5e7kFeI/AAAAAAAAAiM/bniQv4iz6nkP1LU1_3qo6pxkh_O8cWppgCK8BGAsYHg/s0/2020-10-18.png) |
+
+<details>
+  <summary>CUHKPrototypeTuner</summary>
+
+
+|                            Model                             |                           Dataset                            | Runtime |                            Result                            |
+| :----------------------------------------------------------: | :----------------------------------------------------------: | :-----: | :----------------------------------------------------------: |
+|                            VGG16                             | [Cifar10](https://www.tensorflow.org/api_docs/python/tf/keras/datasets/cifar10) (178M) |  11hrs  | ![](https://lh3.googleusercontent.com/-qyOCs-yEHJQ/X2L7KnlzRMI/AAAAAAAAAfk/UbkRS7sl82AvEodCqZT3gwtdUQLwDMBJACK8BGAsYHg/s0/2020-09-16.png) |
+| [DenseNet](https://www.kaggle.com/ratan123/aptos-2019-keras-baseline) | [Blindness Detection](https://www.kaggle.com/c/aptos2019-blindness-detection) (10G) |  13hrs  | ![](https://lh3.googleusercontent.com/-FOWn1hbHB5A/X2L7A9F6JdI/AAAAAAAAAfg/x5nCuyoFYvQdzWHyFB1m-D7N92sBUCSmQCK8BGAsYHg/s0/2020-09-16.png) |
+|                          Inception                           | [Human Protein](https://www.kaggle.com/mathormad/inceptionv3-baseline-lb-0-379/data) (14G) |  10hrs  | ![](https://lh3.googleusercontent.com/-9fgPN9cbHnc/X2L6odzzyEI/AAAAAAAAAfY/2D60nIbPU9wZEsWavyQD0nZVpp-uORHMACK8BGAsYHg/s0/2020-09-16.png) |
 |                          GoogLeNet                           |         [ImageNet](http://www.image-net.org/) (134G)         |  50hrs  | ![](https://lh3.googleusercontent.com/-InEwCSUkhxY/X0j-MxnYbwI/AAAAAAAAAbU/p8G_7Hb073shM5TbXDT6lEzxIvCoRkL5wCK8BGAsYHg/s0/2020-08-28.png) |
 
-
+</details>
 
 <details>
   <summary>Performance without GPU parameters</summary>
