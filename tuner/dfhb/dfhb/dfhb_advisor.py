@@ -100,6 +100,7 @@ class Bracket:
         self.no_more_trial = False
         self.max_concurrency = max_concurrency
         self.max_idle_percentage = max_idle_percentage
+        self.is_last_round = False
 
     def update_max_concurrency(self, new_max_concurrency):
         self.max_concurrency = new_max_concurrency
@@ -114,7 +115,7 @@ class Bracket:
 
         if self.max_concurrency > next_n: # when extra resources are available
             next_n = self.max_concurrency
-            self.i = self.s # set current round to be the last round
+            self.is_last_round = True # set current round to be the last round
             return next_n, math.floor(self.r * self.eta**self.s +_epsilon)
 
         # check resource-budget alignment
@@ -178,7 +179,8 @@ class Bracket:
             # choose candidate configs from finished configs to run in the next round
             assert self.i == i + 1
             # finish this bracket
-            if self.i > self.s:
+            if self.i > self.s or self.is_last_round:
+                current_r = math.floor(self.r * self.eta**self.s +_epsilon)
                 self.no_more_trial = True
                 for params_id in self.configs_perf[i]:
                     params = self.hyper_configs[i][params_id]
