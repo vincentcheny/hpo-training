@@ -2,7 +2,7 @@
 # Licensed under the MIT license.
 
 '''
-dfhb_advisor.py
+cuhk_prototype_tuner_v2_advisor.py
 '''
 
 import sys
@@ -18,7 +18,7 @@ from nni.utils import OptimizeMode, MetricType
 from nni.common import multi_phase_enabled
 from .moo import MultiObjectiveOptimizerManager
 
-logger = logging.getLogger('DFHB_Advisor')
+logger = logging.getLogger('CUHKPrototypeTunerV2_Advisor')
 
 _next_parameter_id = 0
 _KEY = 'TRIAL_BUDGET'
@@ -64,7 +64,7 @@ def create_bracket_parameter_id(brackets_id, brackets_curr_decay, increased_id=-
 
 class Bracket:
     """
-    A bracket in DFHB, all the information of a bracket is managed by
+    A bracket in CUHKPrototypeTunerV2, all the information of a bracket is managed by
     an instance of this class.
 
     Parameters
@@ -262,7 +262,7 @@ class Bracket:
         self.num_configs_to_run.append(len(hyper_configs))
         self.increase_i()
 
-class DFHBClassArgsValidator(ClassArgsValidator):
+class CUHKPrototypeTunerV2ClassArgsValidator(ClassArgsValidator):
     def validate_class_args(self, **kwargs):
         Schema({
             Optional('eta'): self.range('eta', int, 2, 9999),
@@ -272,12 +272,12 @@ class DFHBClassArgsValidator(ClassArgsValidator):
             Optional('max_idle_percentage'): self.range('max_idle_percentage', float, 0, 1),
         }).validate(kwargs)
 
-class DFHB(MsgDispatcherBase):
+class CUHKPrototypeTunerV2(MsgDispatcherBase):
     """
-    DFHB performs robust and efficient hyperparameter optimization
+    CUHKPrototypeTunerV2 performs robust and efficient hyperparameter optimization
     at scale by combining the speed of Hyperband searches with the
     guidance and guarantees of convergence of Bayesian Optimization.
-    Instead of sampling new configurations at random, DFHB uses
+    Instead of sampling new configurations at random, CUHKPrototypeTunerV2 uses
     kernel density estimators to select promising candidates.
 
     Parameters
@@ -305,7 +305,7 @@ class DFHB(MsgDispatcherBase):
                  eta=3,
                  random_seed=0,
                  max_idle_percentage=0.5):
-        super(DFHB, self).__init__()
+        super(CUHKPrototypeTunerV2, self).__init__()
         self.min_budget = min_budget
         self.max_budget = max_budget
         self.eta = eta
@@ -374,7 +374,7 @@ class DFHB(MsgDispatcherBase):
         logger.debug(
             'start to create a new SuccessiveHalving iteration, self.curr_s=%d', self.curr_s)
         if self.curr_s < 0:
-            logger.info("s < 0, Finish this round of Hyperband in DFHB. Generate new round")
+            logger.info("s < 0, Finish this round of Hyperband in CUHKPrototypeTunerV2. Generate new round")
             self.curr_s = self.s_max
         self.brackets[self.curr_s] = Bracket(
             s=self.curr_s, s_max=self.s_max, eta=self.eta, max_budget=self.max_budget, max_concurrency=self.max_concurrency, max_idle_percentage=self.max_idle_percentage
@@ -406,14 +406,14 @@ class DFHB(MsgDispatcherBase):
     def _get_one_trial_job(self):
         """get one trial job, i.e., one hyperparameter configuration.
 
-        If this function is called, Command will be sent by DFHB:
+        If this function is called, Command will be sent by CUHKPrototypeTunerV2:
         a. If there is a parameter need to run, will return "NewTrialJob" with a dict:
         {
             'parameter_id': id of new hyperparameter
             'parameter_source': 'algorithm'
             'parameters': value of new hyperparameter
         }
-        b. If DFHB don't have parameter waiting, will return "NoMoreTrialJobs" with
+        b. If CUHKPrototypeTunerV2 don't have parameter waiting, will return "NoMoreTrialJobs" with
         {
             'parameter_id': '-1_0_0',
             'parameter_source': 'algorithm',
@@ -441,14 +441,14 @@ class DFHB(MsgDispatcherBase):
     def _request_one_trial_job(self):
         """get one trial job, i.e., one hyperparameter configuration.
 
-        If this function is called, Command will be sent by DFHB:
+        If this function is called, Command will be sent by CUHKPrototypeTunerV2:
         a. If there is a parameter need to run, will return "NewTrialJob" with a dict:
         {
             'parameter_id': id of new hyperparameter
             'parameter_source': 'algorithm'
             'parameters': value of new hyperparameter
         }
-        b. If DFHB don't have parameter waiting, will return "NoMoreTrialJobs" with
+        b. If CUHKPrototypeTunerV2 don't have parameter waiting, will return "NoMoreTrialJobs" with
         {
             'parameter_id': '-1_0_0',
             'parameter_source': 'algorithm',
@@ -614,7 +614,7 @@ class DFHB(MsgDispatcherBase):
                 _budget = self.max_budget
                 logger.info("Set \"TRIAL_BUDGET\" value to %s (max budget)", self.max_budget)
             self.moo_manager.receive_trial_result(parameters=barely_params, value=trial_info['value'], budget=_budget)
-        logger.info("Successfully import tuning data to DFHB advisor.")
+        logger.info("Successfully import tuning data to CUHKPrototypeTunerV2.")
     
     def extract_scalar_value(self, raw_data, extract_key='default', opposite_key='maximize'):
         assert isinstance(raw_data, dict)
