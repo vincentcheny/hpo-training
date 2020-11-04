@@ -84,7 +84,7 @@ class Bracket:
     optimize_mode: str
         optimize mode, 'maximize' or 'minimize'
     """
-    def __init__(self, s, s_max, eta, max_budget, max_concurrency, max_idle_percentage=0.5):
+    def __init__(self, s, s_max, eta, max_budget, max_concurrency):
         self.s = s
         self.s_max = s_max
         self.eta = eta
@@ -99,7 +99,6 @@ class Bracket:
         self.num_finished_configs = []  # [ n, n, n, ... ]
         self.no_more_trial = False
         self.max_concurrency = max_concurrency
-        self.max_idle_percentage = max_idle_percentage
         self.is_last_round = False
 
     def update_max_concurrency(self, new_max_concurrency):
@@ -268,8 +267,7 @@ class CUHKPrototypeTunerV2ClassArgsValidator(ClassArgsValidator):
             Optional('eta'): self.range('eta', int, 2, 9999),
             Optional('min_budget'): self.range('min_budget', int, 0, 9999),
             Optional('max_budget'): self.range('max_budget', int, 0, 9999),
-            Optional('random_seed'): self.range('random_seed', int, 0, 9999),
-            Optional('max_idle_percentage'): self.range('max_idle_percentage', float, 0, 1),
+            Optional('random_seed'): self.range('random_seed', int, 0, 9999)
         }).validate(kwargs)
 
 class CUHKPrototypeTunerV2(MsgDispatcherBase):
@@ -294,17 +292,13 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
         1/eta of them 'advances' to the next round.
         Must be greater or equal to 2.
     random_seed: int
-    max_idle_percentage: float
-        Maximum percentage of idle workers allowed considering the number of trials in the 
-        last 2 rounds. Default to be 1. Must be between 0 and 1.
     """
 
     def __init__(self,
                  min_budget=1,
                  max_budget=3,
                  eta=3,
-                 random_seed=0,
-                 max_idle_percentage=0.5):
+                 random_seed=0):
         super(CUHKPrototypeTunerV2, self).__init__()
         self.min_budget = min_budget
         self.max_budget = max_budget
@@ -337,7 +331,6 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
         # record the unsatisfied parameter request from trial jobs
         self.unsatisfied_jobs = []
         self.max_concurrency = 1
-        self.max_idle_percentage = max_idle_percentage
 
     def handle_initialize(self, data):
         """Initialize Tuner, including creating Bayesian optimization-based parametric models
@@ -377,7 +370,7 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
             logger.info("s < 0, Finish this round of Hyperband in CUHKPrototypeTunerV2. Generate new round")
             self.curr_s = self.s_max
         self.brackets[self.curr_s] = Bracket(
-            s=self.curr_s, s_max=self.s_max, eta=self.eta, max_budget=self.max_budget, max_concurrency=self.max_concurrency, max_idle_percentage=self.max_idle_percentage
+            s=self.curr_s, s_max=self.s_max, eta=self.eta, max_budget=self.max_budget, max_concurrency=self.max_concurrency
         )
         next_n, next_r = self.brackets[self.curr_s].get_n_r()
         logger.debug(
