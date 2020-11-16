@@ -20,6 +20,9 @@ from .dragonfly.exd.exd_core import exd_core_args
 from .dragonfly.exd.cp_domain_utils import sample_from_cp_domain, load_config
 from .dragonfly.opt.gp_bandit import gp_bandit_args
 
+import ConfigSpace as CS
+import ConfigSpace.hyperparameters as CSH
+
 logger = logging.getLogger('CUHK_AutoML')
 EVAL_ERROR_CODE = 'eval_error_250320181729'
 
@@ -64,6 +67,7 @@ class CUHKPrototypeTuner(Tuner):
         self.get_acq_opt_max_evals = None
         self.acq_opt_method = 'ga'
         self.eval_points_in_progress = []
+        self.config_space=CS.ConfigurationSpace(seed=random_seed)
 
     def update_search_space(self, search_space):
         """
@@ -89,6 +93,48 @@ class CUHKPrototypeTuner(Tuner):
         self.options = opt_options
         self.search_space = search_space
 
+        for var in self.search_space:
+            _type = str(self.search_space[var]["_type"])
+            if _type == 'choice':
+                self.config_space.add_hyperparameter(CSH.CategoricalHyperparameter(
+                    var, choices=self.search_space[var]["_value"]))
+            elif _type == 'randint':
+                self.config_space.add_hyperparameter(CSH.UniformIntegerHyperparameter(
+                    var, lower=self.search_space[var]["_value"][0], upper=self.search_space[var]["_value"][1] - 1))
+            elif _type == 'uniform':
+                self.config_space.add_hyperparameter(CSH.UniformFloatHyperparameter(
+                    var, lower=self.search_space[var]["_value"][0], upper=self.search_space[var]["_value"][1]))
+            elif _type == 'quniform':
+                self.config_space.add_hyperparameter(CSH.UniformFloatHyperparameter(
+                    var, lower=self.search_space[var]["_value"][0], upper=self.search_space[var]["_value"][1],
+                    q=self.search_space[var]["_value"][2]))
+            elif _type == 'loguniform':
+                self.config_space.add_hyperparameter(CSH.UniformFloatHyperparameter(
+                    var, lower=self.search_space[var]["_value"][0], upper=self.search_space[var]["_value"][1],
+                    log=True))
+            elif _type == 'qloguniform':
+                self.config_space.add_hyperparameter(CSH.UniformFloatHyperparameter(
+                    var, lower=self.search_space[var]["_value"][0], upper=self.search_space[var]["_value"][1],
+                    q=self.search_space[var]["_value"][2], log=True))
+            elif _type == 'normal':
+                self.config_space.add_hyperparameter(CSH.NormalFloatHyperparameter(
+                    var, mu=self.search_space[var]["_value"][1], sigma=self.search_space[var]["_value"][2]))
+            elif _type == 'qnormal':
+                self.config_space.add_hyperparameter(CSH.NormalFloatHyperparameter(
+                    var, mu=self.search_space[var]["_value"][1], sigma=self.search_space[var]["_value"][2],
+                    q=self.search_space[var]["_value"][3]))
+            elif _type == 'lognormal':
+                self.config_space.add_hyperparameter(CSH.NormalFloatHyperparameter(
+                    var, mu=self.search_space[var]["_value"][1], sigma=self.search_space[var]["_value"][2],
+                    log=True))
+            elif _type == 'qlognormal':
+                self.config_space.add_hyperparameter(CSH.NormalFloatHyperparameter(
+                    var, mu=self.search_space[var]["_value"][1], sigma=self.search_space[var]["_value"][2],
+                    q=search_space[var]["_value"][3], log=True))
+            else:
+                raise ValueError(
+                    'unrecognized type in search_space, type is {}'.format(_type))
+
     def generate_parameters(self, parameter_id, **kwargs):
         """
         Return a set of trial (hyper-)parameters, as a serializable object.
@@ -102,16 +148,17 @@ class CUHKPrototypeTuner(Tuner):
         if len(self.search_space) == 0:
             return []
         if self.trial_idx < self.num_init_evals:           
-            if self.trial_idx == 0 or not hasattr(self, 'init_qinfo'):
-                ret_dom_pts = sample_from_cp_domain(
-                    cp_domain=self.domain, 
-                    num_samples=self.num_init_evals,
-                    domain_samplers=None,
-                    euclidean_sample_type='latin_hc',
-                    integral_sample_type='latin_hc',
-                    nn_sample_type='latin_hc')
-                self.init_qinfo = ret_dom_pts
-            return self.qinfo2dict(self.init_qinfo[self.trial_idx]) if self.trial_idx < len(self.init_qinfo) else {}
+            # if self.trial_idx == 0 or not hasattr(self, 'init_qinfo'):
+            #     ret_dom_pts = sample_from_cp_domain(
+            #         cp_domain=self.domain, 
+            #         num_samples=self.num_init_evals,
+            #         domain_samplers=None,
+            #         euclidean_sample_type='latin_hc',
+            #         integral_sample_type='latin_hc',
+            #         nn_sample_type='latin_hc')
+            #     self.init_qinfo = ret_dom_pts
+            # return self.qinfo2dict(self.init_qinfo[self.trial_idx]) if self.trial_idx < len(self.init_qinfo) else {}
+            return self.config_space.sample_configuration().get_dictionary()
         else:
             # opt/multiobjective_gp_bandit.py: 190
             # _main_loop_pre() or _set_next_gp()

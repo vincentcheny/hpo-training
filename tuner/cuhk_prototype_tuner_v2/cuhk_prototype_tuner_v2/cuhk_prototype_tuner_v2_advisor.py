@@ -264,9 +264,9 @@ class Bracket:
 class CUHKPrototypeTunerV2ClassArgsValidator(ClassArgsValidator):
     def validate_class_args(self, **kwargs):
         Schema({
-            Optional('eta'): self.range('eta', int, 2, 9999),
-            Optional('min_budget'): self.range('min_budget', int, 0, 9999),
-            Optional('max_budget'): self.range('max_budget', int, 0, 9999),
+            # Optional('eta'): self.range('eta', int, 2, 9999),
+            # Optional('min_budget'): self.range('min_budget', int, 1, 9999),
+            Optional('num_epochs'): self.range('num_epochs', int, 1, 9999),
             Optional('random_seed'): self.range('random_seed', int, 0, 9999)
         }).validate(kwargs)
 
@@ -282,7 +282,7 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
     ----------
     min_budget: float
         The smallest budget to consider. Needs to be positive!
-    max_budget: float
+    num_epochs: float
         The largest budget to consider. Needs to be larger than min_budget!
         The budgets will be geometrically distributed
         :math:`a^2 + b^2 = c^2 \\sim \\eta^k` for :math:`k\\in [0, 1, ... , num\\_subsets - 1]`.
@@ -295,14 +295,14 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
     """
 
     def __init__(self,
-                 min_budget=1,
-                 max_budget=3,
-                 eta=3,
+                #  min_budget=1,
+                 num_epochs=3,
+                #  eta=3,
                  random_seed=0):
         super(CUHKPrototypeTunerV2, self).__init__()
-        self.min_budget = min_budget
-        self.max_budget = max_budget
-        self.eta = eta
+        self.min_budget = 1
+        self.max_budget = num_epochs
+        self.eta = math.floor(math.sqrt(num_epochs) + _epsilon)
         self.random_seed = random_seed
 
         # all the configs waiting for run
@@ -350,12 +350,6 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
         self.search_space = data
         self.moo_manager = MultiObjectiveOptimizerManager(random_seed=self.random_seed)
         assert isinstance(self.search_space, dict)
-        try:
-            assert all(self.search_space[var]["_type"] == "choice" for var in self.search_space)
-        except KeyError as ke:
-            raise KeyError(f'Error: Search space missed a key:{ke}')
-        except AssertionError as ae:
-            raise AssertionError(f'Some types in search space are not "choice".')
         self.moo_manager.update_search_space(self.search_space)
 
         # generate first brackets
