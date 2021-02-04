@@ -22,6 +22,7 @@ logger = logging.getLogger('CUHKPrototypeTunerV2_Advisor')
 
 _next_parameter_id = 0
 _KEY = 'TRIAL_BUDGET'
+_KEY_NUM_TRIAL_NEXT_ROUND = "NUM_TRIAL_NEXT_ROUND"
 _epsilon = 1e-6
 
 
@@ -111,7 +112,6 @@ class Bracket:
     def get_n_r(self, upper_bound=None):
         """return the values of n and r for the next round"""
         next_n = math.floor(self.n / self.eta**self.i + _epsilon)
-
         if self.max_concurrency > next_n: # when extra resources are available
             next_n = self.max_concurrency
             self.is_last_round = True # set current round to be the last round
@@ -119,11 +119,18 @@ class Bracket:
 
         # check resource-budget alignment
         # e.g. max_concurrency is 2 and next_n is 3, then next_n will be added to 4 for better alignment
-        if self.max_concurrency - next_n % self.max_concurrency > 0:
+        if next_n > self.max_concurrency and next_n % self.max_concurrency != 0:
             next_n = next_n + self.max_concurrency - next_n % self.max_concurrency
         if upper_bound != None and next_n > upper_bound:
             next_n = upper_bound
+
         return next_n, math.floor(self.r * self.eta**self.i +_epsilon)
+    
+    def get_num_ckpt_to_keep(self):
+        num = math.floor(self.n / self.eta**(self.i+1) + _epsilon)
+        if num < 1:
+            num = 0
+        return num
 
     def increase_i(self):
         """i means the ith round. Increase i by 1"""
@@ -169,6 +176,7 @@ class Bracket:
             Otherwise, we will return None.
         """
         global _KEY
+        global _KEY_NUM_TRIAL_NEXT_ROUND
         self.num_finished_configs[i] += 1
         logger.debug('bracket id: %d, round: %d %d, finished: %d, all: %d',
                      self.s, self.i, i, self.num_finished_configs[i], self.num_configs_to_run[i])
@@ -208,6 +216,7 @@ class Bracket:
                         break
 
                 params[_KEY] = next_r  # modify r
+                params[_KEY_NUM_TRIAL_NEXT_ROUND] = self.get_num_ckpt_to_keep()
                 # generate new id
                 increased_id = params_id.split('_')[-1]
                 new_id = create_bracket_parameter_id(
@@ -235,12 +244,14 @@ class Bracket:
             a list of hyperparameter configurations. Format: [[key1, value1], [key2, value2], ...]
         """
         global _KEY
+        global _KEY_NUM_TRIAL_NEXT_ROUND
         assert self.i == 0
         hyperparameter_configs = dict()
         for _ in range(num):
             params_id = create_bracket_parameter_id(self.s, self.i)
             params = manager.generate_parameters(r)
             params[_KEY] = r
+            params[_KEY_NUM_TRIAL_NEXT_ROUND] = self.get_num_ckpt_to_keep()
             hyperparameter_configs[params_id] = params
         self._record_hyper_configs(hyperparameter_configs)
         return [[key, value] for key, value in hyperparameter_configs.items()]
@@ -548,6 +559,7 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
                 
                 _parameters = self.parameters[data['parameter_id']]
                 budget = _parameters.pop(_KEY)
+                _parameters.pop(_KEY_NUM_TRIAL_NEXT_ROUND)
 
                 if budget not in self.completed_hyper_configs:
                     self.completed_hyper_configs[budget] = list()
@@ -595,6 +607,8 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
                 if keys == _KEY:
                     _budget = _params[keys]
                     budget_exist_flag = True
+                elif keys == _KEY_NUM_TRIAL_NEXT_ROUND:
+                    pass
                 else:
                     barely_params[keys] = _params[keys]
             if not budget_exist_flag:
