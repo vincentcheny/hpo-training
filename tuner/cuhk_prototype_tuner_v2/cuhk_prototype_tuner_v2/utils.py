@@ -6,6 +6,7 @@ import glob
 import hashlib
 import json
 from collections import defaultdict
+import nni
 
 def get_hash_code_from_config(config: dict):
 	obj = copy.deepcopy(config)
@@ -13,7 +14,7 @@ def get_hash_code_from_config(config: dict):
 		obj.pop('TRIAL_BUDGET')
 	if "NUM_TRIAL_NEXT_ROUND" in obj.keys():
 		obj.pop("NUM_TRIAL_NEXT_ROUND")
-	hash_code = hashlib.md5(str(obj).encode('utf-8')).hexdigest()[:16]
+	hash_code = hashlib.md5(str(sorted(obj.items())).encode('utf-8')).hexdigest()[:16]
 	return hash_code
 
 def delete_last_line(path):
@@ -67,6 +68,7 @@ def preprocess(tid: str, config: dict, path: str):
 	save_path = os.path.join(path, "-".join([tid, str(trial_budget), hash_code]))
 	remain_trial_budget = trial_budget
 	remain_trial_budget -= int(load_path.split('/')[-1].split('-')[1]) if len(load_path)>0 else 0
+	nni.report_intermediate_result(os.path.abspath(path))
 	return is_load, load_path, save_path, remain_trial_budget
 
 

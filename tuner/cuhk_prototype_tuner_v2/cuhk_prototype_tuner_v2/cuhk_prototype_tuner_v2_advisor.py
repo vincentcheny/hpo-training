@@ -9,6 +9,11 @@ import sys
 import math
 import logging
 import json_tricks
+import heapq
+import os
+import shutil
+import hashlib
+from collections import defaultdict
 from schema import Schema, Optional
 
 from nni import ClassArgsValidator
@@ -126,8 +131,8 @@ class Bracket:
 
         return next_n, math.floor(self.r * self.eta**self.i +_epsilon)
     
-    def get_num_ckpt_to_keep(self):
-        num = math.floor(self.n / self.eta**(self.i+1) + _epsilon)
+    def get_num_ckpt_to_keep(self, offset=1):
+        num = math.floor(self.n / self.eta**(self.i+offset) + _epsilon)
         if num < 1:
             num = 0
         return num
@@ -342,6 +347,8 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
         # record the unsatisfied parameter request from trial jobs
         self.unsatisfied_jobs = []
         self.max_concurrency = 1
+        self.save_dir = None
+        self.heap = defaultdict(list)
 
     def handle_initialize(self, data):
         """Initialize Tuner, including creating Bayesian optimization-based parametric models
@@ -535,6 +542,9 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
                 # update parameter_id in self.job_id_para_id_map
                 self.job_id_para_id_map[data['trial_job_id']] = ret['parameter_id']
                 send(CommandType.SendTrialJobParameter, json_tricks.dumps(ret))
+        elif data['type'] == MetricType.PERIODICAL:
+            assert 'value' in data
+            self.save_dir = data['value']
         else:
             assert 'value' in data
             value = self.extract_scalar_value(data['value'], extract_key='default', opposite_key='maximize')
@@ -564,10 +574,14 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
                 if budget not in self.completed_hyper_configs:
                     self.completed_hyper_configs[budget] = list()
                 self.completed_hyper_configs[budget].append({"param":_parameters, "value":data['value']})
-
+                if self.save_dir is not None:
+                    self.remove_unused_ckpt(data, _parameters, data['trial_job_id'], budget)
+                else:
+                    logging.warning("save_dir not found. Please set it by calling \'nni.report_intermediate_result(save_dir)\' if unused ckpt removal is needed.")
             elif data['type'] == MetricType.PERIODICAL:
-                self.brackets[s].set_config_perf(
-                    int(i), data['parameter_id'], data['sequence'], value)
+                pass
+                # self.brackets[s].set_config_perf(
+                #     int(i), data['parameter_id'], data['sequence'], value)
             else:
                 raise ValueError(
                     'Data type not supported: {}'.format(data['type']))
@@ -626,3 +640,60 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
             return -raw_data[extract_key]
         else:
             return raw_data[extract_key]
+    
+    def get_hash_code_from_config(self, config: dict):
+        if 'TRIAL_BUDGET' in config.keys():
+            config.pop('TRIAL_BUDGET')
+        if "NUM_TRIAL_NEXT_ROUND" in config.keys():
+            config.pop("NUM_TRIAL_NEXT_ROUND")
+        hash_code = hashlib.md5(str(sorted(config.items())).encode('utf-8')).hexdigest()[:16]
+        return hash_code
+
+    def remove_unused_ckpt(self, data, config, tid, budget):
+        assert self.save_dir is not None
+        s, _, _ = data['parameter_id'].split('_')
+        heap_size = self.brackets[int(s)].get_num_ckpt_to_keep(offset=0) # maximum number of ckpt to keep
+        assert isinstance(heap_size, int) and heap_size >= 0, f"Heap size should be a non-negative integer but get a value {heap_size}."
+        if len(self.heap.keys()) != 0: # check if self.heap corresponds to latest bracket
+            max_key = int(max(self.heap.keys(), key=int))
+            if budget < max_key: 
+                # enter a new bracket given that each round is run in series
+                self.heap = defaultdict(list)
+
+        result = data['value']
+        hash_code = self.get_hash_code_from_config(config)
+        save_path = os.path.join(self.save_dir, "-".join([tid, str(budget), hash_code]))
+        
+        if len(self.heap[budget]) < heap_size or heap_size == 0:
+            self.heap[budget].append([result, save_path])  # save current ckpt info
+        else:
+            is_keep = True
+            if 'maximize' in result.keys():
+                if (isinstance(result['maximize'], str) and result['maximize'] == 'default' \
+                    or isinstance(result['maximize'], list) and 'default' in result['maximize']):
+                    worst_result = heapq.nsmallest(1,self.heap[budget],key=lambda x:x[0]['default'])[0]
+                    if worst_result[0]['default'] >= result['default']:
+                        is_keep = False
+                else:
+                    raise ValueError(f"Unexpected value of {result}")
+            else:
+                worst_result = heapq.nlargest(1,self.heap[budget],key=lambda x:x[0]['default'])[0]
+                if worst_result[0]['default'] <= result['default']:
+                    is_keep = False
+            
+            if is_keep:
+                delete_path = worst_result[1]
+            else:
+                delete_path = save_path
+            if os.path.exists(delete_path):
+                if delete_path == worst_result[1]:
+                    self.heap[budget].remove(worst_result)
+                    self.heap[budget].append([result, save_path])  # replace the worst ckpt with current ckpt
+            else:
+                logging.warning(f"{tid} Checkpoint to be deleted not found:{delete_path}")
+                return
+            try:
+                # logging.info(f"{tid} Try to remove unused ckpt named {delete_path.split('/')[-1]}")
+                shutil.rmtree(delete_path)
+            except OSError as e:
+                logging.error("%s : %s" % (delete_path, e.strerror))
