@@ -280,8 +280,8 @@ class Bracket:
 class CUHKPrototypeTunerV2ClassArgsValidator(ClassArgsValidator):
     def validate_class_args(self, **kwargs):
         Schema({
-            # Optional('eta'): self.range('eta', int, 2, 9999),
-            # Optional('min_budget'): self.range('min_budget', int, 1, 9999),
+            Optional('eta'): self.range('eta', int, 2, 9999),
+            Optional('min_epochs'): self.range('min_epochs', int, 1, 9999),
             Optional('num_epochs'): self.range('num_epochs', int, 1, 9999),
             Optional('random_seed'): self.range('random_seed', int, 0, 9999)
         }).validate(kwargs)
@@ -311,14 +311,17 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
     """
 
     def __init__(self,
-                #  min_budget=1,
+                 min_epochs=1,
                  num_epochs=3,
-                #  eta=3,
+                 eta=1,
                  random_seed=0):
         super(CUHKPrototypeTunerV2, self).__init__()
-        self.min_budget = 1
+        self.min_budget = min_epochs
         self.max_budget = num_epochs
-        self.eta = math.floor(math.sqrt(num_epochs) + _epsilon)
+        if eta == 1:
+            self.eta = math.floor(math.sqrt(num_epochs) + _epsilon)
+        else:
+            self.eta = eta
         self.random_seed = random_seed
 
         # all the configs waiting for run
