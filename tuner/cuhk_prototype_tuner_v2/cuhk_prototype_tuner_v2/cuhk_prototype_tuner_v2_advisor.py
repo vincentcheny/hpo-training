@@ -108,6 +108,7 @@ class Bracket:
         self.is_last_round = False
 
     def update_max_concurrency(self, new_max_concurrency):
+        logging.info(f"[INFO] max_concurrency is updated to {max_concurrency}")
         self.max_concurrency = new_max_concurrency
 
     def is_completed(self):
@@ -117,22 +118,29 @@ class Bracket:
     def get_n_r(self, upper_bound=None):
         """return the values of n and r for the next round"""
         next_n = math.floor(self.n / self.eta**self.i + _epsilon)
+        logging.info(f"[INFO] in get_n_r, next_n:{next_n} self.n:{self.n} self.eta:{self.eta} self.i:{self.i}")
         if self.max_concurrency > next_n: # when extra resources are available
+            logging.info(f"[INFO] extra resource are available, self.max_concurrency:{self.max_concurrency} > next_n:{next_n}")
             next_n = self.max_concurrency
             self.is_last_round = True # set current round to be the last round
+            logging.info(f"[INFO] next_n:{next_n} self.r:{self.r} self.eta:{self.eta} self.s:{self.s}")
             return next_n, math.floor(self.r * self.eta**self.s +_epsilon)
 
         # check resource-budget alignment
         # e.g. max_concurrency is 2 and next_n is 3, then next_n will be added to 4 for better alignment
         if next_n > self.max_concurrency and next_n % self.max_concurrency != 0:
+            logging.info(f"[INFO] execute resource alignment, next_n:{next_n} self.max_concurrency:{self.max_concurrency}")
             next_n = next_n + self.max_concurrency - next_n % self.max_concurrency
+            
         if upper_bound != None and next_n > upper_bound:
+            logging.info(f"[INFO] execute upper_bound restricting, upper_bound:{upper_bound}")
             next_n = upper_bound
 
         return next_n, math.floor(self.r * self.eta**self.i +_epsilon)
     
     def get_num_ckpt_to_keep(self, offset=1):
         num = math.floor(self.n / self.eta**(self.i+offset) + _epsilon)
+        logger.info(f"[INFO] get_num_ckpt_to_keep, n:{self.n} eta:{self.eta} i:{self.i} offset:{offset} num:{num}")
         if num < 1:
             num = 0
         return num
@@ -183,7 +191,7 @@ class Bracket:
         global _KEY
         global _KEY_NUM_TRIAL_NEXT_ROUND
         self.num_finished_configs[i] += 1
-        logger.debug('bracket id: %d, round: %d %d, finished: %d, all: %d',
+        logger.info('bracket id: %d, round: %d %d, finished: %d, all: %d',
                      self.s, self.i, i, self.num_finished_configs[i], self.num_configs_to_run[i])
         
         if self.num_finished_configs[i] >= self.num_configs_to_run[i] and self.no_more_trial is False:
@@ -193,6 +201,7 @@ class Bracket:
             # finish this bracket
             if self.i > self.s or self.is_last_round:
                 current_r = math.floor(self.r * self.eta**self.s +_epsilon)
+                logging.info(f"[INFO] self.r:{self.r} * self.eta:{self.eta}**self.s:{self.s} current_r:{current_r} len(self.configs_perf[i]):{len(self.configs_perf[i])}")
                 self.no_more_trial = True
                 for params_id in self.configs_perf[i]:
                     params = self.hyper_configs[i][params_id]
@@ -204,11 +213,11 @@ class Bracket:
             this_round_perf = self.configs_perf[i] # [ {id: [seq, acc]}, {}, ... ]
             sorted_perf = sorted(
                 this_round_perf.items(), key=lambda kv: kv[1][1])
-            logger.debug(
-                'bracket %s next round %s, sorted hyper configs: %s', self.s, self.i, sorted_perf)
+            logger.info(
+                'bracket %s next round %s, %s sorted hyper configs: %s', self.s, self.i, len(sorted_perf), sorted_perf)
             next_n, next_r = self.get_n_r(upper_bound=len(sorted_perf))
 
-            logger.debug('bracket %s next round %s, next_n=%d, next_r=%d',
+            logger.info('bracket %s next round %s, next_n=%d, next_r=%d',
                          self.s, self.i, next_n, next_r)
             hyper_configs = dict()
             
@@ -275,6 +284,7 @@ class Bracket:
         self.configs_perf.append(dict())
         self.num_finished_configs.append(0)
         self.num_configs_to_run.append(len(hyper_configs))
+        logging.info(f"[INFO] self.num_finished_configs:{self.num_finished_configs} self.num_configs_to_run:{self.num_configs_to_run}")
         self.increase_i()
 
 class CUHKPrototypeTunerV2ClassArgsValidator(ClassArgsValidator):
@@ -322,6 +332,7 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
             self.eta = math.floor(math.sqrt(num_epochs) + _epsilon)
         else:
             self.eta = eta
+        logger.info(f"[INFO] Passing-in eta:{eta} self.eta:{self.eta} min_epochs:{min_epochs}")
         self.random_seed = random_seed
 
         # all the configs waiting for run
@@ -379,7 +390,7 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
 
     def generate_new_bracket(self):
         """generate a new bracket"""
-        logger.debug(
+        logger.info(
             'start to create a new SuccessiveHalving iteration, self.curr_s=%d', self.curr_s)
         if self.curr_s < 0:
             logger.info("s < 0, Finish this round of Hyperband in CUHKPrototypeTunerV2. Generate new round")
@@ -388,11 +399,12 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
             s=self.curr_s, s_max=self.s_max, eta=self.eta, max_budget=self.max_budget, max_concurrency=self.max_concurrency
         )
         next_n, next_r = self.brackets[self.curr_s].get_n_r()
-        logger.debug(
+        logger.info(
             'new SuccessiveHalving iteration, next_n=%d, next_r=%d', next_n, next_r)
 
         generated_hyper_configs = self.brackets[self.curr_s].get_hyperparameter_configurations(
             next_n, next_r, self.moo_manager)
+        logger.info(f"[INFO] len(generated_hyper_configs):{len(generated_hyper_configs)}")
         self.generated_hyper_configs = generated_hyper_configs
 
     def handle_request_trial_jobs(self, data):
@@ -408,6 +420,7 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
             self.brackets[self.curr_s].update_max_concurrency(self.max_concurrency)
         # Receive new request
         self.credit += data
+        logging.info(f"[INFO] self.credit updated to:{self.credit}")
         for _ in range(self.credit):
             self._request_one_trial_job()
 
@@ -444,6 +457,7 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
             'parameters': params[1]
         }
         self.parameters[params[0]] = params[1]
+        logger.info(f"[INFO] after _get_one_trial_job, len(self.generated_hyper_configs) is updated to:{len(self.generated_hyper_configs)}")
         return ret
 
     def _request_one_trial_job(self):
@@ -479,7 +493,7 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
             event: the job's state
             hyper_params: the hyperparameters (a string) generated and returned by tuner
         """
-        logger.debug('Tuner handle trial end, result is %s', data)
+        logger.info('Tuner handle trial end, result is %s', data)
         hyper_params = json_tricks.loads(data['hyper_params'])
         self._handle_trial_end(hyper_params['parameter_id'])
         if data['trial_job_id'] in self.job_id_para_id_map:
@@ -504,14 +518,25 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
         hyper_configs = self.brackets[int(s)].inform_trial_end(int(i), self.moo_manager, self.completed_hyper_configs)
 
         if hyper_configs is not None:
-            logger.debug(
-                'bracket %s next round %s, hyper_configs: %s', s, i, hyper_configs)
+            logger.info(
+                'bracket %s next round %s, %s hyper_configs: %s', s, i, len(hyper_configs), hyper_configs)
             self.generated_hyper_configs = self.generated_hyper_configs + hyper_configs
+            logging.info(f"[INFO] len(self.generated_hyper_configs):{len(self.generated_hyper_configs)}")
         # Finish this bracket and generate a new bracket
         else:
             if self.brackets[int(s)].no_more_trial:
                 self.curr_s -= 1
-                self.generate_new_bracket()
+                if self.curr_s < 0:
+                    logger.info("s < 0, Finish this round of Hyperband in CUHKPrototypeTunerV2. End training.")
+                    ret = {
+                        'parameter_id': '-1_0_0',
+                        'parameter_source': 'algorithm',
+                        'parameters': ''
+                    }
+                    send(CommandType.NoMoreTrialJobs, json_tricks.dumps(ret))
+                    return None
+                else:
+                    self.generate_new_bracket()
         self._send_new_trial()
 
     def handle_report_metric_data(self, data):
@@ -527,7 +552,7 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
         ValueError
             Data type not supported
         """
-        logger.debug('handle report metric data = %s', data)
+        logger.info('handle report metric data = %s', data)
         if 'value' in data:
             data['value'] = json_tricks.loads(data['value'])
         if data['type'] == MetricType.REQUEST_PARAMETER:
@@ -553,7 +578,7 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
             value = self.extract_scalar_value(data['value'], extract_key='default', opposite_key='maximize')
             assert 'parameter_id' in data
             s, i, _ = data['parameter_id'].split('_')
-            logger.debug('bracket id = %s, metrics value = %s, type = %s', s, value, data['type'])
+            logger.info('bracket id = %s, metrics value = %s, type = %s', s, value, data['type'])
             s = int(s)
 
             # add <trial_job_id, parameter_id> to self.job_id_para_id_map here,
@@ -580,7 +605,7 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
                 if self.save_dir is not None:
                     self.remove_unused_ckpt(data, _parameters, data['trial_job_id'], budget)
                 else:
-                    logging.warning("save_dir not found. Please set it by calling \'nni.report_intermediate_result(save_dir)\' if unused ckpt removal is needed.")
+                    logging.error("save_dir not found. Please set it by calling \'nni.report_intermediate_result(save_dir)\' if unused ckpt removal is needed.")
             elif data['type'] == MetricType.PERIODICAL:
                 pass
                 # self.brackets[s].set_config_perf(
@@ -666,9 +691,10 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
         result = data['value']
         hash_code = self.get_hash_code_from_config(config)
         save_path = os.path.join(self.save_dir, "-".join([tid, str(budget), hash_code]))
-        
+        logging.info(f"{tid} heap_size:{heap_size} budget:{budget} i:{self.brackets[int(s)].i} len(self.heap[budget]) < heap_size:{len(self.heap[budget]) < heap_size}, heap_size == 0:{heap_size == 0}")
         if len(self.heap[budget]) < heap_size or heap_size == 0:
             self.heap[budget].append([result, save_path])  # save current ckpt info
+            logging.info(f"{tid} Keep the current ckpt")
         else:
             is_keep = True
             if 'maximize' in result.keys():
@@ -676,27 +702,36 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
                     or isinstance(result['maximize'], list) and 'default' in result['maximize']):
                     worst_result = heapq.nsmallest(1,self.heap[budget],key=lambda x:x[0]['default'])[0]
                     if worst_result[0]['default'] >= result['default']:
+                        logging.info(f"worst_result[0]['default']:{worst_result[0]['default']}>=result['default']:{result['default']}")
                         is_keep = False
                 else:
                     raise ValueError(f"Unexpected value of {result}")
             else:
                 worst_result = heapq.nlargest(1,self.heap[budget],key=lambda x:x[0]['default'])[0]
                 if worst_result[0]['default'] <= result['default']:
+                    logging.info(f"worst_result[0]['default']:{worst_result[0]['default']}<=result['default']:{result['default']}")
                     is_keep = False
             
             if is_keep:
                 delete_path = worst_result[1]
             else:
                 delete_path = save_path
+            logging.info(f"{tid} is_keep:{is_keep} worst_result[1]:{worst_result[1].split('/')[-1]} save_path:{save_path.split('/')[-1]}")
             if os.path.exists(delete_path):
                 if delete_path == worst_result[1]:
                     self.heap[budget].remove(worst_result)
                     self.heap[budget].append([result, save_path])  # replace the worst ckpt with current ckpt
             else:
-                logging.warning(f"{tid} Checkpoint to be deleted not found:{delete_path}")
+                logging.info(f"{tid} Checkpoint to be deleted not found:{delete_path}")
+                # logging.warning(f"Try to delete the ckpt with same hash code.")
+                # delete_pattern = '*' + hash_code + '*'
+                # delete_paths = glob.glob(os.path.join(self.save_dir, delete_pattern))
                 return
             try:
-                # logging.info(f"{tid} Try to remove unused ckpt named {delete_path.split('/')[-1]}")
+                logging.info(f"{tid} Try to remove unused ckpt at {delete_path.split('/')[-1]}")
                 shutil.rmtree(delete_path)
+                l_dir = os.listdir(self.save_dir)
+                output = [l.split('-')[0] for l in l_dir]
+                logging.info(f"len(output):{len(output)}<=len(self.heap[budget])?:{len(output)<=len(self.heap[budget])} output:{output}")
             except OSError as e:
                 logging.error("%s : %s" % (delete_path, e.strerror))

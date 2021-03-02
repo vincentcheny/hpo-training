@@ -5,7 +5,7 @@ import setuptools
 
 setuptools.setup(
     name = 'CUHKPrototypeTunerV2',
-    version = '2.1.1',
+    version = '2.1.2',
     packages = setuptools.find_packages(exclude=['*test*']),
 
     python_requires = '>=3.6',
