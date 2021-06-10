@@ -108,7 +108,7 @@ class Bracket:
         self.is_last_round = False
 
     def update_max_concurrency(self, new_max_concurrency):
-        logging.info(f"[INFO] max_concurrency is updated to {max_concurrency}")
+        logging.info(f"[INFO] max_concurrency is updated to {new_max_concurrency}")
         self.max_concurrency = new_max_concurrency
 
     def is_completed(self):
