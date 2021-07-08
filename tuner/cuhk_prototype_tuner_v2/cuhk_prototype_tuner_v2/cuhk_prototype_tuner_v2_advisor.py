@@ -680,7 +680,8 @@ class CUHKPrototypeTunerV2(MsgDispatcherBase):
     def remove_unused_ckpt(self, data, config, tid, budget):
         assert self.save_dir is not None
         s, _, _ = data['parameter_id'].split('_')
-        heap_size = self.brackets[int(s)].get_num_ckpt_to_keep(offset=0) # maximum number of ckpt to keep
+        reserve_percent = 0.5
+        heap_size = int((budget + 1) / reserve_percent) # maximum number of ckpt to keep
         assert isinstance(heap_size, int) and heap_size >= 0, f"Heap size should be a non-negative integer but get a value {heap_size}."
         if len(self.heap.keys()) != 0: # check if self.heap corresponds to latest bracket
             max_key = int(max(self.heap.keys(), key=int))
