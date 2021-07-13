@@ -37,7 +37,7 @@ class MultiObjectiveOptimizerManager():
         self.num_objectives = 0
         self.options = Namespace()
         self.config_space=CS.ConfigurationSpace(seed=random_seed)
-        self.optimizers = dict()
+        self.optimizers = None
     
     def update_search_space(self, search_space):
         """
@@ -129,14 +129,14 @@ class MultiObjectiveOptimizerManager():
         return multiobjective_gp_bandit_args + exd_core_args + gp_bandit_args
     
     def generate_parameters(self, budget):
-        if budget not in self.optimizers:
-            self.optimizers[budget] = MultiObjectiveOptimizer(self)
-        return self.optimizers[budget].generate_parameters()
+        if self.optimizers is not None:
+            self.optimizers = MultiObjectiveOptimizer(self)
+        return self.optimizers.generate_parameters()
     
     def receive_trial_result(self, parameters, value, budget):
-        if budget not in self.optimizers:
-            self.optimizers[budget] = MultiObjectiveOptimizer(self)
-        self.optimizers[budget].receive_trial_result(parameters, value)
+        if self.optimizers is not None:
+            self.optimizers = MultiObjectiveOptimizer(self)
+        self.optimizers.receive_trial_result(parameters, value)
 
 
 class MultiObjectiveOptimizer():
